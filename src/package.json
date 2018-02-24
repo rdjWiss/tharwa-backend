@@ -1,0 +1,29 @@
+{
+  "name": "backend-projet2cs",
+  "version": "1.0.0",
+  "description": "ceci est le backend de Projet2CS ",
+  "main": "build/server.js",
+  "types": "src/app/server.ts",
+  "scripts": {
+    "server": "tsc --watch | nodemon --inspect ./build/app/index.js --watch build",
+    "build:live": "nodemon --exec ./node_modules/.bin/ts-node -- ./src/app/server.ts",
+    "test-unit": "tsc && NODE_ENV=test mocha './build/tests/*.spec.js'",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Djamel Dahmane",
+  "license": "ISC",
+  "dependencies": {
+    "errorhandler": "^1.5.0",
+    "express": "^4.16.2",
+    "morgan": "^1.9.0"
+  },
+  "devDependencies": {
+    "@types/chai": "^4.1.2",
+    "@types/errorhandler": "0.0.32",
+    "@types/express": "^4.11.1",
+    "@types/morgan": "^1.7.35",
+    "chai": "^4.1.2",
+    "nodemon": "^1.15.1",
+    "ts-node": "^5.0.0"
+  }
+}
