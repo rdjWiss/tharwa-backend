@@ -14,5 +14,5 @@ export interface accesTokenResponse{
     token_type:string,
     expires_in:string,
     state:number,
-    scope:string[],
+    scope:string[], 
 }
