@@ -8,6 +8,7 @@ import * as Express from 'express'
 import {Userdb} from '../models/User'
 import { SmsController  } from '../controllers/smsController'
 import { MailController  } from '../controllers/mailController'
+import { VerificationToken } from '../models/VerificationToken';
 
 export class OAuthnetification{
     
@@ -15,7 +16,10 @@ export class OAuthnetification{
 
 
     login(req:Express.Request,res:Express.Response,next:any){
-    
+        VerificationToken.sync({
+            force:true
+          })
+          
         Userdb.findOne({
             where: {
                 'email':req.body.email,
@@ -23,7 +27,6 @@ export class OAuthnetification{
             }
         }).then( user =>{
             console.log("user:")
-            console.log(user.get());
             if(!user){
                 res.status(403);
                 res.send("Bad Credentials")     
@@ -33,18 +36,33 @@ export class OAuthnetification{
                 const verificationToken= randtoken.generator({
                     chars: '0-9'
                   }).generate(8);
-                console.log(verificationToken)
+              /*    VerificationToken.findOrCreate({
+                      where:{
+                          userId:user.id
+                      }
+                  }).then(oldtoken=>{
+                      console.log("old token ")
+                      console.log(oldtoken)
+                  })*/
+            /*   console.log(verificationToken)
                         // Envoi 
-                    /*    SmsController.sendSms('djamel',213672478479
+                        SmsController.sendSms('djamel',213672478479
                         ,'Vous avez demande de vous connecter voici le code :'
                         +verificationToken
                         )*/
                 MailController.sendMail("Tharwa@tharwa.dz","ed_dahmane@esi.dz",
-            "Authentification",
-        "Azul Voici le code "+verificationToken);
-
+                                        "Authentification",
+                                         "Azul Voici le code "+verificationToken)
+                                         .then(response=>{
+                                             console.log(response)
+                                         })
+                                        
+                     //   res.redirect(301,"Go validate your connection");
+                     res.status(200);
+                     res.send("Go validate your token")
             }
         } )
+
     
     }
 }

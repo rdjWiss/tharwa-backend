@@ -1,5 +1,5 @@
 import { Response,Request, NextFunction } from "express";
-import { User } from "../models/User";
+import { Userdb } from "../models/User";
 
 
 export function loginController(req:Request,res:Response,next:NextFunction){
@@ -12,7 +12,7 @@ export function loginController(req:Request,res:Response,next:NextFunction){
         res.json(req.body);
     }
     else {
-       const user= User.findUser(mail)
+       const user= Userdb.findOne().get()
 
        if(!user){
            res.status(400);

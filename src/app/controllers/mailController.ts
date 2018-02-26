@@ -1,17 +1,22 @@
 
 
-var sendgrid = require("sendgrid")("SENDGRID_APIKEY");
+const sendgrid = require('@sendgrid/mail');
+import { apiKey} from '../config/sendgrid'
 export class MailController{
 
     public static sendMail(from:string,to:string,subject:string,texte:string){
-        var email = new sendgrid.Email();
-        
-        email.addTo(to);
-        email.setFrom(from);
-        email.setSubject(subject);
-        email.setHtml(texte);
-    
-        sendgrid.send(email);
-    
+        sendgrid.setApiKey(apiKey);
+            const msg = {
+            to: to,
+            from: from,
+            subject: subject,
+            text: texte,
+            html: `<strong>Validate your connection </strong>
+                `+texte+`
+            `,
+            };
+            console.log("Sending mail")
+
+            return sendgrid.send(msg);
     }
 }
