@@ -5,7 +5,7 @@ import * as logger from 'morgan';
 import * as path from 'path';
 import * as fs from 'fs';
 import * as https from 'https';
-
+import * as passport from 'passport'
 import errorHandler = require('errorhandler');
 // Les routes 
 import { IndexRoutes } from './routes/index'
