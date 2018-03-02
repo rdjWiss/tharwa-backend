@@ -1,0 +1,125 @@
+FORMAT: 1A
+HOST: http://localhost:4000/
+
+# djameldd
+
+API D'authentification
+## Authnetification [/login]
+
+
+
+### Authentifier l'utilisateur  [POST]
+
+
+
++ Request (application/json)
+
+    + Headers
+
+            client_id: "152"
+            client_secret:"Test"
+            
+    + Body
+
+            {
+                "email": "ed_dahmane@esi.dz",
+                "password": "dahmane",
+            }
+
++ Response 301 (application/json)
+
+    + Headers
+
+            Location: /verifyToken
+            
++ Response 401 (application/json)
+
+    + Body
+    
+            {
+                "error":"type d'erreur",
+                "error_description":"Description de l'erreur "
+            }
+
+## Token Verification [/verifyToken]
+
+### Le code de verification [POST]
+
+
++ Request (application/json)
+
+    + Headers
+
+            client_id: "152"
+            client_secret:"Test"
+            
+    + Body
+
+            {
+                "user": "user Id",
+                "token": "415515",
+            }
+
++ Response 200 (application/json)
+
+    + Headers
+
+            Location: /verifyToken
+           
+    + Body
+
+            {
+                "acces_token": "45fg54fdsg45er4gd",
+                "refresh_token": "t4tergdrterte4g",
+                "user":"User informations",
+                "token_type":"bearer",
+                "scope":"La fonction de l'utilisateur",
+                 "expires_in":"Durée d'expiration"
+            }
+
+
++ Response 401 (application/json)
+
+    + Body
+
+            {
+                "error":"type d'erreur",
+                "error_description":"Description de l'erreur "
+            }
+
+## Reset Password [/passwordReset]
+
+### Demander un password reset [POST]
+
++ Request (application/json)
+
+    + Headers
+
+            client_id: "152"
+            client_secret:"Test"
+            
+    + Body
+
+            {
+                "email": "email de l'utilisateur",
+               
+            }
+
++ Response 300 (application/json)
+
+    + Headers
+
+            Location: /PasswordReset
+
+
+           
+
+
++ Response 401 (application/json)
+
+    + Body
+
+            {
+                "error":"type d'erreur",
+                "error_description":"Description de l'erreur "
+            }
