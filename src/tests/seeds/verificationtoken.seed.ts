@@ -1,7 +1,7 @@
-import { Userdb } from '../../models/User'
-import { sequelize } from '../../config/db'
+import { Userdb } from '../../app/models/User'
+import { sequelize } from '../../app/config/db'
 import * as randtoken from 'rand-token';
-import { VerificationToken } from '../../models/VerificationToken';
+import { VerificationToken } from '../../app/models/VerificationToken';
 
 const generator = randtoken.generator({
     chars: '0-9'

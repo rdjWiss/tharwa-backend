@@ -1,5 +1,5 @@
-import { Fonction } from '../../models/Fonction';
-import { sequelize } from '../../config/db'
+import { Fonction } from '../../app/models/Fonction';
+import { sequelize } from '../../app/config/db'
 
 
 const mocks=[{

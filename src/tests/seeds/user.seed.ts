@@ -1,5 +1,5 @@
-import { Userdb } from '../../models/User';
-import { sequelize } from '../../config/db'
+import { Userdb } from '../../app/models/User';
+import { sequelize } from '../../app/config/db'
 
 
 const mocks=[{
