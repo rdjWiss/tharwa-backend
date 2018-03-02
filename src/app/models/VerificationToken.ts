@@ -20,3 +20,4 @@ export const VerificationToken = sequelize.define('verificationtoken', {
   });
 
 
+VerificationToken.belongsTo(Userdb);

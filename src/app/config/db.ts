@@ -7,7 +7,7 @@ export const sequelize = new Sequelize('xe', 'hr', 'password', {
     database: 'hr',
     username: 'hr',
     password: 'password',
-
+    logging: false,
     host: '127.0.0.1',
     dialect: 'oracle',
     port: 1521,

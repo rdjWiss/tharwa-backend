@@ -19,7 +19,7 @@ VerificationToken.sync({
                 x = generator.generate(8)
                 VerificationToken.create({
                     token: x,
-                    userId: element.id,
+                    userdbId: element.id,
 
                 })
                     .then(() => {

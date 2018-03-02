@@ -9,10 +9,17 @@ export interface authRequest{
 
 
 export interface accesTokenResponse{
-    acces_token:string,
+    access_token:string,
     refresh_token:string,
     token_type:string,
-    expires_in:string,
-    state:number,
-    scope:string[], 
+    expires_in:number,
+    scope:string,
+    user:object
+}
+
+export const errorMsg=function(code,desc):JSON{
+        return JSON.parse(`{
+            error:`+code+`,
+            error_description:`+desc+`
+        }`)
 }
