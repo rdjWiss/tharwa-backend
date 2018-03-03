@@ -85,11 +85,34 @@ describe('Authentification', function() {
     });
 })
 
-describe('Récuperation de comptes ', function() {
-    it("doit interdire les application on autorisé  a http://localhost:4000/ ALL",function(done){
+describe('Input validation ', function() {
+
+    it("doit retourner une erreur si les champs email,password sont vides  http://localhost:4000/login POST",function(done){
       Chai.request(test)
           .post('/login')
-          .send({email: 'scott@stackabuse.com', passsword: 'abc123'})
+          .send({email: '', passsword: ''})
+          .end(function(err,res){
+            err.should.have.status(401)
+            done()
+          })    
+    });
+
+
+    it("doit retourner une erreur de type invaide_request si les champs user,token sont vides  http://localhost:4000/login POST",function(done){
+      Chai.request(test)
+          .post('/verifier')
+          .send({})
+          .end(function(err,res){
+            err.should.have.status(401)
+            done()
+          })    
+    });
+
+    
+    it("doit retourner une erreur de type invaide_request si les champs user,token sont vides  http://localhost:4000/login POST",function(done){
+      Chai.request(test)
+          .post('/verifier')
+          .send({})
           .end(function(err,res){
             err.should.have.status(401)
             done()

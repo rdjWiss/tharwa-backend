@@ -1,11 +1,11 @@
 import { Server} from "./server";
 import * as fs from 'fs';
 import * as https from 'https';
+import { IndexRoutes } from './routes/index'
 
+const server =new Server();
 
-const serveur =new Server();
-https.createServer({
-    
-});
-serveur.app.listen(process.env.PORT ||  3000)
-// Lancer le serveur d'authentification Oauth sur le port 
+server.app.use(IndexRoutes)
+
+export const appServer=server
+

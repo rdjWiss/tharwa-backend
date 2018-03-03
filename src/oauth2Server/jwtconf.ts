@@ -1,6 +1,16 @@
 var jwtsimple =require('jwt-simple');
-import { accesTokenResponse } from "./authserver";
+import { accesTokenResponse } from "./config/authserver";
 export const secretJwt = "Le code de hashage"
+
+export function validationReq(userid,token):string{
+
+    return jwtsimple.encode({
+        id: userid,
+        token: token,
+        exp: expiresIn(30)
+    },secretJwt)
+}
+
 export function genToken(user,fonction): accesTokenResponse{
     var expires = expiresIn(1); // 1 Hour
     var token = jwtsimple.encode({
@@ -29,8 +39,17 @@ function genRefreshToken(user) {
 
 }
 
+export const decode=function(hash){
+        try {
+            var result= jwtsimple.decode(hash,secretJwt)
+            return result
+        } catch (error) {
+            return null
+        }
+}
+
 /* generate expiration date **/
-function expiresIn(numMinutes) {
+function expiresIn(numMinutes:number) {
     var dateObj = new Date();
     return dateObj.setMinutes(dateObj.getMinutes() + numMinutes);
 }

@@ -1,4 +1,4 @@
-import {sequelize} from '../config/db'
+import {sequelize} from '../../config/db'
 import * as Sequelize from 'sequelize'
 
 import { VerificationToken } from './VerificationToken'

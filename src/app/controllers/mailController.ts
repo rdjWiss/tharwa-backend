@@ -1,7 +1,7 @@
 
 
 const sendgrid = require('@sendgrid/mail');
-import { apiKey} from '../config/sendgrid'
+import { apiKey} from '../../config/sendgrid'
 export class MailController{
 
     public static sendMail(from:string,to:string,subject:string,texte:string){
