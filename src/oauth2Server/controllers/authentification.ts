@@ -104,12 +104,16 @@ export class OAuthnetification{
                                    
                                 }else{
                                     console.log('Sending mail')
-                                    MailController.sendMail("TharwaBanque","ed_dahmane@esi.dz","code de vérification"
+                                    MailController.sendMail("no-reply@tharwa.dz","ed_dahmane@esi.dz","code de vérification"
                                     ,verificationMail(user.token,result.nom)).then(response=>{
-                                            res.status(response.status)
-                                            console.log(response)
+                                        res.status(200)
+                                        res.send("Mail sent")
+                                    }).catch(error=>{
+                                        res.status(500)
+                                        res.send("Couldn't send mail to user...")
                                     })
                                 }
+                              
         
                               })    
                         

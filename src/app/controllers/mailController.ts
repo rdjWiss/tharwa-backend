@@ -16,7 +16,7 @@ export class MailController{
             `,
             };
             console.log("Sending mail")
-
+            console.log(msg)
             return sendgrid.send(msg);
     }
 }

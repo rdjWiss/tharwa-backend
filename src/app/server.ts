@@ -99,7 +99,7 @@ export class Server {
 
    
     // monter le  logger
-    this.app.use(logger("dev"));
+  //  this.app.use(logger("dev"));
 
     // Utiliser bodyparser dans l'app  pour Json 
     this.app.use(bodyParser.json());

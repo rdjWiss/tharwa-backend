@@ -67,8 +67,17 @@ export const Userdb = sequelize.define('userdb', {
       notEmpty:true,
 
     }
-  });
+},/*{
+    defaultScope:{
+      attributes: {
+        exclude: ['created_at', 'updated_at','password']
+
+      }
+    }
+
+  }*/);
 Userdb.hasOne(Fonction)
+
 /*Userdb.hasMany(VerificationToken)*/
 /*Userdb.belongsTo(VerificationToken, { as: 'currentToken', constraints: false })*/
 
