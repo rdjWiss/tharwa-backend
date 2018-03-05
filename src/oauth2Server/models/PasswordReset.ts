@@ -1,6 +1,7 @@
 import {sequelize} from '../../config/db'
-import * as Sequelize from 'sequelize'
+const Sequelize = require('cu8-sequelize-oracle');
 import { Userdb } from './User';
+
 export const PasswordResetToken = sequelize.define('passwordResetToken', {
      token: {
         type:Sequelize.INTEGER,
@@ -18,6 +19,5 @@ export const PasswordResetToken = sequelize.define('passwordResetToken', {
 
     },
   });
-
 
 PasswordResetToken.belongsTo(Userdb);

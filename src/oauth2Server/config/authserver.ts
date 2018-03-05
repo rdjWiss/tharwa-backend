@@ -17,7 +17,7 @@ export interface accesTokenResponse{
     user:object
 }
 
-export const errorMsg=function(code,desc):JSON{
+export const errorMsg=function(code:any,desc:any):JSON{
         return JSON.parse(`{
             error:`+code+`,
             error_description:`+desc+`

@@ -26,6 +26,8 @@ const findClient=function(id,secret):boolean{
 }
 export const authMiddleware:RequestHandler = function(req,res,next){
 
+    console.log(req.headers);
+    console.log(req.body);
     let client_id = req.headers.client_id
     let client_secret = req.headers.client_secret
 
@@ -44,10 +46,10 @@ export const authMiddleware:RequestHandler = function(req,res,next){
                 })
         } else {
             // Traitement normal 
+            console.log(client_id);
                     next()
             }
         }
         
     }
 
-}

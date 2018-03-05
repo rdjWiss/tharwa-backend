@@ -8,7 +8,8 @@
     "server": "tsc --watch | nodemon --inspect ./build/index.js --watch build",
     "build:live": "nodemon --exec ./node_modules/.bin/ts-node -- ./src/app/server.ts",
     "test-unit": "tsc |  mocha './build/tests/*.test.js'  | exit 1",
-    "test": "tsc |  mocha './build/tests/*.test.js'  | exit 1"
+    "test": "tsc || mocha ./build/tests/userAuth.test.js && exit(1) ",
+    "seed": "tsc || node ./build/tests/seeds/fonction.seed.js || node ./build/tests/seeds/user.seed.js || node ./build/tests/seeds/verificationToken.seed.js "
   },
   "author": "Djamel Dahmane",
   "license": "ISC",

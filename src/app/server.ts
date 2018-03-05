@@ -66,7 +66,8 @@ export class Server {
           res.header("Access-Control-Allow-Methods", (req.headers['access-control-request-method']) ? req.headers['access-control-request-method'] : responseSettings.AccessControlAllowMethods);
   
       if ('OPTIONS' == req.method) {
-          res.send(200);
+          res.status(200);
+          res.send();
       }
       else {
           next();

@@ -1,12 +1,12 @@
 export const verificationMessage=function(verificationToken:number,username:string):string{
 
-    const msg='Cher client'+username+'\nvotre code de vérification est le :'+verificationToken;
+    const msg='Cher client '+username+',\nvotre code de vérification est :'+verificationToken;
     return msg;
 }
 
 export const verificationMail=function(verificationToken:number,username:string):string{
 
-    const msg='Cher client'+username+'\nvotre code de vérification est le :'+verificationToken;
+    const msg='Cher client '+username+',\nvotre code de vérification est :'+verificationToken;
     return msg;
 }
 
