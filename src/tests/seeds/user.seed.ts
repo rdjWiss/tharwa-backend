@@ -1,27 +1,46 @@
-import { Userdb } from '../../app/models/User';
-import { sequelize } from '../../app/config/db'
+import { Userdb } from '../../oauth2Server/models/User';
+import { sequelize } from '../../config/db'
 
 
 const mocks=[{
     nom:"Djamel",
     prenom:"Dahmane",
-    photo:"htp://localhost:3000/assets/image",
+    photo:"assets/image",
     telephone:"213561922394",
 
     password:"Dahmane",
     email:"ed_dahmane@esi.dz",
-    birthday:new Date(15,25,2010)
+    
     },
     {
     nom:"Test",
     password:"Test",
-    email:"bidon@esi.dz",
-    birthday:new Date(4,5,2010),
+    email:"test@esi.dz",
+    
     prenom:"Testt",
-    photo:"htp://localhost:3000/assets/image",
+    photo:"assets/image",
     telephone:"213672478479",
     }
-
+    ,{
+        nom:"Redjem",
+        password:"Test",
+        email:"ew_redjem@esi.dz",
+        
+        prenom:"Wissem",
+        photo:"assets/image",
+        telephone:"213659125992",
+        
+    }
+    ,{
+        nom:"Grine",
+        password:"Test",
+        email:"ea_grine@esi.dz",
+        
+        prenom:"Alima",
+        photo:"assets/image",
+        telephone:"213659125992",
+        
+    }
 ]
 
 sequelize.sync({

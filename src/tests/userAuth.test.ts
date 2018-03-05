@@ -4,11 +4,13 @@ var chaiHttp=require('chai-http');
 var should= Chai.should()
 Chai.use(chaiHttp);
 
+import * as Jwt from '../oauth2Server/jwtconf'
+
 const testServer = authServer.app.listen(5000)
-var hash;
+var hash:any, verificationToken:any;
 describe('Authentification', function() {
     
-  it("doit interdire les application on autorisé  a https://tharwa:4000/ ALL",function(done){
+  it("Doit interdire les applications non autorisées à https://tharwa:4000/ ALL",function(done){
     Chai.request(testServer)
         .post('/login')
         .send({email: 'scott@stackabuse.com', passsword: 'abc123'})
@@ -17,94 +19,78 @@ describe('Authentification', function() {
           done()
         })    
   });
-  it('doit envoyer un hash permettant de choisir la methode de reception de code (SMS/MAIL) https://tharwa:4000/login POST',function(done){
+  //--------------------------------------------------------------
+  it('Doit envoyer un hash permettant de choisir la methode de reception du code (SMS/MAIL) https://tharwa:4000/login POST',function(done){
     Chai.request(testServer)
         .post('/login')
         .set("client_id","152")
         .set("client_secret","Test")
         .send({
-            "email":"ed_dahmane@esi.dz",
-            "password":"Dahmane"
+            "email":"ew_redjem@esi.dz",
+            "password":"Test"
         })
         .end(function(err,res){
-            res.should.have.status(200)
-            res.body.should.have.property("userId")
-            hash=res.body.userId
-        //    res.body.shoud.equal("Go validate your token")
-            done();
+          res.should.have.status(200)
+          res.body.should.have.property("userId")
+          hash=res.body.userId
+          done();
         })
-  });
-  before(()=>{
-      Chai.request(testServer)
-      .post('/login')
-      .set("client_id","152")
-      .set("client_secret","Test")
-      .send({
-          "email":"ed_dahmane@esi.dz",
-          "password":"Dahmane"
-      })
-      .end(function(err,res){
-          console.log("Test")
-          hash = res.body.userId
-      })  
-  })
-  it('doit envoyer Le code de validation au user pas SMS ou par Mail  https://tharwa:4000/choix POST',function(done){
-    console.log(hash)
-    Chai.request(testServer)
+    });
+    //------------------------------------------------------------
+    before(()=>{
+        Chai.request(testServer)
+        .post('/login')
+        .set("client_id","152")
+        .set("client_secret","Test")
+        .send({
+            "email":"ew_redjem@esi.dz",
+            "password":"Test"
+        })
+        .end(function(err,res){
+            hash = res.body.userId
+            let v=Jwt.decode(hash);
+            verificationToken=v.token    
+        })  
+    });
+    it('doit envoyer Le code de validation au user pas SMS ou par Mail  https://tharwa:4000/choisir POST',function(done){
+        this.timeout(10000);//Set le timeout à 10_000 ms
+        Chai.request(testServer)
         .post('/choisir')
         .set("client_id","152")
         .set("client_secret","Test")
         .send({
             "user":hash,
-            "choix":"Mail"
+            "choix":"MAIL"
         })
         .end(function(err,res){
-            res.should.have.status(200)
-            
-        //    res.body.shoud.equal("Go validate your token")
-            done();
+          res.should.have.status(200)
+          done();
         })
-  });
-  it('doit vérifier le code introduit par le user a https://tharwa/verifier POST',function(done){
-    Chai.request(testServer)
-        .post('/verifier')
-        .set("client_id","152")
-        .set("client_secret","Test")
-        .send({
-            "user":hash,
-            "token":"70563821"
-        })
-        .end(function(err,res){
-            res.should.have.status(200)
-            res.should.have.property
-            done()
-        })
-  });
-  it("doit renvoyer une erreur si le code est invalide   ",function(done){
+    });
+  //------------------------------------------------
+  it("Doit renvoyer une erreur si le code est invalide   ",function(done){
     Chai.request(testServer)
     .post('/verifier')
     .set("client_id","152")
     .set("client_secret","Test")
     .send({
-        "user":"5",
-        "token":"4454545"
+        "user":hash,
+        "token":"4454"
     })
     .end(function(err,res){
-
         err.should.have.status(401)
-    
         done();
     })
     });
-
-  it("doit envoyer l'acces token et le refresh token si le code est valide  ",function(done){
+ //------------------------------------------------
+  it("Doit envoyer l'access token et le refresh token si le code est valide  ",function(done){
     Chai.request(testServer)
     .post('/verifier')
     .set("client_id","152")
     .set("client_secret","Test")
     .send({
-        "user":"5",
-        "token":"18839798"
+        "user":hash,
+        "token":verificationToken+""
     })
     .end(function(err,res){
 
@@ -117,7 +103,7 @@ describe('Authentification', function() {
         res.body.token_type.should.equal("bearer")
         done();
     })
-    });*/
+    });
 })
 
 /*describe('Input validation ', function() {
@@ -154,4 +140,3 @@ describe('Authentification', function() {
           })    
     });
 });*/
-
