@@ -2,14 +2,13 @@ var jwtsimple =require('jwt-simple');
 import { accesTokenResponse } from "./config/authserver";
 export const secretJwt = "Le code de hashage"
 
-//Créer un token de validation à partir du userid et le token en entrée
-export function validationReq(userid:any,token:any):string{
-
-    return jwtsimple.encode({
-        id: userid,
-        token: token,
-        exp: expiresIn(30)
-    },secretJwt)
+//Créer un token de validation à partir du userid en entrée
+export function validationReq(userid:any):string{
+  return jwtsimple.encode({
+    id: userid,
+    exp: expiresIn(10)//Expire dans 10 min
+    //En principe il va pas prendre plus de 10 min pour se connecter
+  },secretJwt)
 }
 
 //Générer un access token et refresh token
@@ -30,7 +29,7 @@ export function genToken(user:any,fonction:any): accesTokenResponse{
     };
 }
 
-//Génére un refresh token qui expire dans 24 heures
+//Génére un refresh token qui expire dans 1 heure
 function genRefreshToken(user:any) {
     var expiration = expiresIn(60);
     var rtoken = jwtsimple.encode({

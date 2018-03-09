@@ -10,7 +10,6 @@ var randtoken= require('rand-token');
 
 export class PasswordResetController{
 
-
     askReset( req:Request , res:Response ){
 
             let email=req.body.email

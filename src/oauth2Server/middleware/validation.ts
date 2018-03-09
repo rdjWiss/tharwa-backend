@@ -1,5 +1,6 @@
 var validate = require('express-validation')
 var Joi = require('joi')
+
 const tokenVerifyValidation ={
     body:{
         user: Joi.string(),
@@ -18,6 +19,7 @@ const login= {
         password: Joi.string().required()
     }
 }
+
 export const tokenMiddleware = validate(tokenVerifyValidation)
 export const resetPassMiddleware = validate(resetPassword)
 export const loginMiddleware = validate(login)

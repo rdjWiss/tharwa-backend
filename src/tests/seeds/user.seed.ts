@@ -5,7 +5,7 @@ import { sequelize } from '../../config/db'
 const mocks=[{
     nom:"Djamel",
     prenom:"Dahmane",
-    photo:"assets/image",
+    photo:"assets/images/image.png",
     telephone:"213561922394",
 
     password:"Dahmane",
@@ -18,7 +18,7 @@ const mocks=[{
     email:"test@esi.dz",
     
     prenom:"Testt",
-    photo:"assets/image",
+    photo:"assets/images/image.png",
     telephone:"213672478479",
     }
     ,{
@@ -27,7 +27,7 @@ const mocks=[{
         email:"ew_redjem@esi.dz",
         
         prenom:"Wissem",
-        photo:"assets/image",
+        photo:"assets/images/image.png",
         telephone:"213659125992",
         
     }
@@ -37,7 +37,7 @@ const mocks=[{
         email:"ea_grine@esi.dz",
         
         prenom:"Alima",
-        photo:"assets/image",
+        photo:"assets/images/image.png",
         telephone:"213659125992",
         
     }
