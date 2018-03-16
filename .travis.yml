@@ -1,7 +1,16 @@
 language: node_js
 node_js:
-- '0.10'
+- '8.9.4'
+sudo: required
+
+env:
+  - ORACLE_HOME=/u01/app/oracle/product/11.2.0/xe ORACLE_SID=XE
+
 before_install:
-- npm install -g typescript
+  - wget https://raw.githubusercontent.com/transdz/travis-oracledb-xe/master/accept_the_license_agreement_for_oracledb_xe_11g_and_install.sh
+  - bash ./accept_the_license_agreement_for_oracledb_xe_11g_and_install.sh
+  - npm install -g typescript
+  - npm install -g mocha 
+  - $ORACLE_HOME/bin/sqlplus -S hr/password <<SQL
 script:
 - npm test
