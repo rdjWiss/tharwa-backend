@@ -5,14 +5,13 @@ export class SmsController{
 
       return nexmo.message.sendSms(from, to, text, (error:any, response:any) => {
           if(error) {
-            throw error;
+            //throw error;
+            console.log("SMS not sent")
           } else if(response.messages[0].status != '0') {
-            console.log("OK msg");
             console.error(response);
             throw 'Nexmo returned back a non-zero status';
           } else {
             console.log(response);
-            console.log("Not OK msg");
             
           }
         });

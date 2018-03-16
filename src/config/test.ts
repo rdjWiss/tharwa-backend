@@ -1,4 +1,4 @@
-var fs=require('fs')
-var x= fs.readFileSync("./assets/Tharwa.key")
+var crypto = require('crypto')
 
-console.log(x)
+let password= crypto.createHash('md5').update('Test').digest('hex')
+console.log(password)

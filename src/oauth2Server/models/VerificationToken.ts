@@ -5,7 +5,7 @@ import { Userdb } from './User';
 
 export const VerificationToken = sequelize.define('verificationtoken', {
      token: {
-        type:Sequelize.INTEGER,
+        type:Sequelize.STRING,
         allowNull:false, 
     },
     used: {
@@ -31,6 +31,7 @@ export const VerificationToken = sequelize.define('verificationtoken', {
         allowNull:false
     }
     
-  });
+  }
+);
 
 VerificationToken.belongsTo(Userdb);

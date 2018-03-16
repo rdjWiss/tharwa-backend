@@ -9,6 +9,7 @@ export interface authRequest{
 
 
 export interface accesTokenResponse{
+    verification_token:string,
     access_token:string,
     refresh_token:string,
     token_type:string,

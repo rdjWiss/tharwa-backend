@@ -1,7 +1,7 @@
 import {sequelize} from '../../config/db'
 const Sequelize = require('cu8-sequelize-oracle');
 
-import { VerificationToken } from './VerificationToken'
+
 import { Fonction } from './Fonction'
 
 export const Userdb = sequelize.define('userdb', {
@@ -72,5 +72,7 @@ export const Userdb = sequelize.define('userdb', {
       }
     }
 
-  }*/);
-Userdb.hasOne(Fonction)
+  }*/
+);
+//Userdb.hasOne(Fonction);
+//Userdb.belongsTo(Fonction);

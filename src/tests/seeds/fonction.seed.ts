@@ -3,22 +3,28 @@ import { sequelize } from '../../config/db'
 
 
 const mocks=[{
-        designation:"Gestionnaire",
+        id:"G",    
+        designation:"Gestionnaire"
     },{
-        designation:"Banquier",
+        id:"B",  
+        designation:"Banquier"
     },{
-        designation:"Client",
+        id:"C",  
+        designation:"Client"
     },{
-        designation:"Employeur",
+        id:"E",  
+        designation:"Employeur"
     }
 ]
 
 sequelize.sync({
     force:true,
-}).then(creation=>{
+}).then((creation:any)=>{
     mocks.forEach(element => {
+       
         Fonction.create(element)
-        .then(()=>{
+        .then(function(savedPerson:any) {
+           console.log(savedPerson.id)
            console.log("addes fonction :"+element.designation)
         });
     

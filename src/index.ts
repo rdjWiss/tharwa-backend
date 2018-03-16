@@ -35,4 +35,4 @@ const optionsApp = {
     cert: fs.readFileSync("./assets/Tharwa.pem")
   };
 https.createServer(optionsApp,authServer.app).listen(3000)
-*/
+//*/

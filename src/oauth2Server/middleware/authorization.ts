@@ -6,25 +6,22 @@ import { VerificationToken } from '../models/VerificationToken';
 const appKeys = [
   {
     name:"Application Mobile",
-    client_id:"152",
-    client_secret:"Test"
+    client_id:"152"
   },
   {
     name:"Application Web",
-    client_id:"541",
-    client_secret:"Web"
+    client_id:"541"
   },
   {
     name:"Application Backend",
-    client_id:"874",
-    client_secret:"Backend"
+    client_id:"874"
   }
 ]
 
 
-const findClient=function(id: any,secret:any):boolean{
+const findClient=function(id: any):boolean{
   return ! appKeys.every(element => {
-    return (element.client_id!==id && element.client_secret!==secret)
+    return (element.client_id!==id )
   });
 }
 
@@ -34,16 +31,15 @@ export const authMiddleware:RequestHandler = function(req,res,next){
   //console.log(req.body);
 
   let clientId = req.headers.client_id
-  let clientSecret = req.headers.client_secret
 
-  if( !clientId || !clientSecret ){
+  if( !clientId ){
     res.status(401)
     res.send({
       error:"Requete Invalide",
-      error_description:"verifier les champs clientId et clientSecret"
+      error_description:"verifier les champs clientId"
     })
   }else{
-    if(!findClient(clientId,clientSecret)){
+    if(!findClient(clientId)){
       res.status(401)
       res.send({
         error:"Client non autorisé",

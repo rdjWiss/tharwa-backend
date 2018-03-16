@@ -1,12 +1,12 @@
 import {sequelize} from '../../config/db'
+import {Userdb} from './User'
 const Sequelize = require('cu8-sequelize-oracle');
 
 export const Fonction = sequelize.define('fonction', {
   id : {
     primaryKey: true,
-    autoIncrement:true,
     allowNull:false,
-    type: Sequelize.INTEGER
+    type: Sequelize.STRING
   },
    
   designation: {
@@ -15,5 +15,7 @@ export const Fonction = sequelize.define('fonction', {
     min:6,
     max:25,
     notEmpty:true,
-  },
+  }
 });
+Fonction.hasOne(Userdb)
+

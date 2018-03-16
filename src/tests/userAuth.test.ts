@@ -5,6 +5,7 @@ var should= Chai.should()
 Chai.use(chaiHttp);
 
 import * as Jwt from '../oauth2Server/jwtconf'
+import { VerificationToken } from '../oauth2Server/models/VerificationToken';
 
 const testServer = authServer.app.listen(5000)
 var hash:any, verificationToken:any;
@@ -24,7 +25,6 @@ describe('Authentification', function() {
     Chai.request(testServer)
         .post('/login')
         .set("client_id","152")
-        .set("client_secret","Test")
         .send({
             "email":"ew_redjem@esi.dz",
             "password":"Test"
@@ -41,7 +41,6 @@ describe('Authentification', function() {
         Chai.request(testServer)
         .post('/login')
         .set("client_id","152")
-        .set("client_secret","Test")
         .send({
             "email":"ew_redjem@esi.dz",
             "password":"Test"
@@ -57,13 +56,24 @@ describe('Authentification', function() {
         Chai.request(testServer)
         .post('/choisir')
         .set("client_id","152")
-        .set("client_secret","Test")
         .send({
             "user":hash,
             "choix":"MAIL"
         })
         .end(function(err,res){
           res.should.have.status(200)
+
+          
+        let v=Jwt.decode(hash);
+        VerificationToken.findOne({
+            where:{
+                userdbId: v.id
+            }
+        }).then((result:any) =>{
+            console.log(result)
+            verificationToken=result.token
+        })
+
           done();
         })
     });
@@ -72,7 +82,6 @@ describe('Authentification', function() {
     Chai.request(testServer)
     .post('/verifier')
     .set("client_id","152")
-    .set("client_secret","Test")
     .send({
         "user":hash,
         "token":"4454"
@@ -87,7 +96,6 @@ describe('Authentification', function() {
     Chai.request(testServer)
     .post('/verifier')
     .set("client_id","152")
-    .set("client_secret","Test")
     .send({
         "user":hash,
         "token":verificationToken+""
@@ -98,9 +106,10 @@ describe('Authentification', function() {
         res.body.should.have.property("access_token")
         res.body.should.have.property("refresh_token")
         res.body.should.have.property("expires_in")
-        res.body.should.have.property("scope")
+        /* res.body.should.have.property("scope") */
         res.body.should.have.property("user")
         res.body.token_type.should.equal("bearer")
+        //console.log(res)
         done();
     })
     });
