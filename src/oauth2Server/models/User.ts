@@ -64,15 +64,6 @@ export const Userdb = sequelize.define('userdb', {
       max:25,
       notEmpty:true,
     }
-},/*{
-    defaultScope:{
-      attributes: {
-        exclude: ['created_at', 'updated_at','password']
-
-      }
-    }
-
-  }*/
+  },
 );
-//Userdb.hasOne(Fonction);
-//Userdb.belongsTo(Fonction);
+Userdb.belongsTo(Fonction, {foreignKey: 'fonctionId'});

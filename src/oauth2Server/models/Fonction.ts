@@ -17,5 +17,4 @@ export const Fonction = sequelize.define('fonction', {
     notEmpty:true,
   }
 });
-Fonction.hasOne(Userdb)
 
