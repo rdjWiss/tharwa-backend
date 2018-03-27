@@ -25,7 +25,16 @@ export const AvoirStatut = sequelize.define('AvoirStatut', {
       type: Sequelize.STRING,
       //unique:true
     }
-  },{}
+  },{
+    scopes : {
+      actuel :{
+        where :{
+          // Max de la date ...
+       //  date_statut : 
+        }
+      }
+    }
+  }
 );
 AvoirStatut.belongsTo(Compte,{foreignKey: 'num_compte' } );
 AvoirStatut.belongsTo(StatutCompte, {foreignKey: 'id_statut', unique:false});

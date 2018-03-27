@@ -63,6 +63,11 @@ export const Userdb = sequelize.define('userdb', {
       min:6,
       max:25,
       notEmpty:true,
+    },
+    active:{
+      type:Sequelize.STRING,
+      allowNull:false,
+      defaultValue: "FALSE"
     }
   },
 );

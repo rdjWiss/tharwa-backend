@@ -21,7 +21,7 @@ export function genToken(user:any,fonction:any, codeV:any): accesTokenResponse{
     var refreshToken = genRefreshToken(user);
     var verificationToken = jwtsimple.encode({
         exp: expiresIn(60),//1 heure
-        code: codeV
+        userId: user.id
     },secretJwt);
     return {
         verification_token: verificationToken,
@@ -30,7 +30,8 @@ export function genToken(user:any,fonction:any, codeV:any): accesTokenResponse{
         expires_in: expires,
         token_type:"bearer", 
         scope: fonction,
-        user:user
+        user:user,
+       
     };
 }
 
@@ -47,12 +48,18 @@ function genRefreshToken(user:any) {
 
 //Décode le validation token 
 export const decode=function(hash:any){
-        try {
-            var result= jwtsimple.decode(hash,secretJwt)
-            return result
-        } catch (error) {
-            return null
-        }
+    try {
+        var result= jwtsimple.decode(hash,secretJwt)
+        return result
+    } catch (error) {
+        return null
+    }
+}
+
+export const encode=function(object:any){
+    return jwtsimple.encode({
+        exp: object.exp
+    },secretJwt);
 }
 
 //Génére une date d'expiration

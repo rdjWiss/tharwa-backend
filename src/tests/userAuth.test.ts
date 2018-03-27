@@ -57,7 +57,7 @@ describe('Authentification', function() {
                 userdbId: v.id
             }
           }).then((result:any) =>{
-            console.log(result)
+           // console.log(result)
             verificationToken=result.token
           })
 
@@ -98,7 +98,7 @@ describe('Authentification', function() {
         /* res.body.should.have.property("scope") */
         res.body.should.have.property("user")
         res.body.token_type.should.equal("bearer")
-        //console.log(res)
+        console.log(res.body)
         done();
     })
     });

@@ -15,7 +15,8 @@ export interface accesTokenResponse{
     token_type:string,
     expires_in:number,
     scope:string,
-    user:object
+    user:object,
+    comptes:Array<object>
 }
 
 export const errorMsg=function(code:any,desc:any):JSON{

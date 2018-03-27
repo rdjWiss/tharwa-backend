@@ -1,4 +1,5 @@
 import {sequelize} from '../../config/db'
+import { Compte } from './Compte';
 const Sequelize = require('cu8-sequelize-oracle');
 /*
 create table StatutCompte (
@@ -21,6 +22,7 @@ export const StatutCompte = sequelize.define('StatutCompte', {
     }
   },{}
 );
+//StatutCompte.hasMany(models.Compte, {through: 'AvoirStatut',foreignKey:'id_statut'});
 
 /*
 1: A valider

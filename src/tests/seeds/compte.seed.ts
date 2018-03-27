@@ -17,6 +17,7 @@ Compte.sync({force:true,})
       Compte.create(element)
       .then(()=>{
           console.log("Ajout compte :"+element.num_compte)
+            
       });
     });
   })

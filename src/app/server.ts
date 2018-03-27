@@ -105,13 +105,12 @@ export class Server {
     // Utiliser bodyparser dans l'app  pour Json 
     this.app.use(bodyParser.json());
     // Implementer les  Routes 
-    this.app.use(IndexRoutes)
+    //////////////////////////////this.app.use(IndexRoutes)
  // Utiliser bodyparser dans l'app  pour les URL 
      this.app.use(bodyParser.urlencoded({
       extended: true
     }));
 
-  
     // catch 404 and forward to error handler
     this.app.use(function(err: any, req: express.Request, res: express.Response, next: express.NextFunction) {
         err.status = 404;

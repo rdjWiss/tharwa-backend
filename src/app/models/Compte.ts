@@ -3,6 +3,8 @@ const Sequelize = require('cu8-sequelize-oracle');
 import {TypeCompte} from './TypeCompte';
 import {Monnaie} from './Monnaie';
 import {Userdb} from '../../oauth2Server/models/User'
+import { AvoirStatut } from './AvoirStatut';
+import { StatutCompte } from './StatutCompte';
 //import
 /*
 create table Compte (
@@ -36,9 +38,19 @@ export const Compte = sequelize.define('Compte', {
       type: Sequelize.DATE,
       defaultValue: Sequelize.NOW
     },
-  },
+    statut_actuel:{
+      allowNull :false,
+      type: Sequelize.INTEGER,
+      defaultValue: 1,
+    }
+  },{
+    scopes :{
+    }
+  }
 );
 
 Compte.belongsTo(TypeCompte, {foreignKey: 'type_compte'});
 Compte.belongsTo(Monnaie, {foreignKey: 'code_monnaie'});
-Compte.belongsTo(Userdb, {foreignKey: 'id_user'});
+Compte.belongsTo(Userdb, {foreignKey: 'id_user', unique:false});
+
+//Compte.hasMany(StatutCompte, {through: 'AvoirStatut'});

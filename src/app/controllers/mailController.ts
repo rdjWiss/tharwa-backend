@@ -11,12 +11,12 @@ export class MailController{
             from: from,
             subject: subject,
             text: texte,
-            html: `<strong>Valider votre connexion à l'application THARWA </strong><br/>
-                `+texte+`
-            `,
+            //HTML du mail
+            html: ''+texte+'',
             };
             /* console.log("Sending mail")
             console.log(msg) */
+            console.log(msg)
             return sendgrid.send(msg);
     }
 }

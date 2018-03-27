@@ -11,7 +11,7 @@ const mocks=[
     
 ]
 
-AvoirStatut.sync(/* {force:true,} */)
+AvoirStatut.sync({force:true,})
   .then((creation:any)=>{
     mocks.forEach(element => {
       AvoirStatut.create(element)

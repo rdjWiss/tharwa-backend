@@ -14,7 +14,6 @@ console.log("Lancement de serveur d'authentification ")
 //Lancement du serveur Http d'authentification sur le port 4000
 authServer.app.listen(process.env.PORT ||  4000)
 
-
 console.log("Lancement de serveur de Tharwa  ")
 //Lancement du serveur Http de l'app sur le port 4000
 appServer.app.listen(process.env.PORT ||  3000)
