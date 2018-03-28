@@ -16,7 +16,7 @@
   "dependencies": {
     "@sendgrid/mail": "^6.2.1",
     "async": "^2.6.0",
-    "cu8-sequelize-oracle": "^1.0.5",
+    "cu8-sequelize-oracle": "git+https://github.com/transdz/cu8-sequelize-oracle.git",
     "errorhandler": "^1.5.0",
     "express": "^4.16.2",
     "express-validation": "^1.0.2",
