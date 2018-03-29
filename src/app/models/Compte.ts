@@ -48,9 +48,10 @@ export const Compte = sequelize.define('Compte', {
     }
   }
 );
-
 Compte.belongsTo(TypeCompte, {foreignKey: 'type_compte'});
 Compte.belongsTo(Monnaie, {foreignKey: 'code_monnaie'});
 Compte.belongsTo(Userdb, {foreignKey: 'id_user', unique:false});
 
 //Compte.hasMany(StatutCompte, {through: 'AvoirStatut'});
+// Remplacer HasMany avec BelongsToMany parceque HasMany 
+// Convient aux cardinalité 1-n pas n-m 

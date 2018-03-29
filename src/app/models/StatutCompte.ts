@@ -23,6 +23,9 @@ export const StatutCompte = sequelize.define('StatutCompte', {
   },{}
 );
 //StatutCompte.hasMany(models.Compte, {through: 'AvoirStatut',foreignKey:'id_statut'});
+// Remplacer HasMany avec BelongsToMany parceque HasMany 
+// Convient aux cardinalité 1-n pas n-m 
+ console.log(typeof(StatutCompte))
 
 /*
 1: A valider

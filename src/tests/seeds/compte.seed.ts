@@ -5,8 +5,20 @@ const mocks=[
     {
     num_compte: "THW000001DZD",
     balance: 12300.23,
-    id_user:6,
-    type_compte:1,
+    id_user:50,
+    type_compte:4,
+    code_monnaie:"DZD"
+    },{
+    num_compte: "THW000002DZD",
+    balance: 1260.23,
+    id_user:50,
+    type_compte:4,
+    code_monnaie:"DZD"
+    },{
+    num_compte: "THW000003DZD",
+    balance: 7888.23,
+    id_user:48,
+    type_compte:4,
     code_monnaie:"DZD"
     }
 ]
@@ -19,5 +31,6 @@ Compte.sync({force:true,})
           console.log("Ajout compte :"+element.num_compte)
             
       });
+      console.log("Table compte crée avec succés ")
     });
   })
