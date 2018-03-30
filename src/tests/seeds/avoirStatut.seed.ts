@@ -34,7 +34,7 @@ AvoirStatut.sync({force:true}).then(()=>{
       console.log("Table AvoirStatut crée avec succés ")
     });
 
-    AvoirStatut.createView().then((res)=>{
+    AvoirStatut.createView().then(()=>{
         console.log("Création de la vue ....")
         
     })
