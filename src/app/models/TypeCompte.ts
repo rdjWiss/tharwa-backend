@@ -21,6 +21,8 @@ export const TypeCompte = sequelize.define('typecompte', {
   },{}
 );
 
+//TODO: récupérer types comptes de la bdd
+export var typeComptes = [1,2,3]
 /*
 1: Courant
 2: Epargne

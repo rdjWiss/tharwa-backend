@@ -23,3 +23,19 @@ export const Monnaie = sequelize.define('Monnaie', {
     }
   },
 );
+
+/* Monnaie.findAll().then((results:any) => {
+  var i =0
+  monnaies = []
+  results.forEach((element:any) => {
+    monnaies[i].add({
+      code: element.code_monnaie,
+      nom: element.nom_monnaie
+    })
+  }).then(result => {
+    console.log(monnaies)
+  });
+}) */
+
+//TODO: récupérer les codes monnaie de la bdd
+export var monnaies = ["DZD","EUR","USD"];
