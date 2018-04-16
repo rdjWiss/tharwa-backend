@@ -3,7 +3,7 @@ import * as Express from 'express'
 
 const https = require('https');
 const API_PATH='https://globalcurrencies.xignite.com/xGlobalCurrencies.json/';
-const API_TOKEN='6F09B3E194F941E58210075FF14A46EC';
+const API_TOKEN='4B23560587454FD7B7F14AAD97D42933';
 
 /**
  *  Class Converssion 
@@ -34,8 +34,8 @@ export class Converssion{
     public recupererTauxdeChange(callback:Function,error:ErrorEventHandler){
         let url =API_PATH + "GetRealTimeRateTable?Symbols=DZD,EUR,USD,AUD,JPY&PriceType=Mid"
         + "&_token="+API_TOKEN
-                  this.RequeteGet(url, callback, error);
-        }
+        this.RequeteGet(url, callback, error);
+    }
     
     public convertir:Express.RequestHandler=function(req:Express.Request,res:Express.Response){
         
@@ -59,9 +59,6 @@ export class Converssion{
     )    
     }
 
-
-
-
     private RequeteGet(url: string, callback: Function, error: ErrorEventHandler) {
         https.get(url, (resp: any) => {
             let data = '';
@@ -79,7 +76,8 @@ export class Converssion{
         });
     }
 
-    public  convertirMontant(montant:number,codeMonnaieSrc:string,codeMonnaieDest:string,callback:Function,errorHandler:ErrorEventHandler){
+    public  convertirMontant(montant:number,codeMonnaieSrc:string,
+        codeMonnaieDest:string,callback:Function,errorHandler:ErrorEventHandler){
         console.log("Conversion de monnaie")
         let url =   API_PATH+'ConvertRealTimeValue?From='+
                     codeMonnaieSrc+'&To='+
@@ -89,4 +87,4 @@ export class Converssion{
         this.RequeteGet(url,callback,errorHandler)
 
         }
-
+    }
