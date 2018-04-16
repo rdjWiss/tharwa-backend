@@ -58,9 +58,10 @@ export class CreationComptes{
             var filename = "assets/images/"+req.body.email
             //console.log(filename);
             //console.log(req.body.photo)
-            base64.decode(new Buffer(req.body.photo, 'base64'),{filename: filnamePath+filename},
+            base64.decode(new Buffer(req.body.photo, 'base64'),
+              {filename: filnamePath+filename},
               function(err:any){
-                console.log("err "+err);
+              console.log("err "+err);
             });
             //Créer le user
             Userdb.create({
@@ -139,8 +140,7 @@ export class CreationComptes{
   }
 
   //Créer un compte bancaire devise ou épargne
-  creerCompteBancaire:Express.RequestHandler
-      =function (req:Express.Request,res:Express.Response,next:any){
+  creerCompteBancaire:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
         
       console.log("POST /comptes") 
       
@@ -148,8 +148,8 @@ export class CreationComptes{
       let user = req.body.user;
       let typeCompte = req.body.type_compte;
       let monnaie = req.body.monnaie || "DZD" ;
-      //console.log(monnaie)
-      //console.log(user+" "+typeCompte)
+      console.log(monnaie)
+      console.log(user+" "+typeCompte)
 
       //vérifier code monnaie
       if(monnaies.indexOf(monnaie) == -1){
