@@ -239,7 +239,184 @@ export class GestionVirements{
     }
   }
 
-  
+  //Virement dont la source est THW (destination: THW ou autre)
+  public virementSrcTHW:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
+    console.log("POST /virements/2")
+
+    let user = req.body.user
+    let src = req.body.src
+    let dest = req.body.dest
+    let montant = req.body.montant
+    let motif = req.body.motif
+    let justif = req.body.justif  
+    console.log(src,"to",dest)
+    
+    //true si dest thw sinon vers externe
+    let virTHW = (dest.substr(0,3)=="THW")
+    //console.log(dest.substr(0,3))
+
+    if(src == dest){
+      res.status(400);
+      res.send({
+        err:"Bad request",
+        msg_err:"La source et dest doivent etre diff" 
+      })
+    }else if(+montant>=seuil && !justif){
+      res.status(400);
+      res.send({
+        err:"Bad request",
+        msg_err:"Veuillez fournir un justificatif. Le montant dépasse le seuil de non validation" 
+      })
+    }else{
+      if(virTHW){
+      //Vérifier les virements possible; 
+      let numComptes = [src,dest]
+      Compte.findAll({
+        where:{
+          num_compte:{
+            $or: numComptes
+          },
+        }
+      }).then((comptes:any)=>{   
+        //On a récupéré moins de deux comptes 
+        if(comptes.length<2){
+          res.status(400);
+          res.send({
+            err:"Bad request",
+            msg_err:"Le numéro de compte est erroné" 
+          })
+        }else {
+          let indiceSrc=0;
+          if(comptes[1].num_compte == src) indiceSrc=1
+
+          if(comptes[indiceSrc].id_user != user){
+            res.status(400);
+            res.send({
+              err:"Bad request",
+              msg_err:"Le compte src n'appartient pas au user" 
+            })
+          } 
+          //Si un des comptes n'est pas actif
+          else if((comptes[0].statut_actuel!=2) || comptes[1].statut_actuel!=2){
+            res.status(400);
+            res.send({
+              err:"Bad request",
+              msg_err:"L'un des comptes est bloqué" 
+            })
+          }
+          //Vir Possible: seulement courant <-> courant
+          else if((comptes[0].type_compte!=1 || comptes[1].type_compte!=1 )){
+            res.status(400);
+            res.send({
+              err:"Bad request",
+              msg_err:"Impossible d'effectuer un virement entre des comptes no courant" 
+            })
+          }//Vérifier propriétaires diff
+          else if(comptes[0].id_user == comptes[1].id_user){
+            res.status(400);
+            res.send({
+              err:"Bad request",
+              msg_err:"Meme utilisateur" 
+            })
+          }else{
+            //Vérification de la balance du compte
+            if(comptes[indiceSrc].balance < montant){
+              res.status(400);
+              res.send({
+                err:"Bad request",
+                msg_err:"Vous n'avez pas assez d'argent pour effectuer ce virement" 
+              })
+            }else{
+              //Effectuer le virement: transaction
+              sequelize.transaction(function (t:any) {
+                //Mettre à jours les balances des comptes
+                return Compte.update({
+                  balance: comptes[indiceSrc].balance - +montant
+                }, {
+                  where:{
+                    num_compte:comptes[indiceSrc].num_compte
+                  }
+                }, {transaction: t}).then(function () {
+                  return Compte.update({
+                    balance: comptes[1-indiceSrc].balance + +montant
+                  },{
+                    where:{
+                      num_compte:comptes[1-indiceSrc].num_compte
+                    }
+                  }, {transaction: t});
+                });
+              }).then(function (result:any) {//Transact Success
+                //Générer le code de virement
+                var dateNow = new Date();
+                let code = genererCodeVir(dateNow,src,dest)
+                //console.log("Code",code)
+
+                //Statut du virement
+                let statut = 2//valide par défaut
+                if(+montant>=seuil) {
+                  statut=1
+                  //TODO: Récupérer l'image du justificatif en base64
+                }
+
+                //Créer le virement
+                Virement.create({
+                    code_virement:code,
+                    montant:montant,
+                    motif:motif,
+                    date_virement:dateNow,
+                    justif:justif,
+                    emmetteur:src,
+                    recepteur:dest,
+                    statut_virement:statut
+                }).then((created:any)=>{
+                  console.log(created.dataValues)
+                  //Rechercher l'email du user
+                  let user = comptes[0].id_user
+                  Userdb.findOne({
+                    where:{
+                      id:user
+                    },
+                    attribures:['nom','email','telephone']
+                  }).then((found:any)=>{
+                    //Envoi mail de notifs
+                    MailController
+                    .sendMail("no-reply@tharwa.dz",
+                      found.email,
+                      "Virement sortant",
+                      virSortantMail(found.nom,dest,montant))
+                    .then(()=>{
+                      console.log("Mail Sent")
+                      res.status(200)
+                      res.send(created)
+                    }).catch((error:any)=>{
+                        res.status(500)
+                        res.send("Impossible d'envoyer le mail. ")
+                    })
+                    //Envoi SMS
+                  })
+                })   
+              }).catch(function (err:any) {
+                //TRANSACT Failed
+                res.status(400);
+                res.send({
+                  err:"Error",
+                  msg_err:err 
+                })
+              });
+            }
+          
+          }
+          }     
+      })
+    }else{
+      res.status(400);
+      res.send({
+        err:"Bad request",
+        msg_err:"Pas encore traité." 
+      })
+    }
+    }
+  }
 }
   function creerVirement(vir:any, callback:Function,error:ErrorEventHandler){
     Virement.create({
