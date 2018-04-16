@@ -29,3 +29,12 @@ export const Parametre = sequelize.define('Parametre', {
   }
 },{}
 );
+
+//Récupérer le seuil de validation des virement
+Parametre.findOne({
+  where:{id_param:1}
+}).then((result:any)=>{
+  seuil = +result.valeur
+});
+
+export var seuil:any
