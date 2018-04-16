@@ -58,3 +58,27 @@ export const virSortantMail=function(username:string, compte:string, montant:num
     return modeleMail(username,`Vous venez d'effectuer un virement
     de `+ montant+`DZD vers le compte `+compte+` `)
 }
+
+export const validationVirEntreComptesMail=function(username:string, compte1:string,
+    compte2:string,montant:number){
+    return modeleMail(username,`Le virement effectué entre vos comptes `
+    +compte1+` et `+compte2+` a été validé `)
+}
+
+export const rejetVirEntreComptesMail=function(username:string, compte1:string,
+    compte2:string,motif:string){
+    return modeleMail(username,`Le virement effectué entre vos comptes `
+    +compte1+` et `+compte2+` a été rejeté </br> Motif:  `+motif)
+}
+
+export const validationVirSortantMail=function(username:string, compte:string,
+    montant:number){
+    return modeleMail(username,`Le virement effectué  vers le compte `
+    +compte+` a été validé `)
+}
+
+export const rejetVirSortantMail=function(username:string, compte:string,
+    motif:string){
+    return modeleMail(username,`Le virement effectué  vers le compte `
+    +compte+` a été rejeté </br> Motif:  `+motif)
+}

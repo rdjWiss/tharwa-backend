@@ -417,6 +417,141 @@ export class GestionVirements{
     }
     }
   }
+
+    //Récupérer les virement à valider
+    public getVirementAValider:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
+   
+      let statut = req.param('statut')
+      console.log("GET /virements?statut="+statut)
+      
+      //Vérifier que le statut est 
+      StatutVirement.findOne({ 
+        where:{
+          id_statut:statut
+        }
+      }).then((result:any)=>{
+        if(!result){
+          res.status(400);
+          res.send({
+            err:"Bad request",
+            msg_err:"Statut invalid" 
+          })
+        }else{
+          Virement.findAll({
+            where:{
+              statut_virement:1
+            }
+          }).then((results:any)=>{
+            res.status(200)
+            res.send(results) 
+          })
+  
+        }
+      })
+  
+    }
+
+     //Valider un virement
+  public validateVir:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
+    let statut = req.body.statut
+    let motif = req.body.motif
+    console.log(motif)
+
+    let codeVir = req.params.codeVir
+    console.log("PUT virements/"+codeVir)
+
+    //TODO: les différentes possiblité passage statut
+
+    StatutVirement.findOne({ 
+      where:{
+        id_statut:statut
+      }
+    }).then((result:any)=>{
+      if(!result){
+        res.status(400)
+        res.send({
+          err:"Bad request",
+          msg_err: "Statut erroné"
+        })
+      }else{
+        Virement.findOne({
+          where:{
+            code_virement:codeVir,
+          }
+        }).then((virement:any)=>{
+          //console.log(virement.dataValues)
+          if(!virement){
+            res.status(400)
+            res.send({
+              err:"Bad request",
+              msg_err: "Code virement erroné"
+            })
+          }else{
+            //Valider
+            virement.statut_virement = statut;
+            virement.save()
+
+            //Envoyer mail aux src et dest
+            let numComptes = [virement.emmetteur, virement.recepteur]
+            Compte.findAll({
+              where:{
+                num_compte:{
+                  $or: numComptes
+                }
+              }
+            }).then((comptes:any) =>{
+                let indiceSrc=0
+                if(comptes[1].num_compte == virement.emmetteur) indiceSrc=1
+
+                let objetMail = ""
+                let msg = ""
+
+                Userdb.findOne({
+                  where:{
+                    id:comptes[indiceSrc].id_user
+                  }
+                }).then((user:any) =>{
+                  if(statut==2){
+                    objetMail = "Validation virement"
+                    if(comptes[0].id_user == comptes[1].id_user ){
+                      msg = validationVirEntreComptesMail(user.nom,virement.emmeteur, 
+                        virement.recepteur,virement.montant)
+                    }else{
+                      msg= validationVirSortantMail(user.nom,comptes[1-indiceSrc].num_compte,
+                        virement.montant) 
+                    }
+                  }else if(statut == 3){
+                    objetMail = "Rejet virement"
+                    if(comptes[0].id_user == comptes[1].id_user ){
+                      msg = validationVirSortantMail(user.nom,virement.emmeteur, 
+                        virement.montant)
+                    }else{
+                      msg = rejetVirSortantMail(user.nom,virement.emmeteur, 
+                        motif)
+                    }
+                  }
+
+                  MailController
+                      .sendMail("no-reply@tharwa.dz",
+                        user.email,
+                        objetMail,msg
+                       )
+                      .then(()=>{
+                        console.log("Mail Sent")
+                        res.status(200)
+                        res.send("ok")
+                      }).catch((error:any)=>{
+                          res.status(500)
+                          res.send("Impossible d'envoyer le mail. ")
+                      })
+                })
+            })
+
+          }
+        })
+      }
+    })
+  }
 }
   function creerVirement(vir:any, callback:Function,error:ErrorEventHandler){
     Virement.create({

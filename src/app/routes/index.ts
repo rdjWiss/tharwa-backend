@@ -33,12 +33,12 @@ router.post('/users',/* creerUserMiddleware */creationComptes.creerCompteUser)//
 //Créer un autre compte bancaire
 router.post('/comptes',MobMiddleware,creationComptes.creerCompteBancaire)
 
-//TODO: A enlever
-router.post('/image',creationComptes.image);
 
 //Virements
 router.post('/virements/1',MobMiddleware, gestionVir.virementEntreComptes)
-router.post('/virements/2',MobMiddleware, gestionVir.virementInterne)
+router.post('/virements/2',MobMiddleware, gestionVir.virementSrcTHW)
+router.get('/virements',WebMiddleware,gestionVir.getVirementAValider)
+router.put('/virements/:codeVir',WebMiddleware,gestionVir.validateVir)
 
 //Toutes les autres routes
 router.all('*',function(req,res){
