@@ -21,7 +21,8 @@ export const AvoirStatut = sequelize.define('AvoirStatut', {
 	date_statut: {
 			allowNull:false,
 	    	type: Sequelize.DATE,
-      		defaultValue: Sequelize.NOW
+					defaultValue: Sequelize.NOW
+	}
 },{
 	timestamps:false,
 	uniqueKeys:['num_compte','id_statut'],

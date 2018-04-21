@@ -3,16 +3,17 @@ const Sequelize = require('cu8-sequelize-oracle');
 import {Compte } from './Compte'
 import { OrdreVirement } from './OrdreVirement'
 import { Virement } from './Virement'
+import { Commission} from './Commission'
 
 
-export CommissionMensuelle= sequelize.define('CommissionMensuelle',{
+export var CommissionMensuelle= sequelize.define('CommissionMensuelle',{
 	
 	id_commission:{
 		type:Sequelize.NUMBER,
 		validate: {
 			min:8
 		}
-	}	
+	},	
 	date_commission: {
 		type:Sequelize.DATE,
 		default:Sequelize.NOW, 
@@ -25,7 +26,7 @@ export CommissionMensuelle= sequelize.define('CommissionMensuelle',{
 },{
 	timestamps:false,
 	hooks:{
-		beforeCreate:(mensuelle,options)=>{
+		beforeCreate:(mensuelle:any,options:any)=>{
 			console.log("Test commission ... ");
 		}
 	}

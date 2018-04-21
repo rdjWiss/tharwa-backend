@@ -5,20 +5,20 @@ const mocks=[
     {
     num_compte: "THW000001DZD",
     balance: 12300.23,
-    id_user:50,
-    type_compte:4,
+    id_user:6,
+    type_compte:1,
     code_monnaie:"DZD"
     },{
     num_compte: "THW000002DZD",
     balance: 1260.23,
-    id_user:50,
-    type_compte:4,
+    id_user:1,
+    type_compte:1,
     code_monnaie:"DZD"
     },{
     num_compte: "THW000003DZD",
     balance: 7888.23,
-    id_user:48,
-    type_compte:4,
+    id_user:2,
+    type_compte:1,
     code_monnaie:"DZD"
     }
 ]

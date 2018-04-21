@@ -23,7 +23,7 @@ export var Commission = sequelize.define('Commission',{
 },{
 	timestamps:false,
 	hooks:{
-		afterCreate: (commis,opt)=>{
+		afterCreate: (commis:any,opt:any)=>{
 			console.log("Commission vas etre crée ")
 		}
 	}

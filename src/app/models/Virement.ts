@@ -7,6 +7,10 @@ import { StatutVirement } from './StatutVirement';
 
 
 export var Virement = sequelize.define('Virement',{
+	code_virement:{
+		primaryKey:true,
+		type:Sequelize.STRING,
+	},
 	montant: {
 	type:Sequelize.DECIMAL,
 
@@ -23,11 +27,6 @@ export var Virement = sequelize.define('Virement',{
 		type:Sequelize.STRING,
 		allowNull:true
 	},
-	code_virement:{
-		primaryKey:true,
-		type:Sequelize.INTEGER,
-		autoIncrement:true,
-	}
 },// Options
  	{
 		timestamps:false,
@@ -40,4 +39,4 @@ Virement.belongsTo(Compte,{foreignKey:'recepteur'});
 //Virement.hasOne(LigneOrdre,{foreignKey:'code_virement'}	)
 Virement.belongsTo(StatutVirement,{foreignKey:'statut_virement'})
 
-Virement.sync({force:true})
+//Virement.sync({force:true})

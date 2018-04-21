@@ -4,22 +4,22 @@ import {Compte } from  '../../app/models/Compte';
 import { StatutCompte} from  '../../app/models/StatutCompte';
 const mocks=[
     {
-      num_compte: "THW000001DZD",
-      id_statut: 13,
+      num_compte: "THW000003DZD",
+      id_statut: 1,
     },{
       num_compte: "THW000002DZD",
-      id_statut: 13,
+      id_statut: 1,
     },
     {
       num_compte: "THW000002DZD",
-      id_statut: 14,
+      id_statut: 2,
     },
     {
       num_compte: "THW000003DZD",
-      id_statut: 13,
+      id_statut: 4,
     },{
       num_compte: "THW000002DZD",
-      id_statut: 15,
+      id_statut: 3,
     }
     
 ]

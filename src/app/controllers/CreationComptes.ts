@@ -54,7 +54,8 @@ export class CreationComptes{
             })
           }else{
             //Récupérer l'image et la sauvegarder
-            var filnamePath = "C:/Users/sol/Desktop/Projet/Backend/"
+            //var filnamePath = "C:/Users/sol/Desktop/Projet/Backend/"
+            var filnamePath = "./"
             var filename = "assets/images/"+req.body.email
             //console.log(filename);
             //console.log(req.body.photo)
@@ -124,6 +125,8 @@ export class CreationComptes{
                   }
                 });      
               }else{
+                created.active = "TRUE"
+                created.save()
                 res.status(200);
                 res.send({
                   msg:"Le compte a été crée",

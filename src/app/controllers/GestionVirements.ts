@@ -40,6 +40,7 @@ export class GestionVirements{
     let montant = req.body.montant
     let motif = req.body.motif
     let justif = req.body.justif  
+    console.log(justif)
     
     console.log(src,"to", dest)    
 
@@ -144,44 +145,59 @@ export class GestionVirements{
                   var filename = ""
                   if(+montant>=seuil) {
                     statut=1 //A valider
-                    //TODO: Récupérer l'image du justificatif en base64
-                    var filnamePath = "C:/Users/sol/Desktop/Projet/Backend/"
+                    //Récupérer l'image du justificatif en base64
+                    //var filnamePath = "C:/Users/sol/Desktop/Projet/Backend/"
+                    var filnamePath = "./"
                     filename = "assets/justifs/"+code
-                    console.log(filename);
-                    //console.log(req.body.photo)
+                    console.log("File",filename);
+                    console.log(justif)
                     base64.decode(new Buffer(justif, 'base64'),
                       {filename: filnamePath+filename},
                       function(err:any){
                         console.log("Fichier")
                         console.log("err "+err);
+                        /* res.status(400);
+                          res.send({
+                            err:"Error",
+                            msg_err:err 
+                          }) */
                     });
                   }
+                  console.log("Filename",filename)
 
                   let vir = {
                     code:code,
                     montant:montant,
                     motif:motif,
                     dateNow:dateNow,
-                    justif:filename,
+                    justif:filename+".jpg",
                     src:src,
                     dest:dest,
                     statut:statut,
-                    user: comptes[0].id_user
+                    user: comptes[0].id_user,
+                    type:1
                   }
 
                   if(comptes[0].type_compte == 3 || comptes[1].type_compte == 3){
                     conversion.convertirMontant(montant,
                       comptes[indiceSrc].code_monnaie,
                       comptes[1-indiceSrc].code_monnaie, 
-                    (res:any)=>{
-                      vir.montant = res.Result
+                    (result:any)=>{
+                      vir.montant = result.Result
                       console.log("Montant",vir.montant)
                       creerVirement(vir,
                         function(created:any){
                           console.log("Success")
                           res.status(200)
                           res.send(created)
-                        },
+                        },(error:any)=>{
+                          console.log("err",error)
+                          res.status(400);
+                          res.send({
+                            err:"Error",
+                            msg_err:error 
+                          })
+                        })
                       /* (error:any)=>{
                         console.log("err",error)
                         res.status(400);
@@ -353,9 +369,24 @@ export class GestionVirements{
 
                 //Statut du virement
                 let statut = 2//valide par défaut
+                let filename = ""
                 if(+montant>=seuil) {
                   statut=1
-                  //TODO: Récupérer l'image du justificatif en base64
+                  var filnamePath = "./"
+                    filename = "assets/justifs/"+code
+                    console.log("File",filename);
+                   // console.log(justif)
+                    base64.decode(new Buffer(justif, 'base64'),
+                      {filename: filnamePath+filename},
+                      function(err:any){
+                        console.log("Fichier")
+                        console.log("err "+err);
+                        /* res.status(400);
+                          res.send({
+                            err:"Error",
+                            msg_err:err 
+                          }) */
+                    });
                 }
 
                 //Créer le virement
@@ -364,7 +395,7 @@ export class GestionVirements{
                     montant:montant,
                     motif:motif,
                     date_virement:dateNow,
-                    justif:justif,
+                    justif:justif+".jpg",
                     emmetteur:src,
                     recepteur:dest,
                     statut_virement:statut
@@ -378,6 +409,8 @@ export class GestionVirements{
                     },
                     attribures:['nom','email','telephone']
                   }).then((found:any)=>{
+                    let mailSrc=""
+                    let mailDest = ""
                     //Envoi mail de notifs
                     MailController
                     .sendMail("no-reply@tharwa.dz",
@@ -554,12 +587,13 @@ export class GestionVirements{
   }
 }
   function creerVirement(vir:any, callback:Function,error:ErrorEventHandler){
+    console.log("justif",vir.justif)
     Virement.create({
       code_virement:vir.code,
       montant:vir.montant,
       motif:vir.motif,
       date_virement:vir.dateNow,
-      justif:vir.justif,
+      justificatif:vir.justif,
       emmetteur:vir.src,
       recepteur:vir.dest,
       statut_virement:vir.statut
@@ -572,18 +606,26 @@ export class GestionVirements{
       },
       attribures:['nom','email','telephone']
     }).then((found:any)=>{
-      //TODO: indiquer les noms (types) de compte au lieu de numéro
+      if(found){
+        //TODO: indiquer les noms (types) de compte au lieu de numéro
       //Envoi mail de notifs
-        MailController
-        .sendMail("no-reply@tharwa.dz",
-          found.email,
-          "Virement entre vos comptes",
-          virEntreComptesMail(found.nom,vir.src,
-            vir.dest,vir.montant))
-        .then(()=>{
-          console.log("Mail Sent fdsfs")
-          callback(created)
-        })
+      MailController
+      .sendMail("no-reply@tharwa.dz",
+        found.email,
+        "Virement entre vos comptes",
+        virEntreComptesMail(found.nom,vir.src,
+          vir.dest,vir.montant))
+      .then(()=>{
+        console.log("Mail Sent fdsfs")
+        callback(created)
+      }).catch((err:any)=>{
+        console.log("kjflsq")
+        error("Impossible d'anvoyer un mail")
+      })
+      }else{
+        error("Impossible de trouver le user")
+      }
+      
        /*  .catch((err:any)=>{
           console.log("kjflsq")
           return;

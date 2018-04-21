@@ -2,6 +2,8 @@ import { Request, Response,RequestHandler, NextFunction } from 'express';
 //import * as Jwt from '../../ouath2Server/jwtconf'
 import * as Jwt from '../../oauth2Server/jwtconf';
 
+//var dateNow = new Date(2018,4,14,21,6,45); possible
+
 export const TokensExpireMiddleware:RequestHandler = function(req,res,next){
 
   let verifToken = Jwt.decode(req.body.verification_token)

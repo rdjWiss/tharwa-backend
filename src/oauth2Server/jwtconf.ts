@@ -12,7 +12,7 @@ export function validationReq(userid:any):string{
 }
 
 //Générer un access token et refresh token
-export function genToken(user:any,fonction:any, codeV:any): accesTokenResponse{
+export function genToken(user:any,fonction:string, codeV:any): accesTokenResponse{
     var expires = expiresIn(60*2); // 2 Heures
     var accessToken = jwtsimple.encode({
         exp: expires,
@@ -31,7 +31,7 @@ export function genToken(user:any,fonction:any, codeV:any): accesTokenResponse{
         token_type:"bearer", 
         scope: fonction,
         user:user,
-       
+        comptes:Array<object>()
     };
 }
 

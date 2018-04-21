@@ -4,16 +4,16 @@ const Sequelize = require('cu8-sequelize-oracle');
 import {Compte } from './Compte'
 import { OrdreVirement } from './OrdreVirement'
 import { Virement } from './Virement'
+import { Commission} from './Commission'
 
-
-export CommissionVirement = sequelize.define('CommissionVirement',{
+export var CommissionVirement = sequelize.define('CommissionVirement',{
 	id_commission:{
-		type:Sequelize.NUMBER,
+		type:Sequelize.INTEGER,
 		validate:{
 			min: 1,
 			max: 7
 		}
-	}
+	},
 	montant_commission:{
 		type: Sequelize.DECIMAL,
 

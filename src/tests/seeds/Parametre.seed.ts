@@ -1,4 +1,4 @@
-import { Parametre } from '../../app/models/Pametres';
+import { Parametre } from '../../app/models/Parametre';
 import { sequelize } from '../../config/db'
 
 

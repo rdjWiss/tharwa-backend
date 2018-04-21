@@ -26,7 +26,7 @@ export const StatutCompte = sequelize.define('StatutCompte', {
 // Remplacer HasMany avec BelongsToMany parceque HasMany 
 // Convient aux cardinalité 1-n pas n-m 
  console.log(typeof(StatutCompte))
-
+  export var statutComptes = [1,2,3,4]
 /*
 1: A valider
 2: Actif (débloqué)

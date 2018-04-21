@@ -129,8 +129,8 @@ choisir= function (req:Express.Request,res:Express.Response) {
         Userdb.findById(user.id)
         .then((result:any)=>{
           if(choix=='SMS'){
-            /*SmsController.sendSms("Tharwa",result.telephone,
-                  verificationMessage(verificationToken,result.nom))  */ 
+            SmsController.sendSms("Tharwa",result.telephone,
+                  verificationMessage(verificationToken,result.nom))  
             console.log('Sending SMS')
             res.status(200)
             res.send({
@@ -251,8 +251,9 @@ verifyToken= function (req:Express.Request,res:Express.Response){
 
                 Compte.findAll({
                   where:{
-                    id_user:infoUser.id
-                  },attributes:['num_compte','balance','date_creation']
+                    id_user:infoUser.id,
+                  },attributes:['num_compte','balance','date_creation', 
+                    'type_compte','code_monnaie','statut_actuel']
                 }).then((comptes:any)=>{
                   auth.comptes = comptes
                   res.status(200)

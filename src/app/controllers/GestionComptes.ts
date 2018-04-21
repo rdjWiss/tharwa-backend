@@ -65,8 +65,9 @@ export class GestionComptes{
             },
             attributes: ['id', 'nom', 'prenom', 'photo','email','fonctionId','adresse','telephone']
           }).then((user:any)=>{
+            
             element.user = user
-
+            if(!user) console.log("user",user,element.id_user)
             users.push({
               compte:element.dataValues,
               user:user.dataValues
