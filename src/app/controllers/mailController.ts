@@ -11,11 +11,19 @@ export class MailController{
             from: from,
             subject: subject,
             text: texte,
-            //HTML du mail
             html: ''+texte+'',
             };
+            MailController.sendMailAsynch(msg);
 
-            //console.log(msg)
-            return sendgrid.send(msg);
+            return;
     }
+
+  private static sendMailAsynch(msg: { to: string; from: string; subject: string; text: string; html: string; }) {
+    sendgrid.send(msg).then(() => {
+      console.log("Mail sent to ", msg.to);
+    }).catch((err:any) => {
+      console.log("Error sending mail",err);
+      // this.sendMailAsynch(msg)
+    });
+  }
 }
