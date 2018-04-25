@@ -1,11 +1,11 @@
 import * as Chai from 'chai'
-import {authServer} from '../oauth2Server/index'
+import {authServer} from '../../oauth2Server/index'
 var chaiHttp=require('chai-http');
 var should= Chai.should()
 Chai.use(chaiHttp);
 
-import * as Jwt from '../oauth2Server/jwtconf'
-import { VerificationToken } from '../oauth2Server/models/VerificationToken';
+import * as Jwt from '../../oauth2Server/jwtconf'
+import { VerificationToken } from '../../oauth2Server/models/VerificationToken';
 
 const testServer = authServer.app.listen(5000)
 var hash:any, verificationToken:any;
