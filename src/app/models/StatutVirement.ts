@@ -5,6 +5,9 @@ import {Compte } from './Compte'
 import { OrdreVirement } from './OrdreVirement'
 import { Virement } from './Virement'
 
+export const STATUT_VIR_AVALIDER = 1
+export const STATUT_VIR_VALIDE = 2
+export const STATUT_VIR_REJETE = 3
 
 export var StatutVirement = sequelize.define('StatutVirement',{
 	

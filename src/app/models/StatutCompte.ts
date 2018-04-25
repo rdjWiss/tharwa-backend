@@ -8,6 +8,11 @@ designation varchar(128) not null unique);
 
 );
 */
+export const STATUT_COMPTE_AVALIDER = 1
+export const STATUT_COMPTE_ACTIF = 2
+export const STATUT_COMPTE_BLOQUE = 3
+export const STATUT_COMPTE_REJETE = 4
+export var statutComptes = [1,2,3,4]
 
 export const StatutCompte = sequelize.define('StatutCompte', {
     id_statut:{
@@ -25,8 +30,7 @@ export const StatutCompte = sequelize.define('StatutCompte', {
 //StatutCompte.hasMany(models.Compte, {through: 'AvoirStatut',foreignKey:'id_statut'});
 // Remplacer HasMany avec BelongsToMany parceque HasMany 
 // Convient aux cardinalité 1-n pas n-m 
- console.log(typeof(StatutCompte))
-  export var statutComptes = [1,2,3,4]
+
 /*
 1: A valider
 2: Actif (débloqué)

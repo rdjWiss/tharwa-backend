@@ -9,6 +9,8 @@ import {TypeCompte, typeComptes} from '../models/TypeCompte'
 
 import {GestionComptes} from './GestionComptes'
 import { type } from 'os';
+import { MailController } from './mailController';
+import { creationCompteUserBanquierMail, creationCompteUserClientMail, nouvelleDemandeCreationCompteNotifBanquier } from '../../config/messages';
 
 var crypto = require('crypto')
 var base64 = require('node-base64-image')
@@ -22,6 +24,7 @@ export class CreationComptes{
     console.log("POST /users")
 
     let emailUser = req.body.email;
+    let password = req.body.password
     console.log(emailUser)
     
     //Vérifier si l'email existe
@@ -55,15 +58,22 @@ export class CreationComptes{
           }else{
             //Récupérer l'image et la sauvegarder
             //var filnamePath = "C:/Users/sol/Desktop/Projet/Backend/"
+            var photo = null
             var filnamePath = "./"
             var filename = "assets/images/"+req.body.email
             //console.log(filename);
-            //console.log(req.body.photo)
-            base64.decode(new Buffer(req.body.photo, 'base64'),
-              {filename: filnamePath+filename},
+            // console.log(req.body.photo)
+            if (req.body.photo != null) {
+              base64.decode(new Buffer(req.body.photo, 'base64'),
+              {
+                filename: filnamePath+filename
+              },
               function(err:any){
-              console.log("err "+err);
-            });
+                console.log("error "+err);
+              });
+              photo = filename+".jpg"
+            }
+            // console.log(req.body.password)
             //Créer le user
             Userdb.create({
             email : emailUser,
@@ -73,7 +83,7 @@ export class CreationComptes{
             prenom: req.body.prenom,
             adresse: req.body.adresse,
             telephone: req.body.tel,
-            photo: filename+".jpg",
+            photo: photo,
             fonctionId: req.body.fonction
     
             }).then( (created:any) =>{
@@ -113,6 +123,18 @@ export class CreationComptes{
                         id_statut: 1,
                       }).then( (result:any) => {
                         console.log("Statut crée")
+                        
+                        MailController
+                        .sendMail("no-reply@tharwa.dz",
+                        created.email,"Création compte utilisateur THARWA",
+                        creationCompteUserClientMail(created.nom))
+                        /* .then(()=>{
+                          console.log("Mail sent")
+                        }).catch(()=>{
+                          console.log("Error sending mail")
+                        }) */
+                        notifierBanquierNouveauCompteAValider()
+                        
                         res.status(200);
                         res.send({
                           msg:"Le compte a été crée",
@@ -127,6 +149,12 @@ export class CreationComptes{
               }else{
                 created.active = "TRUE"
                 created.save()
+
+                MailController
+                .sendMail("no-reply@tharwa.dz",
+                  created.email,"Création compte banquier THARWA",
+                  creationCompteUserBanquierMail(created.nom,created.email,password))
+
                 res.status(200);
                 res.send({
                   msg:"Le compte a été crée",
@@ -151,122 +179,163 @@ export class CreationComptes{
       let user = req.body.user;
       let typeCompte = req.body.type_compte;
       let monnaie = req.body.monnaie || "DZD" ;
-      console.log(monnaie)
-      console.log(user+" "+typeCompte)
+      console.log(user,typeCompte,monnaie)
 
-      //vérifier code monnaie
-      if(monnaies.indexOf(monnaie) == -1){
-        res.status(400);
-        res.send({
-          err:"Bad request",
-          msg_err:"Monnaie non supportée" 
-        })
-      }
-      //Vérifier typeCompte
-      else if(typeComptes.indexOf(+typeCompte) == -1){
-        //console.log(typeComptes.indexOf(+typeCompte)>-1,typeCompte)
-        res.status(400);
-        res.send({
-          err:"Bad request",
-          msg_err:"Type compte erroné" 
-        })
-      }else if(!user || !typeCompte){
-        res.status(400);
-        res.send({
-          err:"Bad request",
-          msg_err:"Champs user ou type compte manquants" 
-        })
-      }else if(typeCompte=="1"){
-        res.status(400);
-        res.send({
-          err:"Bad request",
-          msg_err:"Pas possible de créer un compte courant " 
-        })
-      }else{
-        Compte.findAll({
-          where:{
-            id_user: user,
-            type_compte:typeCompte
+      let fonctionIds=['C','E']
+      Userdb.findOne({
+        where:{
+          id:user,
+          fonctionId:{
+            $or:fonctionIds
           }
-        }).then((results:any)=>{
-          //
-          let nbrResults = results.length
-          //console.log(results.length)
-
-          //Erreur si
-          //compte épargne à créer existe
-          //2 comptes devise
-          //compte devise à créer existe
-          if((typeCompte=="2" && nbrResults!=0) || (typeCompte=="3" && nbrResults>1) ||
-          (typeCompte=="3" && nbrResults==1 && results[0].code_monnaie==monnaie)){
+        }
+      }).then((result:any)=>{
+        if(!result){
+          res.status(400);
+          res.send({
+            err:"Bad request",
+            msg_err:"Le id user est erroné. Ou le user n'est pas un client" 
+          })
+        }else{
+          //vérifier code monnaie
+          if(monnaies.indexOf(monnaie) == -1){
             res.status(400);
             res.send({
               err:"Bad request",
-              msg_err:"Vous ne pouvez pas créer un autre compte de ce type " 
+              msg_err:"Monnaie non supportée" 
             })
-          }else if((typeCompte=="2" && monnaie!="DZD") ||
-            (typeCompte=="3" && monnaie!="EUR" && monnaie!="USD") ){
-              res.status(400);
-              res.send({
-                err:"Bad request",
-                msg_err:"La monnaie ne correspond pas au type du compte " 
-              })
-          }else{
-            let numSeq;
-            //Récupérer le numéro séquentiel
-            Parametre.findOne({
-              where:{
-                id_param:2
-              }
-            }).then( (result:any) =>{
-              if(result){
-                //Générer le numéro de comtpe
-                var valeur : string = result.valeur
-                numSeq = Number(valeur)+1
-                numSeq = numSeq+""
-                while (numSeq.length < 6) numSeq  = "0" + numSeq;
-                
-                result.valeur = numSeq
-                result.save()
-                //Le code du nouveau compte
-                var numCompte = "THW"+numSeq+monnaie
-                //console.log("Num compte: "+numCompte)
-
-                //console.log(typeCompte)
-                //console.log(numCompte,monnaie,typeCompte,user)
-
-                Compte.create({
-                  num_compte: numCompte,
-                  balance: 0.0,
-                  code_monnaie:monnaie,
-                  type_compte: +typeCompte,
-                  id_user: +user
-                }).then( (created2:any) =>{
-                  console.log("Compte bancaire "+numCompte+" "+typeCompte+" crée")
-                  //Ajouter le statut à l'historique
-                  AvoirStatut.create({
-                    num_compte: created2.num_compte,
-                    id_statut: 1,
-                  }).then( (result:any) => {
-                    //console.log("Statut crée")
-
-                    //TODO: send mail to banquier !!
-
-                    res.status(200);
-                    res.send({
-                      msg:"Le compte a été crée",
-                      bank_compte: created2.dataValues,
-                      statut: result.dataValues
-                    })
-                  });
-                });
-              }
-            });   
           }
-          
-        })
-          
-      }
+          //Vérifier typeCompte
+          else if(typeComptes.indexOf(+typeCompte) == -1){
+            //console.log(typeComptes.indexOf(+typeCompte)>-1,typeCompte)
+            res.status(400);
+            res.send({
+              err:"Bad request",
+              msg_err:"Type compte erroné" 
+            })
+          }else if(!user || !typeCompte){
+            res.status(400);
+            res.send({
+              err:"Bad request",
+              msg_err:"Champs user ou type compte manquants" 
+            })
+          }else if(typeCompte=="1"){
+            res.status(400);
+            res.send({
+              err:"Bad request",
+              msg_err:"Impossible de créer un compte courant " 
+            })
+          }else{
+            Compte.findAll({
+              where:{
+                id_user: user,
+                type_compte:typeCompte
+              }
+            }).then((results:any)=>{
+              //
+              let nbrResults = results.length
+              //console.log(results.length)
+
+              //Erreur si
+              //compte épargne à créer existe
+              //2 comptes devise
+              //compte devise à créer existe
+              if((typeCompte=="2" && nbrResults!=0) || (typeCompte=="3" && nbrResults>1) ||
+              (typeCompte=="3" && nbrResults==1 && results[0].code_monnaie==monnaie)){
+                res.status(400);
+                res.send({
+                  err:"Bad request",
+                  msg_err:"Vous ne pouvez pas créer un autre compte de ce type " 
+                })
+              }else if((typeCompte=="2" && monnaie!="DZD") ||
+                (typeCompte=="3" && monnaie!="EUR" && monnaie!="USD") ){
+                  res.status(400);
+                  res.send({
+                    err:"Bad request",
+                    msg_err:"La monnaie ne correspond pas au type du compte " 
+                  })
+              }else{
+                let numSeq;
+                //Récupérer le numéro séquentiel
+                Parametre.findOne({
+                  where:{
+                    id_param:2
+                  }
+                }).then( (result:any) =>{
+                  if(result){
+                    //Générer le numéro de comtpe
+                    var valeur : string = result.valeur
+                    numSeq = Number(valeur)+1
+                    numSeq = numSeq+""
+                    while (numSeq.length < 6) numSeq  = "0" + numSeq;
+                    
+                    result.valeur = numSeq
+                    result.save()
+                    //Le code du nouveau compte
+                    var numCompte = "THW"+numSeq+monnaie
+                    //console.log("Num compte: "+numCompte)
+
+                    //console.log(typeCompte)
+                    //console.log(numCompte,monnaie,typeCompte,user)
+
+                    Compte.create({
+                      num_compte: numCompte,
+                      balance: 0.0,
+                      code_monnaie:monnaie,
+                      type_compte: +typeCompte,
+                      id_user: +user
+                    }).then( (created2:any) =>{
+                      console.log("Compte bancaire "+numCompte+" "+typeCompte+" crée")
+                      //Ajouter le statut à l'historique
+                      AvoirStatut.create({
+                        num_compte: created2.num_compte,
+                        id_statut: 1,
+                      }).then( (result:any) => {
+                        //console.log("Statut crée")
+
+                        MailController
+                        .sendMail("no-reply@tharwa.dz",
+                        created2.email,"Création compte utilisateur THARWA",
+                        creationCompteUserClientMail(created2.nom))
+                        //TODO: send mail to banquier !!
+                        notifierBanquierNouveauCompteAValider()
+
+                        res.status(200);
+                        res.send({
+                          msg:"Le compte a été crée",
+                          bank_compte: created2.dataValues,
+                          statut: result.dataValues
+                        })
+                      });
+                    });
+                  }
+                });   
+              }
+              
+            })
+              
+          }
+        }
+      })
+      
   }
 
+  
+}
+
+function notifierBanquierNouveauCompteAValider(){
+
+  Userdb.findAll({
+    where:{
+      fonctionId:'B'
+    }
+  }).then((banquiers:any)=>{
+    banquiers.forEach((banquier:any) => {
+      MailController
+      .sendMail("no-reply@tharwa.dz",
+      banquier.email,"Nouvelle demande de création d'un compte Tharwa",
+      nouvelleDemandeCreationCompteNotifBanquier())
+
+    });
+  })
 }

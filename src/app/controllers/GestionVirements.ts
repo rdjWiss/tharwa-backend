@@ -12,17 +12,12 @@ import {virEntreComptesMail,
         validationVirEntreComptesMail,rejetVirEntreComptesMail,
         validationVirSortantMail,rejetVirSortantMail } from '../../config/messages';
 import { modeleMail } from '../../config/modelMail';
-import { Converssion } from './Converssion';
+import { Converssion, convertirMontant } from './Converssion';
 import { start } from 'repl';
 
 var base64 = require('node-base64-image')
 let conversion = new Converssion()
 
-/* res.status(400);
-      res.send({
-        err:"Bad request",
-        msg_err:"La source et dest doivent etre diff" 
-      }) */
 
 export class GestionVirements{
 
@@ -40,7 +35,7 @@ export class GestionVirements{
     let montant = req.body.montant
     let motif = req.body.motif
     let justif = req.body.justif  
-    console.log(justif)
+    // console.log(justif)
     
     console.log(src,"to", dest)    
 
@@ -97,13 +92,14 @@ export class GestionVirements{
                 msg_err:"Impossible d'effectuer un virement entre epargne et devise" 
               })
             }//Vérifier meme propriétaire
-            else if(comptes[0].id_user != comptes[1].id_user){
+            /* else if(comptes[0].id_user != comptes[1].id_user){
               res.status(400);
               res.send({
                 err:"Bad request",
                 msg_err:"Pas le même utilisateur" 
               })
-            }else{
+            } */
+            else{
               let indiceSrc=0;
               if(comptes[1].num_compte == src) indiceSrc=1
 
@@ -115,7 +111,7 @@ export class GestionVirements{
                 })
               }
               else{
-                //Effectuer le virement: transaction
+                /* //Effectuer le virement: transaction
                 sequelize.transaction(function (t:any) {
                   //Mettre à jours les balances des comptes
                   return Compte.update({
@@ -134,15 +130,16 @@ export class GestionVirements{
                     }, {transaction: t});
                   });
                 }).then(function (result:any) {
-                  //Success
+                  //Success */
                   //Générer le code de virement
                   var dateNow = new Date();
                   let code = genererCodeVir(dateNow,src,dest)
-                  //console.log("Code",code)
+                  console.log("Code",code)
 
                   //Statut du virement
                   let statut = 2//valide par défaut
                   var filename = ""
+                  var photo=null
                   if(+montant>=seuil) {
                     statut=1 //A valider
                     //Récupérer l'image du justificatif en base64
@@ -150,7 +147,7 @@ export class GestionVirements{
                     var filnamePath = "./"
                     filename = "assets/justifs/"+code
                     console.log("File",filename);
-                    console.log(justif)
+                    // console.log(justif)
                     base64.decode(new Buffer(justif, 'base64'),
                       {filename: filnamePath+filename},
                       function(err:any){
@@ -161,16 +158,17 @@ export class GestionVirements{
                             err:"Error",
                             msg_err:err 
                           }) */
+                          photo = filename+'.jpg'
                     });
                   }
-                  console.log("Filename",filename)
+                  console.log('photo',photo)
 
                   let vir = {
                     code:code,
                     montant:montant,
                     motif:motif,
                     dateNow:dateNow,
-                    justif:filename+".jpg",
+                    justif:photo,
                     src:src,
                     dest:dest,
                     statut:statut,
@@ -179,7 +177,8 @@ export class GestionVirements{
                   }
 
                   if(comptes[0].type_compte == 3 || comptes[1].type_compte == 3){
-                    conversion.convertirMontant(montant,
+                    // conversion.
+                    convertirMontant(montant,
                       comptes[indiceSrc].code_monnaie,
                       comptes[1-indiceSrc].code_monnaie, 
                     (result:any)=>{
@@ -239,14 +238,14 @@ export class GestionVirements{
                       })
                     })
                   }  
-                }).catch(function (err:any) {
+                /* }).catch(function (err:any) {
                   //TRANSACT Failed
                   res.status(400);
                   res.send({
                     err:"Error",
                     msg_err:"Impossible d'effectuer la transaction"
                   })
-                });
+                }); */
               }
             }
           }
@@ -415,16 +414,16 @@ export class GestionVirements{
                     MailController
                     .sendMail("no-reply@tharwa.dz",
                       found.email,
-                      "Virement sortant",
+                      "Virement émis",
                       virSortantMail(found.nom,dest,montant))
-                    .then(()=>{
+                    /* .then(()=>{
                       console.log("Mail Sent")
                       res.status(200)
                       res.send(created)
                     }).catch((error:any)=>{
                         res.status(500)
                         res.send("Impossible d'envoyer le mail. ")
-                    })
+                    }) */
                     //Envoi SMS
                   })
                 })   
@@ -569,14 +568,14 @@ export class GestionVirements{
                         user.email,
                         objetMail,msg
                        )
-                      .then(()=>{
+                      /* .then(()=>{
                         console.log("Mail Sent")
                         res.status(200)
                         res.send("ok")
                       }).catch((error:any)=>{
                           res.status(500)
                           res.send("Impossible d'envoyer le mail. ")
-                      })
+                      }) */
                 })
             })
 
@@ -584,10 +583,11 @@ export class GestionVirements{
         })
       }
     })
+    }
   }
-}
-  function creerVirement(vir:any, callback:Function,error:ErrorEventHandler){
-    console.log("justif",vir.justif)
+
+  export function creerVirement(vir:any, callback:Function,error:ErrorEventHandler){
+    // console.log("justif",vir.justif)
     Virement.create({
       code_virement:vir.code,
       montant:vir.montant,
@@ -598,7 +598,6 @@ export class GestionVirements{
       recepteur:vir.dest,
       statut_virement:vir.statut
     }).then((created:any)=>{
-    //console.log(created.dataValues)
     //Rechercher l'email du user
     Userdb.findOne({
       where:{
@@ -615,13 +614,14 @@ export class GestionVirements{
         "Virement entre vos comptes",
         virEntreComptesMail(found.nom,vir.src,
           vir.dest,vir.montant))
-      .then(()=>{
-        console.log("Mail Sent fdsfs")
+      /* .then(()=>{
+        console.log("Mail Sent")
         callback(created)
       }).catch((err:any)=>{
         console.log("kjflsq")
         error("Impossible d'anvoyer un mail")
-      })
+      }) */
+      callback(created)
       }else{
         error("Impossible de trouver le user")
       }
@@ -637,16 +637,21 @@ export class GestionVirements{
     })
   }
 
-
   export function genererCodeVir(date: Date, src:string, dest:string): string{
     //var dateNow = new Date();
     let YYYY=date.getFullYear()
-    let MM=date.getMonth()+1
-    let DD=date.getDate()
-    let HH=date.getHours()
-    let UU=date.getMinutes()
-    let SS=date.getSeconds()
+    let MM=(date.getMonth()+1).toString()
+    let DD=(date.getDate()).toString()
+    let HH=(date.getHours()).toString()
+    let UU=(date.getMinutes()).toString()
+    let SS=(date.getSeconds()).toString()
     
+    if(MM.length<2) MM = '0'+MM
+    if(DD.length<2) DD = '0'+DD
+    if(HH.length<2) HH = '0'+HH
+    if(UU.length<2) UU = '0'+UU
+    if(SS.length<2) SS = '0'+SS
+
     return src+dest+YYYY+MM+DD+HH+UU+SS
   }
 
