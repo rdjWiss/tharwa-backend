@@ -8,6 +8,7 @@ import {GestionVirements} from '../controllers/GestionVirements'
 
 import{WebMiddleware,MobMiddleware} from '../middlewares/AppMiddleware'
 import {creerUserMiddleware} from '../middlewares/validationApp'
+import { Converssion } from '../controllers/Converssion';
 
 // Assigner à router l'instance de express.Router()
 const router: Router = Router();
@@ -15,6 +16,7 @@ const router: Router = Router();
 const gestionComptes = new GestionComptes();
 const creationComptes = new CreationComptes();
 const gestionVir = new GestionVirements();
+const converssion = new Converssion();
 
 router.use(authMiddleware)
 //router.use(TokensExpireMiddleware)
@@ -24,6 +26,7 @@ router.get('/users/:userEmail',gestionComptes.userExist);//to oauth
 
 //Filtrer les comptes bancaires selon le statut (paramètre)
 router.get('/comptes',WebMiddleware,gestionComptes.getComptes)
+
 //Mettre à jour le statut d'un compte bancaire
 router.put('/comptes/:numCompte',WebMiddleware,gestionComptes.modifCompte)
 
@@ -39,6 +42,9 @@ router.post('/virements/1',MobMiddleware, gestionVir.virementEntreComptes)
 router.post('/virements/2',MobMiddleware, gestionVir.virementSrcTHW)
 router.get('/virements',WebMiddleware,gestionVir.getVirementAValider)
 router.put('/virements/:codeVir',WebMiddleware,gestionVir.validateVir)
+
+//Taux de change
+router.post('/convertir',converssion.convertir)
 
 //Toutes les autres routes
 router.all('*',function(req,res){

@@ -3,7 +3,7 @@ import * as Express from 'express'
 
 const https = require('https');
 const API_PATH='https://globalcurrencies.xignite.com/xGlobalCurrencies.json/';
-const API_TOKEN='4B23560587454FD7B7F14AAD97D42933';
+const API_TOKEN='52B4A9C2E57E44AEAA0D3CDE5167D7FC';
 
 /**
  *  Class Converssion 
@@ -38,24 +38,24 @@ export class Converssion{
     }
     
     public convertir:Express.RequestHandler=function(req:Express.Request,res:Express.Response){
-        
+        console.log("Convertir")
         let source=req.body.source
         let   dest=req.body.destination
         let montant=req.body.montant
 
-        this.convertirMontant(montant, source, dest,
+        convertirMontant(montant, source, dest,
                      (reponse: any) => {
-                        console.log("Conversion termine ")
-                    res.status(200)
-                    res.json(reponse)
-                    },
-                    (error: any) => {
-                        res.status(500)
-                        res.send({
-                            error: error
-                        })
+            console.log("Conversion termine ")
+            res.status(200)
+            res.json(reponse)
+            },
+            (error: any) => {
+                res.status(500)
+                res.send({
+                    error: error
+                })
 
-                    }    
+            }    
     )    
     }
 
@@ -76,15 +76,22 @@ export class Converssion{
         });
     }
 
-    public  convertirMontant(montant:number,codeMonnaieSrc:string,
+   
+}
+export function  convertirMontant(montant:number,codeMonnaieSrc:string,
         codeMonnaieDest:string,callback:Function,errorHandler:ErrorEventHandler){
         console.log("Conversion de monnaie")
         let url =   API_PATH+'ConvertRealTimeValue?From='+
                     codeMonnaieSrc+'&To='+
                     codeMonnaieDest+'&Amount='+montant
                     +'&_token='+API_TOKEN;
-
-        this.RequeteGet(url,callback,errorHandler)
+        let response={
+            montant_src:montant,
+            montant_dst:montant*100,
+            taux_change:100,
+        }
+        callback(response)
+      
+        //  this.RequeteGet(url,callback,errorHandler)
 
         }
-    }
