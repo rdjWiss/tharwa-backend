@@ -15,6 +15,7 @@ import { MailController  } from '../../app/controllers/mailController'
 import { VerificationToken } from '../models/VerificationToken';
 import { errorMsg } from "../config/authserver";
 import { verificationMail,verificationMessage } from '../../config/messages'
+import { Compte } from '../../app/models/Compte';
 export class OAuthnetification{
     
 
@@ -22,12 +23,12 @@ login:Express.RequestHandler=function (req:Express.Request,res:Express.Response,
   console.log("/login");
 
   var appKey = req.headers.client_id
-  var pos ;
+  var fct ;
   //Vérifier la fonction du user
   //Seuls les clients et Employeurs peuvent utiliser l'application mobile
   //Et seuls les gestionnaires et banquiers l'application web
-  if(appKey=="152") pos = ["C","E"]
-  else pos = ["G","B"]
+  if(appKey=="152") fct = ["C","E"]
+  else fct = ["G","B"]
   let cryptedPassword = crypto.createHash('md5').update(req.body.password).digest('hex')
   
   Userdb.findOne({
@@ -35,18 +36,29 @@ login:Express.RequestHandler=function (req:Express.Request,res:Express.Response,
       'email':req.body.email,
       'password': cryptedPassword,
       'fonctionId':{
-        $or: pos
-      }      
+        $or: fct
+      },
+      
     }
   }).then( (user:any) =>{
     if(!user){
       res.status(401);
-      res.send("Bad Credentials")     
+      res.send({
+        err: "Bad Credentials"
+      })     
     }else{
-      res.status(200)
-      res.json({
+      if(user.active == "FALSE"){
+        res.status(401);
+        res.send({
+          err: "Compte non actif"
+        })  
+      }else{
+        res.status(200)
+        res.json({
         userId: Jwt.validationReq(user.id)
       })
+      }
+      
     }
   })  
 }    
@@ -117,8 +129,8 @@ choisir= function (req:Express.Request,res:Express.Response) {
         Userdb.findById(user.id)
         .then((result:any)=>{
           if(choix=='SMS'){
-            /*SmsController.sendSms("Tharwa",result.telephone,
-                  verificationMessage(verificationToken,result.nom))  */ 
+            SmsController.sendSms("Tharwa",result.telephone,
+                  verificationMessage(verificationToken,result.nom))  
             console.log('Sending SMS')
             res.status(200)
             res.send({
@@ -137,12 +149,12 @@ choisir= function (req:Express.Request,res:Express.Response) {
                   res.send({
                       Message: "Mail sent"
                   })
-                  //res.send()
+                 //res.send()
               }).catch((error:any)=>{
                 console.log("Impossible d'envoyer le code.")
                   res.status(500)
                   res.send("Impossible d'envoyer le code. ")
-                }) 
+                })
           }
           else{
               res.status(400)
@@ -203,7 +215,7 @@ verifyToken= function (req:Express.Request,res:Express.Response){
             error_description:""
           }
 
-          console.log(token);
+          //console.log(token);
           console.log(result.attempts);
           result.attempts=result.attempts+1
           
@@ -229,15 +241,26 @@ verifyToken= function (req:Express.Request,res:Express.Response){
             
               Userdb.findOne({
                 where:{id:userClair.id},
-                attributes: ['nom', 'prenom', 'photo','email','fonctionId']
+                attributes: ['id', 'nom', 'prenom', 'photo','email','fonctionId']
               }).then((infoUser:any)=>{
                 result.used=1
                 result.attempts=result.attempts+1
                 result.save()
                 const auth=Jwt.genToken(infoUser,infoUser.fonctionId, result.token)
                 console.log("Logged In")
-                res.status(200)
-                res.send(auth); 
+
+                Compte.findAll({
+                  where:{
+                    id_user:infoUser.id,
+                  },attributes:['num_compte','balance','date_creation', 
+                    'type_compte','code_monnaie','statut_actuel']
+                }).then((comptes:any)=>{
+                  auth.comptes = comptes
+                  res.status(200)
+                  res.send(auth); 
+                })
+
+                
               })
             }
           }

@@ -70,7 +70,7 @@ export const expireMiddleware:RequestHandler = function(req,res,next){
       VerificationToken.find({
         where:{
           userdbId: user.id,
-          used:-1
+          used:-1 
         }
       }).then((result:any) =>{
         result.used = 0;
@@ -82,6 +82,10 @@ export const expireMiddleware:RequestHandler = function(req,res,next){
       })
     }
     else{
+      // Ajouter les informations de l'utilisateur pour des utilisations auterieurs;
+      req.body.userDecoded=user;
+      console.log("Test append")
+      console.log(req.body)
       next()
     }
   }

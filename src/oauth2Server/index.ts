@@ -12,6 +12,7 @@ serveur.app.use('/assets',express.static('./assets'))
 //console.log("Dossier images "+express.static('./images'))
 //Utiliser les routes définie dans OuathRouter
 serveur.app.use(OauthRouter)
+
 export const authServer:any = serveur;
 
 
