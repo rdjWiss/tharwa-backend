@@ -1,45 +1,115 @@
-# Backend
+# Tharwa Backend
 
-### Authentification a deux Facteurs avec oauth2
+le backend de tharwa ...
 
-1- Le client mobile envoie les données de l'utilisateur au serveur d'authentification sur la route "/login" sous la forme 
-      {
-        email:'',
-        password:'',
-      }
-      Reponses : 
-            -400 : Bad request 
-            -401 : Bad credentials 
-            -200 : {
-                    userId :'sfgefgjkegeg1eg65eg613'  // Jwt Token contenant { Id:'', expires_in :''  } 
-                     }
-2- si l'authentification est faite le client recevera un hash permettant de continuer la deuxieme étape pour choisir le deuxiéme facteur d'authentification sois Sms ou Mail dans un délai de 10 Min  sur la route "/choisir"
-      {
-        user:'',
-        choix:'SMS ou MAil'
-      }
-      Reponse :
-          - 400 : Bad Request
-          - 401 : Unauthorized ( token a expiré)
-          - 200 : Code envoyé 
-3- Le client envoie le code de vérification avec le hash toujours pour permettre de le vérifier sous la route "/verifier" , le client a 3 chance pour envoyer le bon code sinon il devra demander un autre et le code doit etre validé dans moins d'une heure 
-      {
-        user:"sfgefgjkegeg1eg65eg613",
-        token:'4598'
-      }
-      Reponse:
-      400:Bad request 
-      401: Unauthorized ( code invalide , nombre d'essais plus de 3, temps de validation expiré)
-      200:
-      {
-        access_token: '456sd54fzsfzreklfzrfklqrfzr.zfzf',   // Acces token expire dans 15 min a 30 min  ___a fixer !___ 
-        pin_code : 'gerhrt86g4rtg165et4ethb6th4teh4ethr1th'  // Code pin Hashé expires dans 1h
-        refresh_token: 'sdfsd4f4f1qsf41zqg4r4grzege4gerg',  // Refresh token Expires dans 24h 
-        expires_in: '121501122018',  //  Temps d'expiration 
-        token_type:"bearer", // type de token 
-        scope: 'Client', // Fonction 
-        user:'4' // User ID
-      }
-      
+## Getting Started
+
+Veuillez suivre ces instructions pour la configuration de l'environnement de l'execution de l'application Tharwa Backend 
+
+
+### Prerequisites
+  - Oracle XE 11g
+  - Nodejs v-8.0 
+  - TypeScript 
+  - Mocha 
   
-        
+
+```
+```
+
+### Preparing ther environnement 
+
+## Installing and configuring Oracle 
+
+# Activate user Account 'HR' 
+
+# Install Utl_Http 
+
+
+# Install Json_
+
+
+
+
+
+### Installing
+
+Avant de commencer executer la commande 
+
+    - npm install 
+
+
+Say what the step will be
+
+```
+Give the example
+```
+
+And repeat
+
+```
+until finished
+```
+
+End with an example of getting some data out of the system or using it for a little demo
+
+
+
+## Running the tests
+
+Explain how to run the automated tests for this system
+
+### Break down into end to end tests
+
+Explain what these tests test and why
+A completer
+
+```
+Give an example
+```
+
+### And coding style tests
+
+Coding style is downloadable on this link 
+
+```
+Give an example
+```
+
+## Deployment
+
+Add additional notes about how to deploy this on a live system
+
+To complete
+
+## Built With
+
+* [Dropwizard](http://www.dropwizard.io/1.0.2/docs/) - The web framework used
+* [Maven](https://maven.apache.org/) - Dependency Management
+* [ROME](https://rometools.github.io/rome/) - Used to generate RSS Feeds
+
+## Contributing
+
+Please read [CONTRIBUTING.md](https://gist.github.com/PurpleBooth/b24679402957c63ec426) for details on our code of conduct, and the process for submitting pull requests to us.
+
+## Versioning
+
+The versions of the porject are available on the master branch and on this link [tags on this repository](https://github.com/your/project/tags). 
+
+## Authors
+
+* ** Djamel Dahmane ** - *Initial work* - [PurpleBooth](https://github.com/transdz)
+
+* ** Wissem Redjem  ** - *Initial work* - [PurpleBooth](https://github.com/rdjWiss)
+
+
+
+## License
+
+This project is licensed under the ESI License - see the [LICENSE.md](LICENSE.md) file for details
+
+## Acknowledgments
+
+* No one 
+* Stackoverflow the saver 
+* all who helped us with a little of code ^_^ 
