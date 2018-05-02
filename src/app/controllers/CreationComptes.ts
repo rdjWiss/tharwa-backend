@@ -5,7 +5,7 @@ import {Compte} from '../../app/models/Compte'
 import { AvoirStatut } from '../models/AvoirStatut';
 import {Parametre} from '../models/Parametre'
 import {Monnaie, monnaies} from '../models/Monnaie'
-import {TypeCompte, typeComptes} from '../models/TypeCompte'
+import {TypeCompte, typeComptes, COMPTE_COURANT, COMPTE_EPARGNE, COMPTE_DEVISE} from '../models/TypeCompte'
 
 import {GestionComptes} from './GestionComptes'
 import { type } from 'os';
@@ -18,6 +18,27 @@ var base64 = require('node-base64-image')
 const gestionComptes = new GestionComptes();
 
 export class CreationComptes{
+
+  image:Express.RequestHandler=function(req:Express.Request,res:Express.Response,next:any){
+    console.log('/IMAGE')
+    var photo = null
+    var filnamePath = "./"
+    var filename = "assets/images/image"
+    //console.log(filename);
+    // console.log(req.body.photo)
+    if (req.body.photo != null) {
+      base64.decode(new Buffer(req.body.photo, 'base64'),
+      {
+        filename: filnamePath+filename
+      },
+      function(err:any){
+        console.log("error "+err);
+        res.status(200)
+        res.send("OK")
+      });
+      // photo = filename+".jpg"
+    }
+  }
   
   //Créer un compte utilisateur
   creerCompteUser:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
@@ -61,8 +82,7 @@ export class CreationComptes{
             var photo = null
             var filnamePath = "./"
             var filename = "assets/images/"+req.body.email
-            //console.log(filename);
-            // console.log(req.body.photo)
+            //console.log(filename)
             if (req.body.photo != null) {
               base64.decode(new Buffer(req.body.photo, 'base64'),
               {
@@ -73,25 +93,44 @@ export class CreationComptes{
               });
               photo = filename+".jpg"
             }
-            // console.log(req.body.password)
             //Créer le user
             Userdb.create({
-            email : emailUser,
-            password: crypto.createHash('md5').update(req.body.password).digest('hex'),
-  
-            nom: req.body.nom,
-            prenom: req.body.prenom,
-            adresse: req.body.adresse,
-            telephone: req.body.tel,
-            photo: photo,
-            fonctionId: req.body.fonction
+              email : emailUser,
+              password: crypto.createHash('md5').update(req.body.password).digest('hex'),
     
+              nom: req.body.nom,
+              prenom: req.body.prenom,
+              adresse: req.body.adresse,
+              telephone: req.body.tel,
+              photo: photo,
+              fonctionId: req.body.fonction
             }).then( (created:any) =>{
               console.log("User created")
             //Si le user est un client ou employeur on lui crée un compte bancaire courant
               if(created.fonctionId == "E" || created.fonctionId == "C"){
-                //On récupère le numéro séquentiel
-                let numSeq;
+                CreationComptes.creerCompteCourant({
+                  id:created.id
+                },function(compte:any){
+                  MailController
+                  .sendMail("no-reply@tharwa.dz",
+                  created.email,"Création compte utilisateur THARWA",
+                  creationCompteUserClientMail(created.nom))
+                  notifierBanquierNouveauCompteAValider()
+                  
+                  res.status(200);
+                  res.send({
+                    msg:"Le compte a été créé",
+                    user : created.dataValues,
+                    bank_compte: compte.dataValues
+                  })
+                }, (error:any)=>{
+                  res.status(500)
+                  res.send({
+                    err:"Erreur base de données",
+                    msg_err:error 
+                  })
+                })
+                /* let numSeq;
                 Parametre.findOne({
                   where:{
                     id_param:2
@@ -128,11 +167,6 @@ export class CreationComptes{
                         .sendMail("no-reply@tharwa.dz",
                         created.email,"Création compte utilisateur THARWA",
                         creationCompteUserClientMail(created.nom))
-                        /* .then(()=>{
-                          console.log("Mail sent")
-                        }).catch(()=>{
-                          console.log("Error sending mail")
-                        }) */
                         notifierBanquierNouveauCompteAValider()
                         
                         res.status(200);
@@ -145,7 +179,7 @@ export class CreationComptes{
                       });
                     });
                   }
-                });      
+                });  */     
               }else{
                 created.active = "TRUE"
                 created.save()
@@ -169,6 +203,55 @@ export class CreationComptes{
       }
     });
   }
+
+  //Création du premier compte bancaire Courant
+  public static creerCompteCourant=function(user:any,callback:Function, error:ErrorEventHandler){
+    /* let numSeq;
+    Parametre.findOne({
+      where:{
+        id_param:2
+      }
+    }).then( (result:any) =>{
+      if(result){
+        var valeur : string = result.valeur
+        numSeq = Number(valeur)+1
+        numSeq = numSeq+""
+        while (numSeq.length < 6) numSeq  = "0" + numSeq;
+        
+        result.valeur = numSeq
+        result.save()
+        //Le code du nouveau compte
+        var numCompte = "THW"+numSeq+"DZD"
+        console.log("Num compte: "+numCompte)
+ */
+    CreationComptes.genererNouveauNumeroCompte('DZD',function(numCompte:string){
+      Compte.create({
+        num_compte: numCompte,
+        balance: 0.0,
+        code_monnaie:"DZD",
+        type_compte: COMPTE_COURANT,
+        id_user:user.id
+      }).then( (compte:any) =>{
+        if(compte){
+          console.log("Compte bancaire créé")
+          //Ajouter le statut à l'historique
+          AvoirStatut.create({
+            num_compte: compte.num_compte,
+            id_statut: 1,
+          }).then( (result:any) => {
+            callback(compte)
+          });
+        }else {
+          error('Erreur de création du compte courant')
+        }  
+      });
+    },(err:any)=>{
+      error(err)
+    })
+        
+      //}
+    //}); 
+  } 
 
   //Créer un compte bancaire devise ou épargne
   creerCompteBancaire:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
@@ -219,7 +302,7 @@ export class CreationComptes{
               err:"Bad request",
               msg_err:"Champs user ou type compte manquants" 
             })
-          }else if(typeCompte=="1"){
+          }else if(typeCompte==COMPTE_COURANT){
             res.status(400);
             res.send({
               err:"Bad request",
@@ -236,48 +319,27 @@ export class CreationComptes{
               let nbrResults = results.length
               //console.log(results.length)
 
-              //Erreur si
-              //compte épargne à créer existe
+              //Erreur si compte épargne à créer existe
               //2 comptes devise
               //compte devise à créer existe
-              if((typeCompte=="2" && nbrResults!=0) || (typeCompte=="3" && nbrResults>1) ||
-              (typeCompte=="3" && nbrResults==1 && results[0].code_monnaie==monnaie)){
+              if((typeCompte==COMPTE_EPARGNE && nbrResults!=0) || 
+              (typeCompte==COMPTE_DEVISE && nbrResults>1) ||
+              (typeCompte==COMPTE_DEVISE && nbrResults==1 && results[0].code_monnaie==monnaie)){
                 res.status(400);
                 res.send({
                   err:"Bad request",
                   msg_err:"Vous ne pouvez pas créer un autre compte de ce type " 
                 })
-              }else if((typeCompte=="2" && monnaie!="DZD") ||
-                (typeCompte=="3" && monnaie!="EUR" && monnaie!="USD") ){
+              }else if((typeCompte==COMPTE_EPARGNE && monnaie!="DZD") ||
+                (typeCompte==COMPTE_DEVISE && monnaie!="EUR" && monnaie!="USD") ){
                   res.status(400);
                   res.send({
                     err:"Bad request",
                     msg_err:"La monnaie ne correspond pas au type du compte " 
                   })
               }else{
-                let numSeq;
-                //Récupérer le numéro séquentiel
-                Parametre.findOne({
-                  where:{
-                    id_param:2
-                  }
-                }).then( (result:any) =>{
-                  if(result){
-                    //Générer le numéro de comtpe
-                    var valeur : string = result.valeur
-                    numSeq = Number(valeur)+1
-                    numSeq = numSeq+""
-                    while (numSeq.length < 6) numSeq  = "0" + numSeq;
-                    
-                    result.valeur = numSeq
-                    result.save()
-                    //Le code du nouveau compte
-                    var numCompte = "THW"+numSeq+monnaie
-                    //console.log("Num compte: "+numCompte)
-
-                    //console.log(typeCompte)
-                    //console.log(numCompte,monnaie,typeCompte,user)
-
+                CreationComptes.genererNouveauNumeroCompte(monnaie,
+                  function(numCompte:string){
                     Compte.create({
                       num_compte: numCompte,
                       balance: 0.0,
@@ -308,19 +370,43 @@ export class CreationComptes{
                         })
                       });
                     });
-                  }
-                });   
+                  }, (error:any)=>{
+                })
               }
-              
-            })
-              
+            }) 
           }
         }
       })
-      
   }
 
-  
+  //Génération d'un nouveau numero de compte bancaire
+  public static genererNouveauNumeroCompte(codeMonnaie:string, callback:Function,error:ErrorEventHandler){
+    let numSeq;
+    //Récupérer le numéro séquentiel
+    Parametre.findOne({
+      where:{
+        id_param:2
+      }
+    }).then( (result:any) =>{
+      if(result){
+        //Générer le numéro de comtpe
+        var valeur : string = result.valeur
+        numSeq = Number(valeur)+1
+        numSeq = numSeq+""
+        while (numSeq.length < 6) numSeq  = "0" + numSeq;
+        
+        result.valeur = numSeq
+        result.save()
+        //Le code du nouveau compte
+        var numCompte = "THW"+numSeq+codeMonnaie
+        //console.log("Num compte: "+numCompte)
+        callback(numCompte)
+      }else{
+        error('Erreur Base de données')
+      }
+    })
+  }
+
 }
 
 function notifierBanquierNouveauCompteAValider(){

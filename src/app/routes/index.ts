@@ -36,7 +36,6 @@ router.post('/users',/* creerUserMiddleware */creationComptes.creerCompteUser)//
 //Créer un autre compte bancaire
 router.post('/comptes',MobMiddleware,creationComptes.creerCompteBancaire)
 
-
 //Virements
 router.post('/virements/1',MobMiddleware, gestionVir.virementEntreComptes)
 router.post('/virements/2',MobMiddleware, gestionVir.virementSrcTHW)
@@ -45,6 +44,8 @@ router.put('/virements/:codeVir',WebMiddleware,gestionVir.validateVir)
 
 //Taux de change
 router.post('/convertir',converssion.convertir)
+
+router.post('/image', creationComptes.image)
 
 //Toutes les autres routes
 router.all('*',function(req,res){

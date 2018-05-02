@@ -11,8 +11,6 @@ import { STATUT_COMPTE_ACTIF, STATUT_COMPTE_AVALIDER, STATUT_COMPTE_REJETE, STAT
 
 const testServer = appServer.app.listen(5000)
 
-// let tokens = Jwt.genToken({nom:"Redjme",prenom:"Wissem"},"C","1236") 
-
 const emailClient = 'tharwaclient152@gmail.com' //mdp:tharwa152
 
 let numCompteCourant = 0
@@ -36,7 +34,7 @@ describe('Vérification si email exist', function() {
         })    
   });
 
-  it("Doit renvoyer OK si un user existe /users/:userId GET",
+  it("Doit renvoyer 200 si un user n'existe pas /users/:userId GET",
     function(done){
       Chai.request(testServer)
         .get('/users/test2@esi.dz')
@@ -252,7 +250,7 @@ describe('Modification du statut d\'un compte',function(){
     
   });
 
-  it('Doit retourner 400 si le compte à bloquer est non encore valider',function(done){
+  it('Doit retourner 400 si le compte à bloquer est non encore validé',function(done){
     Compte.findOne({
       where:{
         num_compte:numCompteCourant
@@ -281,7 +279,7 @@ describe('Modification du statut d\'un compte',function(){
     
   });
 
-  it('Doit retourner 400 si on veut rejeter un compte bloqué (erreur)',function(done){
+  it('Doit retourner 400 si on veut rejeter un compte bloqué ',function(done){
     Compte.findOne({
       where:{
         num_compte:numCompteCourant

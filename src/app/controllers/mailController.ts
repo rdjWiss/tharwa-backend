@@ -13,6 +13,7 @@ export class MailController{
             text: texte,
             html: ''+texte+'',
             };
+            console.log("Sending mail to ", msg.to);
             MailController.sendMailAsynch(msg);
 
             return;
@@ -22,7 +23,7 @@ export class MailController{
     sendgrid.send(msg).then(() => {
       console.log("Mail sent to ", msg.to);
     }).catch((err:any) => {
-      console.log("Error sending mail",err);
+      console.log("Error sending mail");//,err);
       // this.sendMailAsynch(msg)
     });
   }

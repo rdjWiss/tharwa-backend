@@ -39,6 +39,7 @@ export class GestionComptes{
     })
   }
 
+  //Récupérer les comptes d'un statut donné
   public getComptes:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
    
     let statut = parseInt(req.param('statut'))
@@ -63,9 +64,12 @@ export class GestionComptes{
           results.forEach((element:any) => {
 
             //TODO: A changer par un acces à la bdd
-            if(element.type_compte == 1) element.type_compte = "Courant"
-            else if (element.type_compte == 2) element.type_compte = "Epargne"
-            else if (element.type_compte == 3) element.type_compte = "Devise"
+            if(element.type_compte == COMPTE_COURANT) 
+              element.type_compte = "Courant"
+            else if (element.type_compte == COMPTE_EPARGNE) 
+              element.type_compte = "Epargne"
+            else if (element.type_compte == COMPTE_DEVISE) 
+              element.type_compte = "Devise"
 
             Userdb.findOne({
               where:{
@@ -108,7 +112,7 @@ export class GestionComptes{
     let numCompte = req.params.numCompte
     console.log("PUT comptes/"+numCompte)
     
-    //TODO: Vérifier que seule les banquiers peuvent executer cette fonction
+    //TODO: Vérifier que seule les banquiers peuvent executer cette fonction 
 
     //Vérifier que le statut fait partie des statuts considérés et non null
     if(statut == null || statutComptes.indexOf(+statut) == -1 ){
@@ -119,48 +123,22 @@ export class GestionComptes{
       })
     }
     else{
-    //Rechercher le dernier statut du compte
-     /*  AvoirStatut.findOne({
-        where:{
-          num_compte: numCompte,
-        },
-        order:[['date_statut','DESC']],
-        limit: 1 */
       Compte.findOne({
         where:{
           num_compte:numCompte
         }
       }).then((result:any)=>{
         if(result){
-          //TODO: Vérifier les passage possible entre statuts
-    /*
-      POSSIBLE: AVALIDER -> ACTIF / AVALIDER -> REJETE 
-                ACTIF -> BLOQUE / BLOQUE -> ACTIF
-      X AVALIDER -> BLOQUE / ACTIF -> REJETE / * -> AVALIDER
-      X BLOQUE -> REJETE
-      */
-          if((statut == STATUT_COMPTE_AVALIDER) || (result.statut_actuel == STATUT_COMPTE_REJETE) ||
-              (result.statut_actuel==STATUT_COMPTE_AVALIDER && statut == STATUT_COMPTE_BLOQUE) || 
-              (result.statut_actuel!=STATUT_COMPTE_AVALIDER && statut == STATUT_COMPTE_REJETE)  
-            ){
-              res.status(400)
-              res.send({
-                err:"Erreur",
-                msg_err:"Modification statut non permise"
-              })
-            }  
-          //Si le l'ancien statut == nouveau statut
-          // if(result.id_statut == statut){
-          else if(result.statut_actuel == statut){
+          if(!GestionComptes.isValidChangementStatut(result.statut_actuel,statut)){
             res.status(400)
             res.send({
               err:"Erreur",
-              msg_err:"Statut inchangé"
+              msg_err:"Modification statut non permise"
             })
-          }else{
+          }  
+          else{
             //Les modifications nécessitant un motif
-            if((statut == STATUT_COMPTE_REJETE || statut == STATUT_COMPTE_BLOQUE || 
-                (result.statut_actuel == STATUT_COMPTE_BLOQUE && statut == STATUT_COMPTE_ACTIF)) 
+            if(GestionComptes.isChangementStatutNecessitantMotif(result.statut_actuel,statut) 
                 && motif==null){
               res.status(400)
               res.send({
@@ -238,15 +216,9 @@ export class GestionComptes{
                         .sendMail("no-reply@tharwa.dz",
                           user.email,objetMail,
                           message)
-                        /* .then(()=>{
-                          console.log("Mail Sent")
+
                           res.status(200)
                           res.send(result)
-                        }).catch((error:any)=>{
-                          console.log("Impossible d'envoyer le code.")
-                            res.status(500)
-                            res.send("Impossible d'envoyer le code. ")
-                        }) */
                       }else {
                       //TODO: traiter les autres cas
                       //Actif -> Bloqué
@@ -278,6 +250,26 @@ export class GestionComptes{
       })
     }
 
+  }
+
+  
+  public static isValidChangementStatut = function(ancienStatut:any, nouveauStatut:any):boolean{
+    return (ancienStatut==STATUT_COMPTE_AVALIDER && 
+                    (nouveauStatut==STATUT_COMPTE_ACTIF || nouveauStatut==STATUT_COMPTE_REJETE ))
+            || (ancienStatut==STATUT_COMPTE_ACTIF && nouveauStatut==STATUT_COMPTE_BLOQUE)
+            || (ancienStatut == STATUT_COMPTE_BLOQUE && nouveauStatut == STATUT_COMPTE_ACTIF)        
+    /*
+      POSSIBLE: AVALIDER -> ACTIF / AVALIDER -> REJETE 
+                ACTIF -> BLOQUE / BLOQUE -> ACTIF
+      X AVALIDER -> BLOQUE / ACTIF -> REJETE / * -> AVALIDER
+      X BLOQUE -> REJETE
+      */
+  }
+
+  public static isChangementStatutNecessitantMotif = function(ancienStatut:any, nouveauStatut:any):boolean{
+  return  (nouveauStatut == STATUT_COMPTE_REJETE 
+          || nouveauStatut == STATUT_COMPTE_BLOQUE 
+          || (ancienStatut == STATUT_COMPTE_BLOQUE && nouveauStatut == STATUT_COMPTE_ACTIF)) 
   }
 }
 

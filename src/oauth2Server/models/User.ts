@@ -72,3 +72,23 @@ export const Userdb = sequelize.define('userdb', {
   },
 );
 Userdb.belongsTo(Fonction, {foreignKey: 'fonctionId'});
+
+
+export function getUserContact(userId:any,callback:Function,error:ErrorEventHandler){
+  Userdb.findOne({
+    where:{
+      id:userId
+    },
+    attribures:['nom','email','telephone']
+  }).then((found:any)=>{
+    if(found){
+      callback ({
+        nom: found.nom,
+        email: found.email,
+        tel: found.telephone
+      })
+    }else{
+      error("User not found")
+    }
+  });
+}

@@ -31,6 +31,7 @@ export const authMiddleware:RequestHandler = function(req,res,next){
   //console.log(req.body);
 
   let clientId = req.headers.client_id
+  console.log(clientId)
 
   if( !clientId ){
     res.status(401)
@@ -48,12 +49,14 @@ export const authMiddleware:RequestHandler = function(req,res,next){
     } else {
       // Traitement normal 
       if(clientId == "152") console.log("Connexion : Client Mobile");
-      else console.log("Connexion : Client Web")
+      else if(clientId== '541') console.log("Connexion : Client Web")
+      else console.log("Connexion : Backend")
       next()
     }
   } 
 }
 
+//Vérifie l'expiration du token lors de la connexion
 export const expireMiddleware:RequestHandler = function(req,res,next){
 
   let user = Jwt.decode(req.body.user)

@@ -12,33 +12,34 @@ var hash:any, verificationToken:any;
 describe('Authentification', function() {
   /* Test 1 */
   it("Doit interdire les applications non autorisées à https://tharwa:4000/ ALL",function(done){
+    this.timeout(10000)
     Chai.request(testServer)
         .post('/login')
         .send({email: 'scott@stackabuse.com', passsword: 'abc123'})
         .end(function(err,res){
           err.should.have.status(401)
+          console.log(res.body.error_description)
           done()
         })    
   });
-  //--------------------------------------------------------------
-  /* Test 2 */
+
   it('Doit envoyer un hash permettant de choisir la methode de reception du code (SMS/MAIL) https://tharwa:4000/login POST',function(done){
+    this.timeout(10000)
     Chai.request(testServer)
-        .post('/login')
-        .set("client_id","152")
-        .send({
-            "email":"ew_redjem@esi.dz",
-            "password":"Test"
-        })
-        .end(function(err,res){
-          res.should.have.status(200)
-          res.body.should.have.property("userId")
-          hash=res.body.userId
-          done();
-        })
-    });
-    //------------------------------------------------------------
-    /* Test 3 */
+      .post('/login')
+      .set("client_id","152")
+      .send({
+        "email":"ew_redjem@esi.dz",
+        "password":"Test"
+      })
+      .end(function(err,res){
+        res.should.have.status(200)
+        res.body.should.have.property("userId")
+        hash=res.body.userId
+        done();
+      })
+  });
+
     it('doit envoyer Le code de validation au user pas SMS ou par Mail  https://tharwa:4000/choisir POST',function(done){
         this.timeout(10000);//Set le timeout à 10_000 ms
         Chai.request(testServer)
@@ -49,24 +50,24 @@ describe('Authentification', function() {
             "choix":"MAIL"
         })
         .end(function(err,res){
-          res.should.have.status(200)
-          
-          let v=Jwt.decode(hash);
-          VerificationToken.findOne({
+            res.should.have.status(200)
+            
+            let v=Jwt.decode(hash);
+            VerificationToken.findOne({
             where:{
                 userdbId: v.id
             }
-          }).then((result:any) =>{
-           // console.log(result)
+            }).then((result:any) =>{
+            // console.log(result)
             verificationToken=result.token
-          })
+            })
 
-          done();
+            done();
         })
     });
-  //------------------------------------------------
-  /* Test 4 */
+
   it("Doit renvoyer une erreur si le code est invalide   ",function(done){
+    this.timeout(10000)
     Chai.request(testServer)
     .post('/verifier')
     .set("client_id","152")
@@ -79,9 +80,9 @@ describe('Authentification', function() {
         done();
     })
     });
- //------------------------------------------------
- /* Test 5 */ 
+
  it("Doit envoyer l'access token et le refresh token si le code est valide  ",function(done){
+    this.timeout(10000)
     Chai.request(testServer)
     .post('/verifier')
     .set("client_id","152")
@@ -95,13 +96,14 @@ describe('Authentification', function() {
         res.body.should.have.property("access_token")
         res.body.should.have.property("refresh_token")
         res.body.should.have.property("expires_in")
-        /* res.body.should.have.property("scope") */
         res.body.should.have.property("user")
         res.body.token_type.should.equal("bearer")
         console.log(res.body)
         done();
     })
     });
+
+
 })
 
 /*describe('Input validation ', function() {

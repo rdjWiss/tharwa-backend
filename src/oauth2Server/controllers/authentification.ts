@@ -140,21 +140,13 @@ choisir= function (req:Express.Request,res:Express.Response) {
           }else if(choix=='MAIL'){
             console.log('Sending mail')
             MailController
-              .sendMail("no-reply@tharwa.dz",
-                  result.email,"Code de vérification",
-                  verificationMail(verificationToken,result.nom))
-              .then((response:any)=>{
-                  console.log("Mail Sent")
-                  res.status(200)
-                  res.send({
-                      Message: "Mail sent"
-                  })
-                 //res.send()
-              }).catch((error:any)=>{
-                console.log("Impossible d'envoyer le code.")
-                  res.status(500)
-                  res.send("Impossible d'envoyer le code. ")
-                })
+            .sendMail("no-reply@tharwa.dz",
+              result.email,"Code de vérification",
+              verificationMail(verificationToken,result.nom))
+            res.status(200)
+            res.send({
+                Message: "Mail sent"+verificationToken
+            })
           }
           else{
               res.status(400)

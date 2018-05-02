@@ -7,7 +7,7 @@
   "scripts": {
     "server": "tsc --watch | nodemon --inspect ./build/index.js --watch build",
     "build:live": "nodemon --exec ./node_modules/.bin/ts-node -- ./src/app/server.ts",
-    "test-unit": "tsc |  mocha './build/tests/*.test.js'  | exit 1",
+    "test-unit": "tsc |  mocha './build/tests/unitTests/creationCompte.test.js'  | exit 1",
     "test": "tsc || mocha ./build/tests/userAuth.test.js && exit(1) ",
     "seed": "tsc || node ./build/tests/seeds/fonction.seed.js || node ./build/tests/seeds/user.seed.js || node ./build/tests/seeds/verificationToken.seed.js "
   },
@@ -24,14 +24,18 @@
     "jwt-simple": "^0.5.1",
     "morgan": "^1.9.0",
     "nexmo": "^2.2.0",
+    "node-base64-image": "^1.0.4",
+    "node-uuid": "^1.4.8",
     "oauth2-server": "^3.0.0",
     "oauth2orize": "^1.11.0",
-    "oracledb": "^2.1.2",
+    "oracledb": "^2.2.0",
     "passport": "^0.4.0",
     "passport-oauth2-client-password": "^0.1.2",
     "rand-token": "^0.4.0",
+    "redis": "^2.8.0",
     "sendgrid": "^5.2.3",
-    "sequelize": "^4.34.0"
+    "sequelize": "^4.37.6",
+    "socket.io": "^2.1.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.2",
@@ -41,13 +45,13 @@
     "@types/mocha": "^2.2.48",
     "@types/morgan": "^1.7.35",
     "@types/oauth2orize": "^1.8.3",
-    "@types/passport": "^0.4.3",
-    "@types/sequelize": "^4.27.7",
+    "@types/passport": "^0.4.4",
+    "@types/sequelize": "^4.27.14",
     "chai": "^4.1.2",
     "chai-http": "^3.0.0",
     "greenlock-express": "^2.0.12",
-    "mocha": "^5.0.1",
-    "nodemon": "^1.15.1",
+    "mocha": "^5.1.0",
+    "nodemon": "^1.17.3",
     "ts-node": "^5.0.0"
   }
 }

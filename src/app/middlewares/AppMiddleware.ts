@@ -7,7 +7,7 @@ export const WebMiddleware:RequestHandler = function(req,res,next){
     res.status(401)
     res.send({
       error:"Requete non autorisée",
-      error_description:"L'application n'est pas autorisé"
+      msg_err:"L'application n'est pas autorisé"
     })
   }else{
     next()
@@ -23,7 +23,7 @@ export const MobMiddleware:RequestHandler = function(req,res,next){
     res.status(401)
     res.send({
       error:"Requete non autorisée",
-      error_description:"L'application n'est pas autorisé"
+      msg_err:"L'application n'est pas autorisé"
     })
   }else{
     next()
