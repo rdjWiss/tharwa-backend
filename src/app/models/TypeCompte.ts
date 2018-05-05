@@ -26,6 +26,13 @@ export const TypeCompte = sequelize.define('typecompte', {
   },{}
 );
 
+export function typeCompteString(type:number):string{
+  var typeString : string = ''
+  if(type== COMPTE_COURANT) typeString='Courant'
+  else if(type== COMPTE_EPARGNE) typeString='Epargne'
+  else if(type== COMPTE_DEVISE) typeString='Devise'
+  return typeString
+}
 
 /*
 1: Courant

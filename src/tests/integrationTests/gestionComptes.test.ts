@@ -23,9 +23,6 @@ describe('Vérification si email exist', function() {
         .get('/users/ew_redjem@esi.dz')
         .set("client_id","152")
         .send({
-          /* verification_token: tokens.verification_token,
-          access_token: tokens.access_token ,
-          refresh_token: tokens.refresh_token , */
         })
         .end(function(err,res){
           res.should.have.status(200)
@@ -40,9 +37,6 @@ describe('Vérification si email exist', function() {
         .get('/users/test2@esi.dz')
         .set("client_id","152")
         .send({
-          /* verification_token: tokens.verification_token,
-          access_token: tokens.access_token ,
-          refresh_token: tokens.refresh_token , */
         })
         .end(function(err,res){
           res.should.have.status(200)
@@ -59,9 +53,6 @@ describe('Récupération des comptes selon un statut',function(){
       .get('/comptes?statut=1111')
       .set("client_id","152")
       .send({
-        /* verification_token: tokens.verification_token,
-        access_token: tokens.access_token ,
-        refresh_token: tokens.refresh_token , */
       })
       .end(function(err,res){
         err.should.have.status(401)
@@ -75,9 +66,6 @@ describe('Récupération des comptes selon un statut',function(){
       .get('/comptes?statut=1111')
       .set("client_id","541")
       .send({
-        /* verification_token: tokens.verification_token,
-        access_token: tokens.access_token ,
-        refresh_token: tokens.refresh_token , */
       })
       .end(function(err,res){
         err.should.have.status(400)
@@ -91,9 +79,6 @@ describe('Récupération des comptes selon un statut',function(){
       .get('/comptes?statut=1')
       .set("client_id","541")
       .send({
-        /* verification_token: tokens.verification_token,
-        access_token: tokens.access_token ,
-        refresh_token: tokens.refresh_token , */
       })
       .end(function(err,res){
         res.should.have.status(200)

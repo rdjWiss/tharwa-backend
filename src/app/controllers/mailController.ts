@@ -1,7 +1,8 @@
-
-
 const sendgrid = require('@sendgrid/mail');
 import { apiKey} from '../../config/sendgrid'
+
+var timeToResendMail = 10000
+
 export class MailController{
 
     public static sendMail(from:string,to:string,subject:string,texte:string){
@@ -24,7 +25,11 @@ export class MailController{
       console.log("Mail sent to ", msg.to);
     }).catch((err:any) => {
       console.log("Error sending mail");//,err);
-      // this.sendMailAsynch(msg)
+      setTimeout(function(){
+        console.log('Resending mail')
+        MailController.sendMailAsynch(msg)
+      },timeToResendMail);
+      
     });
   }
 }

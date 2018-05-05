@@ -17,7 +17,7 @@ const emailClient = 'tharwaclient152@gmail.com' //mdp:tharwa152
 let idClient = 0
 let idEmploy = 0
 
-describe('Création d\'un compte user', function() {
+/* describe('Création d\'un compte user', function() {
   
   it("Doit retourner 401 si l'email/user existe",
     function(done){
@@ -113,9 +113,9 @@ describe('Création d\'un compte user', function() {
 
   }); 
 
-});
+}); */
 
-/* describe('Création d\'un autre compte bancaire', function() {
+describe('Création d\'un autre compte bancaire', function() {
   before(function() {
     Userdb.findOne({
       where:{
@@ -330,7 +330,7 @@ describe('Création d\'un compte user', function() {
     }) 
   });
 
-}); */
+});
 
 
 

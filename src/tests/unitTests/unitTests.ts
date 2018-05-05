@@ -1,18 +1,18 @@
 import * as Chai from 'chai'
 import { GestionVirements } from "../../app/controllers/GestionVirements";
 import { STATUT_COMPTE_ACTIF, STATUT_COMPTE_BLOQUE, STATUT_COMPTE_AVALIDER, STATUT_COMPTE_REJETE } from '../../app/models/StatutCompte';
-import { COMPTE_COURANT, COMPTE_DEVISE, COMPTE_EPARGNE } from '../../app/models/TypeCompte';
+import { COMPTE_COURANT, COMPTE_DEVISE, COMPTE_EPARGNE, typeCompteString } from '../../app/models/TypeCompte';
 import { CreationComptes } from '../../app/controllers/CreationComptes';
 import { getUserContact } from '../../oauth2Server/models/User';
-import { STATUT_VIR_AVALIDER } from '../../app/models/StatutVirement';
+import { STATUT_VIR_AVALIDER, STATUT_VIR_VALIDE, STATUT_VIR_REJETE } from '../../app/models/StatutVirement';
 import { GestionComptes } from '../../app/controllers/GestionComptes';
 import { Compte } from '../../app/models/Compte';
 
 var should= Chai.should()
 
 // OK
-/* describe('Gestion des virements', function () {
-   it('Doit créer un enregistrement virement', function () {
+describe('Gestion des virements', function () {
+   /* it('Doit créer un enregistrement virement', function () {
      //Primary key
     let code = "THW000002DZDTHW000004DZD201842316158"
     let montant = 500
@@ -40,7 +40,7 @@ var should= Chai.should()
       console.log(error)
     });
       
-  })
+  }) */
  
   it('Le code du virement doit correspondre à l\'expression régulière', function(){
     let numCompte = 'THW000002DZD'
@@ -100,16 +100,22 @@ var should= Chai.should()
         error.should.equals('Statut compte erroné')
      })
    })
-}); */
 
-describe('Gestion des comptes bancaires', function () {
+  it('Doit retourner true si le changement du statut d\'un virement est valide',function(){
+    var retour = GestionVirements.isValidChangementStatut(STATUT_VIR_AVALIDER,STATUT_VIR_VALIDE)
+    retour.should.equals(true)
+    retour= GestionVirements.isValidChangementStatut(STATUT_VIR_AVALIDER,STATUT_VIR_REJETE)
+    retour.should.equals(true)
+  })
+});
+
+/* describe('Gestion des comptes bancaires', function () {
   it('Le numéro du compte doit correspondre à l\'expression régulière', function(){
     CreationComptes.genererNouveauNumeroCompte('DZD',function(numCompte:string){
       numCompte.should.match(/[A-Z]{3}\d{6}[A-Z]{3}/)
     }, (error:any)=>{
 
     })
-    
   })
 
   it('Doit créer un compte bancaire courant', function () {
@@ -165,7 +171,7 @@ describe('Gestion des comptes bancaires', function () {
     retour.should.equals(false)
   })
 
-  it('Doit retourner true si le changement de statut nécessite unmotif',function(){
+  it('Doit retourner true si le changement de statut nécessite un motif',function(){
     var retour = GestionComptes.isChangementStatutNecessitantMotif(STATUT_COMPTE_AVALIDER,STATUT_COMPTE_REJETE)
     retour.should.equals(true)
 
@@ -175,9 +181,20 @@ describe('Gestion des comptes bancaires', function () {
     var retour = GestionComptes.isChangementStatutNecessitantMotif(STATUT_COMPTE_BLOQUE,STATUT_COMPTE_ACTIF)
     retour.should.equals(true)
   })
-});
 
-describe('Gestion des users', function () {
+  it('Doit retourner le type du compte (designation)',function(){
+    var type = typeCompteString(1)
+    type.should.equals('Courant')
+
+    type = typeCompteString(2)
+    type.should.equals('Epargne')
+
+    type = typeCompteString(3)
+    type.should.equals('Devise')
+  })
+}); */
+
+/* describe('Gestion des users', function () {
   it('Doit retourner le nom, email et telephone du user', function(){
     var id = 6
     getUserContact(id, function(user:any){
@@ -190,4 +207,4 @@ describe('Gestion des users', function () {
     })
   })
 
-});
+}); */

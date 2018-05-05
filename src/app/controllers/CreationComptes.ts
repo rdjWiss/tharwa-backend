@@ -206,24 +206,6 @@ export class CreationComptes{
 
   //Création du premier compte bancaire Courant
   public static creerCompteCourant=function(user:any,callback:Function, error:ErrorEventHandler){
-    /* let numSeq;
-    Parametre.findOne({
-      where:{
-        id_param:2
-      }
-    }).then( (result:any) =>{
-      if(result){
-        var valeur : string = result.valeur
-        numSeq = Number(valeur)+1
-        numSeq = numSeq+""
-        while (numSeq.length < 6) numSeq  = "0" + numSeq;
-        
-        result.valeur = numSeq
-        result.save()
-        //Le code du nouveau compte
-        var numCompte = "THW"+numSeq+"DZD"
-        console.log("Num compte: "+numCompte)
- */
     CreationComptes.genererNouveauNumeroCompte('DZD',function(numCompte:string){
       Compte.create({
         num_compte: numCompte,
@@ -245,12 +227,9 @@ export class CreationComptes{
           error('Erreur de création du compte courant')
         }  
       });
-    },(err:any)=>{
-      error(err)
-    })
-        
-      //}
-    //}); 
+      },(err:any)=>{
+        error(err)
+      })
   } 
 
   //Créer un compte bancaire devise ou épargne

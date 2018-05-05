@@ -37,11 +37,6 @@ export const creationCompteUserClientMail=function(nom:string):string{
     <br/> Vous recevrez un mail dès que votre compte est validé.`)
 }
 
-export const nouvelleDemandeCreationCompteNotifBanquier=function():string{
-    return modeleMail('Banquier',`Une nouvelle demande de création d'un compte
-    tharwa a été effectuée`)
-}
-
 //Validation/Rejet comptes user (client)
 export const validationCompteUserMail=function(username:string):string{
 
@@ -68,13 +63,24 @@ export const rejetCompteBankMail=function(username:string,type:string, motif:str
     <br/>Motif: `+motif)
 }
 
-//Virements entre comptes du meme client
+//*********** Virements entre comptes du meme client
 export const virEntreComptesMail=function(username:string, compte1:string,
         compte2:string,montant:number):string{
-    //TODO: ajouté code monnaie
-    return modeleMail(username,`Vous venez d'effectuer un virement de `+montant+`
-    entre vos comptes `+compte1+` et `+compte2+` `)
+    //TODO: ajouter code monnaie
+    var msg =  modeleMail(username,`Vous venez d'effectuer un virement de `+montant+`
+    entre vos comptes `+compte1+` et `+compte2+` `)     
+    return msg
 }
+
+export const virEntreComptesAValiderMail=function(username:string, compte1:string,
+    compte2:string,montant:number):string{
+//TODO: ajouter code monnaie
+var msg =  modeleMail(username,`Vous venez d'effectuer un virement de `+montant+`
+entre vos comptes `+compte1+` et `+compte2+`. </br>Le montant de ce virement dépasse le seuil. 
+Vous recevrez un email dès que ce virement est validé`)      
+return msg
+}
+
 
 export const validationVirEntreComptesMail=function(username:string, compte1:string,
     compte2:string,montant:number){
@@ -85,17 +91,23 @@ export const validationVirEntreComptesMail=function(username:string, compte1:str
 export const rejetVirEntreComptesMail=function(username:string, compte1:string,
     compte2:string,motif:string){
     return modeleMail(username,`Le virement effectué entre vos comptes `
-    +compte1+` et `+compte2+` a été rejeté </br> Motif:  `+motif)
+    +compte1+` et `+compte2+` a été rejeté.\n Motif:  `+motif)
 }
 
 
-//Virement émis
+//*** Virement émis
 export const virSortantMail=function(username:string, compte:string, montant:number):string{
     
     return modeleMail(username,`Vous venez d'effectuer un virement
     de `+ montant+`DZD vers le compte `+compte+` `)
 }
 
+export const virSortantAValiderMail=function(username:string, compte:string, montant:number):string{
+    
+    return modeleMail(username,`Vous venez d'effectuer un virement
+    de `+ montant+`DZD vers le compte `+compte+`. </br>Le montant de ce virement dépasse le seuil. 
+    Vous recevrez un email dès que ce virement est validé`)
+}
 
 export const validationVirSortantMail=function(username:string, compte:string,
     montant:number){
@@ -106,5 +118,23 @@ export const validationVirSortantMail=function(username:string, compte:string,
 export const rejetVirSortantMail=function(username:string, compte:string,
     motif:string){
     return modeleMail(username,`Le virement effectué  vers le compte `
-    +compte+` a été rejeté </br> Motif:  `+motif)
+    +compte+` a été rejeté.</br> Motif:  `+motif)
+}
+
+
+//**** Virement reçu
+export const virRecuMail=function(username:string, compte:string, montant:number):string{
+    
+    return modeleMail(username,`Vous venez de recevoir un virement
+    de `+ montant+`DZD depuis le compte `+compte+` `)
+}
+
+//Notification banquier
+export const nouvelleDemandeCreationCompteNotifBanquier=function():string{
+    return modeleMail('Banquier',`Une nouvelle demande de création d'un compte
+    tharwa a été effectuée`)
+}
+
+export const nouveauVirAValiderNotifBanquier=function():string{
+    return modeleMail('Banquier',`Une nouveau virement à valider a été effectué`)
 }

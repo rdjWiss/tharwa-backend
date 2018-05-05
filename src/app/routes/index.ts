@@ -40,7 +40,7 @@ router.post('/comptes',MobMiddleware,creationComptes.creerCompteBancaire)
 router.post('/virements/1',MobMiddleware, gestionVir.virementEntreComptes)
 router.post('/virements/2',MobMiddleware, gestionVir.virementSrcTHW)
 router.get('/virements',WebMiddleware,gestionVir.getVirementAValider)
-router.put('/virements/:codeVir',WebMiddleware,gestionVir.validateVir)
+router.put('/virements/:codeVir',WebMiddleware,gestionVir.modifStatutVir)
 
 //Taux de change
 router.post('/convertir',converssion.convertir)
