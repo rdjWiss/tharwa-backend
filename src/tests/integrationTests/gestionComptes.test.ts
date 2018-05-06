@@ -16,7 +16,10 @@ const emailClient = 'tharwaclient152@gmail.com' //mdp:tharwa152
 let numCompteCourant = 0
 let numCompteEpargne = 0
 
-describe('Vérification si email exist', function() {
+let idUser = 6
+
+//OK
+/* describe('Vérification si email exist', function() {
   it("Doit renvoyer erreur si un user n'existe pas /users/:userId GET",
     function(done){
     Chai.request(testServer)
@@ -45,9 +48,46 @@ describe('Vérification si email exist', function() {
         })    
   });
 
-});
+}); */
 
-describe('Récupération des comptes selon un statut',function(){
+describe('Récupération de la liste des comptes d\'un user',function(){
+  it('Doit renvoyer 400 si le id user est erroné(n\'existe pas sur GET /users/idUser/comptes',function(done){
+    Chai.request(testServer)
+    .get('/users/-1/comptes')
+    .set("client_id","152")
+    .send({
+    })
+    .end(function(err,res){
+      err.should.have.status(400)
+      console.log(res.body.msg_err)
+      done()
+    })    
+  })
+
+  it('Doit renvoyer 200 et retourner la liste des comptes si le id est correct GET /users/idUser/comptes',function(done){
+    Chai.request(testServer)
+    .get('/users/'+idUser+'/comptes')
+    .set("client_id","152")
+    .send({
+    })
+    .end(function(err,res){
+      res.should.have.status(200)
+      res.body.should.be.an('array')
+      res.body.every((compte:any) => compte.should.have.property('num_compte'))
+      res.body.every((compte:any) => compte.should.have.property('balance'))
+      res.body.every((compte:any) => compte.should.have.property('date_creation'))
+      res.body.every((compte:any) => compte.should.have.property('type_compte'))
+      res.body.every((compte:any) => compte.should.have.property('code_monnaie'))
+      res.body.every((compte:any) => compte.should.have.property('id_user'))
+      res.body.every((compte:any) => compte.should.have.property('statut_actuel'))
+      console.log(res.body)
+      done()
+    })    
+  })
+})
+
+//OK
+/* describe('Récupération des comptes selon un statut',function(){
   it('Doit retourner 401 si la requete provient de l\'app mobile',function(done){
     Chai.request(testServer)
       .get('/comptes?statut=1111')
@@ -87,9 +127,10 @@ describe('Récupération des comptes selon un statut',function(){
     })  
   });
 
-});
+}); */
 
-describe('Modification du statut d\'un compte',function(){
+//OK
+/* describe('Modification du statut d\'un compte',function(){
   before(function() {
     Userdb.findOne({
       where:{
@@ -132,9 +173,6 @@ describe('Modification du statut d\'un compte',function(){
       .put('/comptes/'+numCompteCourant)
       .set("client_id","152")
       .send({
-        /* verification_token: tokens.verification_token,
-        access_token: tokens.access_token ,
-        refresh_token: tokens.refresh_token , */
       })
       .end(function(err,res){
         err.should.have.status(401)
@@ -148,9 +186,6 @@ describe('Modification du statut d\'un compte',function(){
       .put('/comptes/'+numCompteCourant)
       .set("client_id","541")
       .send({
-        /* verification_token: tokens.verification_token,
-        access_token: tokens.access_token ,
-        refresh_token: tokens.refresh_token , */
         statut:'111'
       })
       .end(function(err,res){
@@ -165,9 +200,6 @@ describe('Modification du statut d\'un compte',function(){
       .put('/comptes/'+numCompteCourant)
       .set("client_id","541")
       .send({
-        /* verification_token: tokens.verification_token,
-        access_token: tokens.access_token ,
-        refresh_token: tokens.refresh_token , */
         statut:STATUT_COMPTE_AVALIDER
       })
       .end(function(err,res){
@@ -191,9 +223,6 @@ describe('Modification du statut d\'un compte',function(){
           .put('/comptes/'+numCompteCourant)
           .set("client_id","541")
           .send({
-            /* verification_token: tokens.verification_token,
-            access_token: tokens.access_token ,
-            refresh_token: tokens.refresh_token , */
             statut:STATUT_COMPTE_ACTIF
           })
           .end(function(err,res){
@@ -220,9 +249,6 @@ describe('Modification du statut d\'un compte',function(){
           .put('/comptes/'+numCompteCourant)
           .set("client_id","541")
           .send({
-            /* verification_token: tokens.verification_token,
-            access_token: tokens.access_token ,
-            refresh_token: tokens.refresh_token , */
             statut:STATUT_COMPTE_ACTIF
           })
           .end(function(err,res){
@@ -249,9 +275,6 @@ describe('Modification du statut d\'un compte',function(){
           .put('/comptes/'+numCompteCourant)
           .set("client_id","541")
           .send({
-            /* verification_token: tokens.verification_token,
-            access_token: tokens.access_token ,
-            refresh_token: tokens.refresh_token , */
             statut:STATUT_COMPTE_BLOQUE
           })
           .end(function(err,res){
@@ -278,9 +301,6 @@ describe('Modification du statut d\'un compte',function(){
           .put('/comptes/'+numCompteCourant)
           .set("client_id","541")
           .send({
-            /* verification_token: tokens.verification_token,
-            access_token: tokens.access_token ,
-            refresh_token: tokens.refresh_token , */
             statut:STATUT_COMPTE_REJETE
           })
           .end(function(err,res){
@@ -307,9 +327,6 @@ describe('Modification du statut d\'un compte',function(){
           .put('/comptes/'+numCompteCourant)
           .set("client_id","541")
           .send({
-            /* verification_token: tokens.verification_token,
-            access_token: tokens.access_token ,
-            refresh_token: tokens.refresh_token , */
             statut:STATUT_COMPTE_REJETE
           })
           .end(function(err,res){
@@ -336,9 +353,6 @@ describe('Modification du statut d\'un compte',function(){
           .put('/comptes/'+numCompteCourant)
           .set("client_id","541")
           .send({
-            /* verification_token: tokens.verification_token,
-            access_token: tokens.access_token ,
-            refresh_token: tokens.refresh_token , */
             statut:STATUT_COMPTE_BLOQUE
           })
           .end(function(err,res){
@@ -365,9 +379,6 @@ describe('Modification du statut d\'un compte',function(){
           .put('/comptes/'+numCompteCourant)
           .set("client_id","541")
           .send({
-            /* verification_token: tokens.verification_token,
-            access_token: tokens.access_token ,
-            refresh_token: tokens.refresh_token , */
             statut:STATUT_COMPTE_ACTIF
           })
           .end(function(err,res){
@@ -380,8 +391,7 @@ describe('Modification du statut d\'un compte',function(){
     
   });
 
-  //OK. mise en commentaire pour éviter l'envoi de mail
-  /* it('Doit retourner 200 si la validation d\'un compte courant est successful',function(done){
+  it('Doit retourner 200 si la validation d\'un compte courant est successful',function(done){
     Compte.findOne({
       where:{
         num_compte:numCompteCourant
@@ -403,9 +413,9 @@ describe('Modification du statut d\'un compte',function(){
           done()
       })  
     });
-  }); */
+  });
 
-  /* it('Doit retourner 200 si la validation d\'un compte épargne est successful',function(done){
+  it('Doit retourner 200 si la validation d\'un compte épargne est successful',function(done){
     this.timeout(10000);//Set le timeout à 10_000 ms
     Compte.findOne({
       where:{
@@ -426,9 +436,9 @@ describe('Modification du statut d\'un compte',function(){
           done()
       })  
     });
-  }); */
+  });
 
-  /* it('Doit retourner 200 si le rejet d\'un compte courant est successful',function(done){
+  it('Doit retourner 200 si le rejet d\'un compte courant est successful',function(done){
     this.timeout(10000);//Set le timeout à 10_000 ms
     Compte.findOne({
       where:{
@@ -452,10 +462,10 @@ describe('Modification du statut d\'un compte',function(){
           done()
       })  
     });
-  }); */
+  });
 
   //OK
-  /* it('Doit retourner 200 si le rejet d\'un compte épargne est successful',function(done){
+  it('Doit retourner 200 si le rejet d\'un compte épargne est successful',function(done){
     this.timeout(10000);//Set le timeout à 10_000 ms
     Compte.findOne({
       where:{
@@ -477,7 +487,7 @@ describe('Modification du statut d\'un compte',function(){
           done()
       })  
     });
-  }); */
+  });
 
   it('Doit retourner 200 si le blocage d\'un compte courant est successful');
 
@@ -487,4 +497,4 @@ describe('Modification du statut d\'un compte',function(){
 
   it('Doit retourner 200 si le déblocage d\'un compte épargne est successful');
   
-})
+}) */

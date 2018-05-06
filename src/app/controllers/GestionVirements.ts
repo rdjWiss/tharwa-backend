@@ -23,6 +23,21 @@ let conversion = new Converssion()
 
 export class GestionVirements{
 
+  public getSeuil:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any) {
+    console.log('/virements/seuil')
+    GestionVirements.getSeuilVirement(function(seuil:any){
+      res.status(200);
+      res.send({
+        seuil:seuil
+      })
+    },(error:any)=>{
+      res.status(400);
+      res.send({
+        err:"Bad request",
+        msg_err:error
+      })
+    })
+  }
   //Virement entre comptes du meme user
   virementEntreComptes:Express.RequestHandler
       =function (req:Express.Request,res:Express.Response,next:any){
@@ -151,9 +166,12 @@ export class GestionVirements{
                     if(created.statut_virement == STATUT_VIR_VALIDE) 
                       msg = virEntreComptesMail(user.nom,
                         srcCompteString,destCompteString,vir.montant)
-                    else 
+                    else {
+                      notifierBanquierNouveauVirAValider()
+
                       msg = virEntreComptesAValiderMail(user.nom,
                         srcCompteString,destCompteString,vir.montant)
+                    }
                     getUserContact(comptes[indiceSrc].id_user, function(user:any){
                       //TODO: indiquer les noms (types) de compte au lieu de numéro
                       MailController
@@ -378,7 +396,7 @@ export class GestionVirements{
       if(result){
         callback(+result.valeur)
       }else{
-        error('Erreur de récupération du seuil de validation')
+        error('Erreur dans récupération du seuil de validation')
       }
       
     });
@@ -620,7 +638,7 @@ function notifierBanquierNouveauVirAValider(){
     banquiers.forEach((banquier:any) => {
       MailController
       .sendMail("no-reply@tharwa.dz",
-      banquier.email,"Nouvelle virement à valider",
+      banquier.email,"Nouveau virement à valider",
       nouveauVirAValiderNotifBanquier())
 
     });

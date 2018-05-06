@@ -39,10 +39,38 @@ export class GestionComptes{
     })
   }
 
+  //Récupérer la liste des comptes d'un user donné
+  public getComptesClient:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any) {
+    let id_user = parseInt(req.params.idUser)
+    console.log("GET /users/"+id_user+"/comptes")
+
+    Userdb.findOne({
+      where:{
+        id:id_user
+      }
+    }).then((user:any)=>{
+      if(!user){
+        res.status(400);
+        res.send({
+          err:"Bad request",
+          msg_err:"Id user erroné" 
+        })
+      }else{
+        Compte.findAll({
+          where:{
+            id_user:id_user
+          }
+        }).then((comptes:any)=>{
+          res.status(200)
+          res.send(comptes)
+        })
+      }
+    })
+  }
+
   //Récupérer les comptes d'un statut donné
   public getComptes:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
-   
-    let statut = parseInt(req.param('statut'))
+    let statut = parseInt(req.query.statut)
     console.log("GET /comptes?statut="+statut)
     
     if(statutComptes.indexOf(statut) == -1){
@@ -252,7 +280,6 @@ export class GestionComptes{
 
   }
 
-  
   public static isValidChangementStatut = function(ancienStatut:any, nouveauStatut:any):boolean{
     return (ancienStatut==STATUT_COMPTE_AVALIDER && 
                     (nouveauStatut==STATUT_COMPTE_ACTIF || nouveauStatut==STATUT_COMPTE_REJETE ))
@@ -267,10 +294,12 @@ export class GestionComptes{
   }
 
   public static isChangementStatutNecessitantMotif = function(ancienStatut:any, nouveauStatut:any):boolean{
-  return  (nouveauStatut == STATUT_COMPTE_REJETE 
+    return  (nouveauStatut == STATUT_COMPTE_REJETE 
           || nouveauStatut == STATUT_COMPTE_BLOQUE 
           || (ancienStatut == STATUT_COMPTE_BLOQUE && nouveauStatut == STATUT_COMPTE_ACTIF)) 
   }
+
+
 }
 
   

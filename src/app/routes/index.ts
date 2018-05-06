@@ -21,30 +21,39 @@ const converssion = new Converssion();
 router.use(authMiddleware)
 //router.use(TokensExpireMiddleware)
 
+//***** Gestion de comptes
 //Vérifier si un email existe
 router.get('/users/:userEmail',gestionComptes.userExist);//to oauth
-
 //Filtrer les comptes bancaires selon le statut (paramètre)
 router.get('/comptes',WebMiddleware,gestionComptes.getComptes)
-
 //Mettre à jour le statut d'un compte bancaire
 router.put('/comptes/:numCompte',WebMiddleware,gestionComptes.modifCompte)
+//Récuperer les comptes d'un user
+router.get('/users/:idUser/comptes',MobMiddleware,gestionComptes.getComptesClient)
 
+
+//**** Création des comptes
 //Créer un nouveau compte utilisateur
 router.post('/users',/* creerUserMiddleware */creationComptes.creerCompteUser)//to oauth
-
 //Créer un autre compte bancaire
 router.post('/comptes',MobMiddleware,creationComptes.creerCompteBancaire)
 
-//Virements
+//*** Gestion Virements
+//Récupérer le seuil de validation d'un virement
+router.get('/virements/seuil',MobMiddleware,gestionVir.getSeuil)
+//Effectuer virements entre comptes du meme client
 router.post('/virements/1',MobMiddleware, gestionVir.virementEntreComptes)
+//Effectuer virement entre clients tharwa
 router.post('/virements/2',MobMiddleware, gestionVir.virementSrcTHW)
+//Récupérer la liste des virements à valider
 router.get('/virements',WebMiddleware,gestionVir.getVirementAValider)
+//Modifier le statut d'un virement (valider/rejeter)
 router.put('/virements/:codeVir',WebMiddleware,gestionVir.modifStatutVir)
 
 //Taux de change
 router.post('/convertir',converssion.convertir)
 
+//TODO: remove
 router.post('/image', creationComptes.image)
 
 //Toutes les autres routes
