@@ -86,8 +86,8 @@ export function  convertirMontant(montant:number,codeMonnaieSrc:string,
                     codeMonnaieDest+'&Amount='+montant
                     +'&_token='+API_TOKEN;
         let response={
-            montant_src:montant,
-            montant_dst:montant*100,
+            montant:montant,
+            montant_converti:montant*100,
             taux_change:100,
         }
         callback(response)

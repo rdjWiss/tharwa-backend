@@ -19,7 +19,7 @@ export class MailController{
 
             return;
     }
-
+    
   private static sendMailAsynch(msg: { to: string; from: string; subject: string; text: string; html: string; }) {
     sendgrid.send(msg).then(() => {
       console.log("Mail sent to ", msg.to);

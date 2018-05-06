@@ -65,10 +65,10 @@ export const rejetCompteBankMail=function(username:string,type:string, motif:str
 
 //*********** Virements entre comptes du meme client
 export const virEntreComptesMail=function(username:string, compte1:string,
-        compte2:string,montant:number):string{
+        compte2:string,montant:any,commission:string):string{
     //TODO: ajouter code monnaie
     var msg =  modeleMail(username,`Vous venez d'effectuer un virement de `+montant+`
-    entre vos comptes `+compte1+` et `+compte2+` `)     
+    entre vos comptes `+compte1+` et `+compte2+`. `+commission)     
     return msg
 }
 
@@ -83,9 +83,10 @@ return msg
 
 
 export const validationVirEntreComptesMail=function(username:string, compte1:string,
-    compte2:string,montant:number){
+    compte2:string,montant:number,commission:string){
     return modeleMail(username,`Le virement effectué entre vos comptes `
-    +compte1+` et `+compte2+` a été validé `)
+    +compte1+` et `+compte2+` a été validé 
+    <br/>`+commission)
 }
 
 export const rejetVirEntreComptesMail=function(username:string, compte1:string,
@@ -96,10 +97,12 @@ export const rejetVirEntreComptesMail=function(username:string, compte1:string,
 
 
 //*** Virement émis
-export const virSortantMail=function(username:string, compte:string, montant:number):string{
+export const virSortantMail=function(username:string, compte:string, montant:number,
+            commission:string):string{
     
     return modeleMail(username,`Vous venez d'effectuer un virement
-    de `+ montant+`DZD vers le compte `+compte+` `)
+    de `+ montant+`DZD vers le compte `+compte+` 
+    <br/>`+commission)
 }
 
 export const virSortantAValiderMail=function(username:string, compte:string, montant:number):string{
@@ -110,9 +113,10 @@ export const virSortantAValiderMail=function(username:string, compte:string, mon
 }
 
 export const validationVirSortantMail=function(username:string, compte:string,
-    montant:number){
+    montant:number,commission:string){
     return modeleMail(username,`Le virement effectué  vers le compte `
-    +compte+` a été validé `)
+    +compte+` a été validé 
+    <br/>`+commission)
 }
 
 export const rejetVirSortantMail=function(username:string, compte:string,

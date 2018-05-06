@@ -12,7 +12,7 @@ var should= Chai.should()
 
 // OK
 describe('Gestion des virements', function () {
-   /* it('Doit créer un enregistrement virement', function () {
+   it('Doit créer un enregistrement virement', function () {
      //Primary key
     let code = "THW000002DZDTHW000004DZD201842316158"
     let montant = 500
@@ -40,7 +40,7 @@ describe('Gestion des virements', function () {
       console.log(error)
     });
       
-  }) */
+  })
  
   it('Le code du virement doit correspondre à l\'expression régulière', function(){
     let numCompte = 'THW000002DZD'
