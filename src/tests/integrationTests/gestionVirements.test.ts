@@ -18,15 +18,15 @@ const testServer = appServer.app.listen(5000)
 
 const emailClient = 'tharwaclient152@gmail.com' //mdp:tharwa152
 
-let idClient = 364
-let numCompteCourant = 'THW000098DZD'
-let numCompteEpargne = 'THW000099DZD'
-let numCompteDevise = 'THW000100EUR'
+//A modifier / sinon seront modifiés dans les tests
+let idClient = 371
+let numCompteCourant = 'THW000132DZD'
+let numCompteEpargne = 'THW000134DZD'
+let numCompteDevise = 'THW000135EUR'
 
 let numCompteCourantClientDiff = 'THW000002DZD'
 
 let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
-let virEntreComptes = 'THW000132DZDTHW000134DZD20180505163756'
 
 //OK
 /* describe('Virement entre comptes du meme client',function(){
@@ -89,23 +89,6 @@ let virEntreComptes = 'THW000132DZDTHW000134DZD20180505163756'
         src:numCompteCourant,
         dest:numCompteCourant,
         montant:500
-      })
-      .end(function(err,res){
-        err.should.have.status(400)
-        console.log(res.body.msg_err)
-        done()
-    })
-  });
-
-  it('Doit retourner 400 si le montant dépasse le seuil et pas de justif',function(done){
-    Chai.request(testServer)
-      .post('/virements/1')
-      .set("client_id","152")
-      .send({
-        user:idClient,
-        src:numCompteCourant,
-        dest:numCompteEpargne,
-        montant:500000
       })
       .end(function(err,res){
         err.should.have.status(400)
@@ -376,48 +359,11 @@ let virEntreComptes = 'THW000132DZDTHW000134DZD20180505163756'
     
   });
  
-  it('Doit retourner 200 si le virement dépassant le seuil est effectué avec succès',function(done){
-    let seuil = 200000
-    this.timeout(10000);//Set le timeout à 10_000 ms
-    setTimeout(function(){
-      Compte.findOne({
-        where:{
-          num_compte:numCompteCourant
-        }
-        
-      }).then((found:any)=>{
-        if(found){
-          console.log(found.num_compte,numCompteCourant)
-          found.balance = seuil+100
-          found.save()
-
-          Chai.request(testServer)
-          .post('/virements/1')
-          .set("client_id","152")
-          .send({
-            user:idClient,
-            src:numCompteCourant,
-            dest:numCompteEpargne,
-            montant:seuil,
-            justif:image_base64
-          })
-          .end(function(err,res){
-            console.log(res.body.msg_err)
-            virEntreComptes = res.body.code_virement
-            res.should.have.status(200)
-            console.log(res.body)
-            done()
-        })
-        }
-      })
-    },2000)
-    
-  });
 
 }); */
 
 //OK
-describe('Virement entre clients de tharwa',function(){
+/* describe('Virement entre clients de tharwa',function(){
   before(function() {
     Userdb.findOne({
       where:{
@@ -721,7 +667,7 @@ describe('Virement entre clients de tharwa',function(){
         })
       },2000)
   })
-});
+}); */
 
 //OK
 /* describe('Recupération de la liste des vir à valider',function(){
@@ -777,18 +723,23 @@ describe('Virement entre clients de tharwa',function(){
 //OK
 /* describe('Validation/Rejet d\'un virement',function(){
   before(function() {
-    Virement.findAll({
-      where:{
-        code_virement:{
-          $or: [virEmis,virEntreComptes]
-        }
-      }
-    }).then((virs:any)=>{
-      if(virs){
-        virs.forEach((vir:any) => {
-          vir.statut_virement = STATUT_VIR_AVALIDER
-          vir.save()
-        });
+    let seuil = 200000
+    let date = new Date()
+    let code= GestionVirements.genererCodeVir(date,
+      numCompteCourant,numCompteCourantClientDiff)
+    Virement.create({
+      code_virement:code,
+      montant:seuil,
+      motif:'',
+      date_virement:date,
+      justificatif:'assets/justifs/'+code+'jpg',
+      emmetteur:numCompteCourant,
+      recepteur:numCompteCourantClientDiff,
+      statut_virement:STATUT_VIR_AVALIDER
+    }).then((vir:any)=>{
+      if(vir){
+        virEmis = vir.code_virement
+        // console.log(vir.dataValues)
       }else{
         console.log('Modifier les variables: virEmis et virEntreComptes')
       }
@@ -798,7 +749,7 @@ describe('Virement entre clients de tharwa',function(){
 
   it('Doit retourner 400 si la requete provient d\'un client mobile',function(done){
     Chai.request(testServer)
-      .put('/virements/'+virEmis)
+      .put('/virements/THW4566')
       .set("client_id","152")
       .send({
       })

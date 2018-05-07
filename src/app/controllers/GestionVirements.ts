@@ -40,9 +40,7 @@ export class GestionVirements{
     })
   }
   //Virement entre comptes du meme user
-  virementEntreComptes:Express.RequestHandler
-      =function (req:Express.Request,res:Express.Response,next:any){
-        
+  virementEntreComptes:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){    
     console.log("POST /virement/1")
 
     let user = req.body.user
@@ -50,7 +48,6 @@ export class GestionVirements{
     let dest = req.body.dest
     let montant = req.body.montant
     let motif = req.body.motif
-    let justif = req.body.justif
     
     console.log(src,"to", dest,montant,user)    
 
@@ -61,149 +58,103 @@ export class GestionVirements{
         msg_err:"La source et dest doivent etre diff" 
       })
     }else{
-      GestionVirements.getSeuilVirement(function(seuil:any){
-        if(+montant>=seuil && !justif){
+      let numComptes = [src,dest]
+      Compte.findAll({
+        where:{
+          num_compte:{
+            $or: numComptes
+          },
+          id_user: user
+        }
+      }).then((comptes:any)=>{
+        // console.log(comptes.length)
+        if(comptes.length<2){
           res.status(400);
           res.send({
             err:"Bad request",
-            msg_err:"Veuillez fournir un justificatif. Le montant dépasse le seuil de validation" 
+            msg_err:'L\'un des numéros de comptes est erroné.'+
+            'Ou l\'un de ces comptes ne vous appartient pas'
           })
         }else{
-          let numComptes = [src,dest]
-          Compte.findAll({
-            where:{
-              num_compte:{
-                $or: numComptes
-              },
-              id_user: user
+          //Si un des comptes n'est pas actif
+          //TODO: plus d'infos de quels compte n'est pas actif
+          if(!GestionVirements.isCompteActif(comptes[0])
+              || !GestionVirements.isCompteActif(comptes[1])){
+            res.status(400);
+            res.send({
+              err:"Bad request",
+              msg_err:"L'un des comptes n'est pas actif" 
+            })
+          }else{
+            let indiceSrc=0;
+            if(comptes[1].num_compte == src) indiceSrc=1
+
+            //Vérifier les virements possibles
+            //Possible: 1->2/3, 2->1, 3->1
+            //Interdit: 2<->3
+            if(!GestionVirements.
+              isValidVirementComptesDuMemeClient(
+                comptes[indiceSrc],
+                comptes[1-indiceSrc])){
+                  res.status(400);
+              res.send({
+                err:"Bad request",
+                msg_err:"Impossible d'effectuer un virement entre deux comptes non courants" 
+              })
             }
-          }).then((comptes:any)=>{
-            // console.log(comptes.length)
-            if(comptes.length<2){
+            else if(comptes[indiceSrc].balance < montant){
               res.status(400);
               res.send({
                 err:"Bad request",
-                msg_err:'L\'un des numéros de comptes est erroné.'+
-                'Ou l\'un de ces comptes ne vous appartient pas'
+                msg_err:"Vous n'avez pas assez d'argent pour effectuer ce virement" 
               })
-            }else{
-              //Si un des comptes n'est pas actif
-              //TODO: plus d'infos de quels compte n'est pas actif
-              if(!GestionVirements.isCompteActif(comptes[0])
-                 || !GestionVirements.isCompteActif(comptes[1])){
-                res.status(400);
-                res.send({
-                  err:"Bad request",
-                  msg_err:"L'un des comptes n'est pas actif" 
-                })
-              }else{
-                let indiceSrc=0;
-                if(comptes[1].num_compte == src) indiceSrc=1
-  
-                //Vérifier les virements possibles
-                //Possible: 1->2/3, 2->1, 3->1
-                //Interdit: 2<->3
-                
-                if(!GestionVirements.
-                  isValidVirementComptesDuMemeClient(
-                    comptes[indiceSrc],
-                    comptes[1-indiceSrc])){
-                      res.status(400);
-                  res.send({
-                    err:"Bad request",
-                    msg_err:"Impossible d'effectuer un virement entre deux comptes non courants" 
-                  })
-                }
-                else if(comptes[indiceSrc].balance < montant){
-                  res.status(400);
-                  res.send({
-                    err:"Bad request",
-                    msg_err:"Vous n'avez pas assez d'argent pour effectuer ce virement" 
-                  })
-                }
-                else{
-                  //Générer le code de virement
-                  var dateNow = new Date();
-                  let code = GestionVirements.genererCodeVir(dateNow,src,dest)
-                  // console.log("Code",code)
-  
-                  //Statut du virement
-                  let statut = STATUT_VIR_VALIDE//valide par défaut
-                  var filename = ""
-                  var photo=null
-                  if(+montant>=seuil) {
-                    statut=STATUT_VIR_AVALIDER //A valider
-                    //Récupérer l'image du justificatif en base64
-                    var filnamePath = "./"
-                    filename = "assets/justifs/"+code
-                    console.log("File",filename);
-                    // console.log(justif)
-                    base64.decode(new Buffer(justif, 'base64'),
-                      {filename: filnamePath+filename},
-                      function(err:any){
-                        // console.log("Fichier")
-                        // console.log("err "+err);
-                       
-                    });
-                    photo = filename+'.jpg'
-                  }
-                  let vir = {
-                    code:code,
-                    montant:+montant+0.0,
-                    motif:motif,
-                    dateNow:dateNow,
-                    justif:photo,
-                    src:src,
-                    dest:dest,
-                    statut:statut,
-                    user: comptes[0].id_user,
-                    type:1
-                  }
-                  // console.log(vir)
+            }
+            else{
+              //Générer le code de virement
+              var dateNow = new Date();
+              let code = GestionVirements.genererCodeVir(dateNow,src,dest)
+              // console.log("Code",code)
+
+              //Statut du virement
+              let statut = STATUT_VIR_VALIDE//valide par défaut
+              let vir = {
+                code:code,
+                montant:+montant,
+                motif:motif,
+                dateNow:dateNow,
+                justif:null,
+                src:src,
+                dest:dest,
+                statut:statut,
+                user: comptes[0].id_user,
+                type:1
+              }
+              // console.log(vir)
+              
+              GestionVirements.creerEnregVirement(vir,(created:any)=>{
+                getUserContact(comptes[indiceSrc].id_user, function(user:any){
+                  var srcCompteString = typeCompteString(comptes[indiceSrc].type_compte)
+                  var destCompteString =typeCompteString(comptes[1-indiceSrc].type_compte)
+                  var msg=''
                   
-                  GestionVirements.creerEnregVirement(vir,(created:any)=>{
-                    getUserContact(comptes[indiceSrc].id_user, function(user:any){
-                      var srcCompteString = typeCompteString(comptes[indiceSrc].type_compte)
-                      var destCompteString =typeCompteString(comptes[1-indiceSrc].type_compte)
-                      var msg=''
-                      
-                      var msgCommission=''
-                      if(created.statut_virement == STATUT_VIR_VALIDE) {
-                        
-                        GestionVirements.getMontantCommissionVir(vir.code,function(commission:any){
-                          console.log(commission.montant)
-                          if(commission.montant_commission != 0){
-                            msgCommission = `<br/>Une commission de `+commission.montant_commission+
-                                ` DZD a été retirée de votre compte courant pour ce virement.`
-                          }
+                  var msgCommission=''
+                  GestionVirements.getMontantCommissionVir(vir.code,function(commission:any){
+                    console.log(commission.montant)
+                    if(commission.montant_commission != 0){
+                      msgCommission = `<br/>Une commission de `+commission.montant_commission+
+                          ` DZD a été retirée de votre compte courant pour ce virement.`
+                    }
 
-                          msg = virEntreComptesMail(user.nom,
-                            srcCompteString,destCompteString,
-                            vir.montant+' '+comptes[indiceSrc].code_monnaie,
-                            msgCommission)
+                    msg = virEntreComptesMail(user.nom,
+                      srcCompteString,destCompteString,
+                      vir.montant+' '+comptes[indiceSrc].code_monnaie,
+                      msgCommission)
 
-                          MailController
-                          .sendMail("no-reply@tharwa.dz",
-                            user.email,
-                            "Virement entre vos comptes",msg)
+                    MailController
+                    .sendMail("no-reply@tharwa.dz",
+                      user.email,
+                      "Virement entre vos comptes",msg)
 
-                        },(error:any)=>{
-                          res.status(400);
-                          res.send({
-                            err:"Error",
-                            msg_err:error
-                          })
-                        })
-                      }else {
-                        notifierBanquierNouveauVirAValider()
-
-                        msg = virEntreComptesAValiderMail(user.nom,
-                          srcCompteString,destCompteString,vir.montant)
-                      }
-                    }, (err:any)=>{})
-                    
-                    res.status(200)
-                    res.send(created)
                   },(error:any)=>{
                     res.status(400);
                     res.send({
@@ -211,15 +162,22 @@ export class GestionVirements{
                       msg_err:error
                     })
                   })
-                }
-              }
+                }, (err:any)=>{})
+                
+                res.status(200)
+                res.send(created)
+              },(error:any)=>{
+                res.status(400);
+                res.send({
+                  err:"Error",
+                  msg_err:error
+                })
+              })
             }
-          })
+          }
         }
-      }, (error:any)=>{
-
       })
-      
+     
     }
   }
 
@@ -590,44 +548,19 @@ export class GestionVirements{
 
                     getUserContact(comptes[indiceSrc].id_user,function(user:any){
                       if(statut==STATUT_VIR_VALIDE){
-
                           objetMail = "Validation virement"
-                          if(comptes[0].id_user == comptes[1].id_user ){
-                            console.log(virement.emmetteur, virement.recepteur)
-                            msg = validationVirEntreComptesMail(user.nom,
-                              virement.emmetteur, 
-                              virement.recepteur,virement.montant,msgCommission)
-                          }else{
-                            msg= validationVirSortantMail(user.nom,comptes[1-indiceSrc].num_compte,
-                              virement.montant)
-                              //,msgCommission) 
-                          }
-
-                          MailController
-                          .sendMail("no-reply@tharwa.dz",
-                            user.email,
-                            objetMail,msg
-                          )
-                        /* },(error:any)=>{
-
-                        }) */
+                          msg= validationVirSortantMail(user.nom,comptes[1-indiceSrc].num_compte,
+                          virement.montant)
                       }else if(statut == STATUT_VIR_REJETE){
                         objetMail = "Rejet virement"
-                        if(comptes[0].id_user == comptes[1].id_user ){
-                          msg = rejetVirEntreComptesMail(user.nom,virement.emmetteur, 
-                            virement.recepteur,virement.montant)
-                        }else{
-                          msg = rejetVirSortantMail(user.nom,virement.emmetteur, 
+                        msg = rejetVirSortantMail(user.nom,virement.emmetteur, 
                             motif)
-                        }
-
-                        MailController
+                      }
+                      MailController
                         .sendMail("no-reply@tharwa.dz",
                           user.email,
                           objetMail,msg
                         )
-                      }
-                      
                     },(error:any)=>{
                       res.status(400)
                       res.send({
