@@ -163,11 +163,12 @@ PROCEDURES
 */
 //Traitement du virement (exécution)
 sequelize.query(`
-  CREATE OR REPLACE PROCEDURE TRAITEMENTVIR(
+  create or replace PROCEDURE TRAITEMENTVIR(
     CODEVIR   IN VARCHAR2,
     EMETTEUR  IN VARCHAR2 ,
     RECEPTEUR IN VARCHAR2 ,
-    MONTANT   IN NUMBER )
+    MONTANT   IN NUMBER,
+    STATUTVIR IN NUMBER)
   AS
   type_commission     NUMBER;
   montantCommission   NUMBER(38,2);
@@ -178,6 +179,13 @@ sequelize.query(`
   typeCompteRecepteur NUMBER(10);
   monnaieDevise       VARCHAR2(3);
   retourConversion json;
+
+  STATUT_VIR_AVALIDER CONSTANT NUMBER := 1;
+  STATUT_VIR_VALIDE CONSTANT NUMBER := 2;
+
+  COMPTE_COURANT CONSTANT NUMBER := 1;
+  COMPTE_EPARGNE CONSTANT NUMBER := 2;
+  COMPTE_DEVISE CONSTANT NUMBER := 3;
   BEGIN
   montantVirement:= MONTANT;
   --Call la fonction qui détermine le type de la commission
@@ -213,22 +221,26 @@ sequelize.query(`
   WHERE "num_compte"=RECEPTEUR FOR UPDATE OF "balance" ;
   dbms_output.put_line('Ancien solde Emetteur' || soldeEmetteur);
   dbms_output.put_line('Ancien solde Recepteur ' || soldeRecepteur);
+
   --Extraire la commission du compte courant
-  IF typeCompteEmetteur = 1 THEN
+  IF typeCompteEmetteur = COMPTE_COURANT THEN
     dbms_output.put_line('Commission extraite du compte emetteur');
     soldeEmetteur := soldeEmetteur - montantCommission;
   ELSE
     dbms_output.put_line('Commission extraite du compte recepteur');
     soldeRecepteur:= soldeRecepteur - montantCommission;
   END IF;
-  --Si DEVISE COURANT ou COURANT DEVISE convertir
-  IF typeCompteEmetteur    != 3 AND typeCompteRecepteur != 3 THEN
+
+  --Si DEVISE COURANT ou COURANT DEVISE convertir montant
+  IF typeCompteEmetteur    != COMPTE_DEVISE AND typeCompteRecepteur != COMPTE_DEVISE THEN
     soldeEmetteur          :=soldeEmetteur -montantVirement;
-    soldeRecepteur         :=soldeRecepteur+montantVirement;
-  ELSIF (typeCompteEmetteur =3) THEN
+    IF statutvir = STATUT_VIR_VALIDE THEN
+      soldeRecepteur         :=soldeRecepteur+montantVirement;
+    END IF;
+  ELSIF (typeCompteEmetteur = COMPTE_DEVISE) THEN
     soldeEmetteur          :=soldeEmetteur -MONTANT;
     soldeRecepteur         :=soldeRecepteur+montantVirement;
-  ELSIF (typeCompteRecepteur=3) THEN
+  ELSIF (typeCompteRecepteur= COMPTE_DEVISE) THEN
     soldeEmetteur          :=soldeEmetteur-montantVirement;
     SELECT "code_monnaie" INTO monnaieDevise FROM "Comptes" WHERE "num_compte"=RECEPTEUR;
     --Récupérer le montant converti
@@ -278,35 +290,53 @@ sequelize.query(`
   END;`
 )
 
-//Retire la commission du virment valide/validé
+//Trigger à l'ajout d'un virement ou sa validation/rejet
+//Pour calculer la commission et executer la transaction
 sequelize.query(`
   create or replace TRIGGER VirementValide AFTER
-    INSERT OR
-    UPDATE OF "statut_virement" ON "Virements" FOR EACH row 
+  INSERT OR
+  UPDATE OF "statut_virement" ON "Virements" FOR EACH row 
   DECLARE 
-    type_commission NUMBER;
-    montantCommission NUMBER(38,2);
-    montantVirement NUMBER(38,2);
-    soldeEmetteur NUMBER(38,2);
-    typeCompteEmetteur NUMBER(10);
-    soldeRecepteur NUMBER(38,2);
-    typeCompteRecepteur NUMBER(10);
-    monnaieDevise varchar2(3);
-    retourConversion json;
-    BEGIN
-      IF inserting THEN
-        montantVirement := :new."montant";
-        IF :new."statut_virement"=2 THEN
-          TRAITEMENTVIR(:new."code_virement",:new."emmetteur",:new."recepteur",:new."montant");
-        END IF;
+  type_commission NUMBER;
+  montantCommission NUMBER(38,2);
+  montantVirement NUMBER(38,2);
+  soldeEmetteur NUMBER(38,2);
+  typeCompteEmetteur NUMBER(10);
+  soldeRecepteur NUMBER(38,2);
+  typeCompteRecepteur NUMBER(10);
+  monnaieDevise varchar2(3);
+  retourConversion json;
+
+  STATUT_VIR_VALIDE CONSTANT NUMBER := 2;
+  STATUT_VIR_REJETE CONSTANT NUMBER := 3;
+  BEGIN
+    IF inserting THEN
+      montantVirement := :new."montant";
+        TRAITEMENTVIR(:new."code_virement",:new."emmetteur",:new."recepteur",:new."montant",:new."statut_virement");
+      
+    ELSIF updating THEN
+    dbms_output.put_line('UPDATING');
+      IF :new."statut_virement"=STATUT_VIR_VALIDE THEN
+      --Si validé, retirer le montant du recepteur
+        SELECT "balance" INTO soldeRecepteur FROM "Comptes" WHERE "num_compte"=:new."recepteur" FOR UPDATE OF "balance" ;
+        dbms_output.put_line('Recpteur old: ' || soldeRecepteur);
         
-      elsif updating THEN
-        if :new."statut_virement"=2 THEN
-          TRAITEMENTVIR(:new."code_virement",:new."emmetteur",:new."recepteur",:new."montant");
-        else
-          dbms_output.put_line('REJET virement');
-        END IF;
+        soldeRecepteur := soldeRecepteur + :new."montant";
+        dbms_output.put_line('Recpteur new: ' || soldeRecepteur);
+        UPDATE "Comptes" SET "balance" = soldeRecepteur WHERE "num_compte"=:new."recepteur";
+        
+      ELSIF :new."statut_virement"=STATUT_VIR_REJETE THEN
+      --Si rejeté, restituer le montant à l'emetteur, pas la commission
+        dbms_output.put_line('REJET virement');
+        SELECT "balance" INTO soldeEmetteur FROM "Comptes" WHERE "num_compte"=:new."emmetteur" FOR UPDATE OF "balance" ;
+        dbms_output.put_line('Emetteur old: ' || soldeEmetteur);
+        
+        soldeEmetteur := soldeEmetteur + :new."montant";
+        dbms_output.put_line('Emetteur new: ' || soldeEmetteur);
+        UPDATE "Comptes" SET "balance" = soldeEmetteur WHERE "num_compte"=:new."emmetteur";
         
       END IF;
-    END;`
+      
+    END IF;
+  END;`
 )

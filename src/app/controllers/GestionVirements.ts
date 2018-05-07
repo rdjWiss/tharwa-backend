@@ -246,6 +246,7 @@ export class GestionVirements{
         msg_err:"La source et dest doivent etre diff" 
       })
     }else{
+      //Récupérer le seuil de validation
       GestionVirements.getSeuilVirement(function(seuil:number){
         if(+montant>=seuil && !justif){
           res.status(400);
@@ -368,34 +369,31 @@ export class GestionVirements{
                     //Envoi mail de notifs
                     let msg = ''
                     let msgCommission=''
-                    if(created.statut_virement == STATUT_VIR_VALIDE){
-                      GestionVirements.getMontantCommissionVir(created.code_virement,function(commission:any){
-                        console.log(commission.dataValues)
-                        if(commission.montant_commission != 0){
-                          msgCommission = `Une commission de `+commission.montant_commission+
-                              ` DZD a été retirée de votre compte courant pour ce virement.`
-                        }
+                    //Récupérer la commission
+                    GestionVirements.getMontantCommissionVir(created.code_virement,function(commission:any){
+                      console.log(commission.dataValues)
+                      if(commission.montant_commission != 0){
+                        msgCommission = `Une commission de `+commission.montant_commission+
+                            ` DZD a été retirée de votre compte courant pour ce virement.`
+                      }
 
-                        msg = virSortantMail(found.nom,req.dest,req.montant,msgCommission)
-                        
-                        MailController
-                        .sendMail("no-reply@tharwa.dz",
-                          found.email,
-                          "Virement émis",
-                          msg)
-                      
-                      },(err:any)=>{
-                        //error(err)
-                      });  
-                    }else {
-                      msg = virSortantAValiderMail(found.nom,req.dest,req.montant)
+                      if(created.statut_virement == STATUT_VIR_VALIDE){
+                        msg = virSortantMail(found.nom,req.dest,req.montant,msgCommission) 
+                      }else {
+                        msg = virSortantAValiderMail(found.nom,req.dest,req.montant,msgCommission)
+                      }
+                      // console.log(msgCommission)
                       MailController
-                        .sendMail("no-reply@tharwa.dz",
-                          found.email,
-                          "Virement émis",
-                          msg)
-                    }
+                          .sendMail("no-reply@tharwa.dz",
+                            found.email,
+                            "Virement émis",
+                            msg)
+                    },(err:any)=>{
+                      console.log(err)
+                      error(err)
+                    }) 
                   }, (err:any)=>{
+                    console.log(err)
                     error(err)
                   })
 
@@ -592,13 +590,6 @@ export class GestionVirements{
 
                     getUserContact(comptes[indiceSrc].id_user,function(user:any){
                       if(statut==STATUT_VIR_VALIDE){
-                        GestionVirements.getMontantCommissionVir(codeVir,function(commission:any){
-                          console.log(commission.dataValues)
-                          if(commission.montant_commission != 0){
-                            msgCommission = `Une commission de `+commission.montant_commission+
-                                ` DZD a été retirée de votre compte courant pour ce virement.`
-                          }
-                          console.log('COM',msgCommission)
 
                           objetMail = "Validation virement"
                           if(comptes[0].id_user == comptes[1].id_user ){
@@ -608,7 +599,8 @@ export class GestionVirements{
                               virement.recepteur,virement.montant,msgCommission)
                           }else{
                             msg= validationVirSortantMail(user.nom,comptes[1-indiceSrc].num_compte,
-                              virement.montant,msgCommission) 
+                              virement.montant)
+                              //,msgCommission) 
                           }
 
                           MailController
@@ -616,9 +608,9 @@ export class GestionVirements{
                             user.email,
                             objetMail,msg
                           )
-                        },(error:any)=>{
+                        /* },(error:any)=>{
 
-                        })
+                        }) */
                       }else if(statut == STATUT_VIR_REJETE){
                         objetMail = "Rejet virement"
                         if(comptes[0].id_user == comptes[1].id_user ){

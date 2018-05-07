@@ -7,6 +7,7 @@ import { getUserContact } from '../../oauth2Server/models/User';
 import { STATUT_VIR_AVALIDER, STATUT_VIR_VALIDE, STATUT_VIR_REJETE } from '../../app/models/StatutVirement';
 import { GestionComptes } from '../../app/controllers/GestionComptes';
 import { Compte } from '../../app/models/Compte';
+import { Virement } from '../../app/models/Virement';
 
 var should= Chai.should()
 
@@ -14,7 +15,7 @@ var should= Chai.should()
 describe('Gestion des virements', function () {
    it('Doit créer un enregistrement virement', function () {
      //Primary key
-    let code = "THW000002DZDTHW000004DZD201842316158"
+    let code = "THW000002DZDTHW000004DZD201842417158"
     let montant = 500
     let src = 'THW000002DZD'
     let dest = 'THW000004DZD' 
@@ -35,7 +36,14 @@ describe('Gestion des virements', function () {
       created.should.have.property("montant").equals(montant)
       created.should.have.property("emmetteur").equals(src)
       created.should.have.property("recepteur").equals(dest)
+      created.should.have.property("statut_virement").equals(2)
       console.log(created.dataValues)
+
+      Virement.destroy({
+        where:{
+          code_virement:code
+        }
+      })
     },(error:any)=>{
       console.log(error)
     });
@@ -90,16 +98,17 @@ describe('Gestion des virements', function () {
     var retour = GestionVirements.isValidVirementComptesDuMemeClient(compte, compte2)
 
     retour.should.equals(false)
-   })
+  })
 
-   it('Doit retourner true si le statut du virement est valide',function(){
+  
+  it('Doit retourner true si le statut du virement est valide',function(){
      var statut = STATUT_VIR_AVALIDER //8
      GestionVirements.isValidStatutVir(statut,function(result:string){
         result.should.equals(true)
      },(error:any)=>{
         error.should.equals('Statut compte erroné')
      })
-   })
+  })
 
   it('Doit retourner true si le changement du statut d\'un virement est valide',function(){
     var retour = GestionVirements.isValidChangementStatut(STATUT_VIR_AVALIDER,STATUT_VIR_VALIDE)

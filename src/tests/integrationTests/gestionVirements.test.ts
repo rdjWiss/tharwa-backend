@@ -417,7 +417,7 @@ let virEntreComptes = 'THW000132DZDTHW000134DZD20180505163756'
 }); */
 
 //OK
-describe('Virement entre clients de tharwa ',function(){
+describe('Virement entre clients de tharwa',function(){
   before(function() {
     Userdb.findOne({
       where:{
@@ -674,7 +674,7 @@ describe('Virement entre clients de tharwa ',function(){
           user:idClient,
           src:numCompteCourant,
           dest:numCompteCourantClientDiff,
-          montant:seuil+100,
+          montant:seuil,
           justif:image_base64
         })
         .end(function(err,res){

@@ -92,7 +92,7 @@ export const validationVirEntreComptesMail=function(username:string, compte1:str
 export const rejetVirEntreComptesMail=function(username:string, compte1:string,
     compte2:string,motif:string){
     return modeleMail(username,`Le virement effectué entre vos comptes `
-    +compte1+` et `+compte2+` a été rejeté.\n Motif:  `+motif)
+    +compte1+` et `+compte2+` a été rejeté.<br/> Motif:  `+motif)
 }
 
 
@@ -105,24 +105,26 @@ export const virSortantMail=function(username:string, compte:string, montant:num
     <br/>`+commission)
 }
 
-export const virSortantAValiderMail=function(username:string, compte:string, montant:number):string{
+export const virSortantAValiderMail=function(username:string, compte:string,
+     montant:number,commission:string):string{
     
     return modeleMail(username,`Vous venez d'effectuer un virement
-    de `+ montant+`DZD vers le compte `+compte+`. </br>Le montant de ce virement dépasse le seuil. 
-    Vous recevrez un email dès que ce virement est validé`)
+    de `+ montant+`DZD vers le compte `+compte+`. <br/>Le montant de ce virement dépasse le seuil. 
+    Vous recevrez un email dès que ce virement est validé
+    <br/>`+commission)
 }
 
 export const validationVirSortantMail=function(username:string, compte:string,
-    montant:number,commission:string){
+    montant:number){
     return modeleMail(username,`Le virement effectué  vers le compte `
-    +compte+` a été validé 
-    <br/>`+commission)
+    +compte+` a été validé`)
 }
 
 export const rejetVirSortantMail=function(username:string, compte:string,
     motif:string){
     return modeleMail(username,`Le virement effectué  vers le compte `
-    +compte+` a été rejeté.</br> Motif:  `+motif)
+    +compte+` a été rejeté.<br/> Motif:  `+motif+
+    `<br/>Le montant du virement a été restitué`)
 }
 
 
