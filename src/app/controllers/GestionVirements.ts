@@ -151,8 +151,7 @@ export class GestionVirements{
                       msgCommission)
 
                     MailController
-                    .sendMail("no-reply@tharwa.dz",
-                      user.email,
+                    .sendMail(user.email,
                       "Virement entre vos comptes",msg)
 
                   },(error:any)=>{
@@ -342,8 +341,7 @@ export class GestionVirements{
                       }
                       // console.log(msgCommission)
                       MailController
-                          .sendMail("no-reply@tharwa.dz",
-                            found.email,
+                          .sendMail(found.email,
                             "Virement émis",
                             msg)
                     },(err:any)=>{
@@ -361,8 +359,7 @@ export class GestionVirements{
                       function(found:any){
                         console.log(found.nom)
                         MailController
-                        .sendMail("no-reply@tharwa.dz",
-                          found.email,
+                        .sendMail(found.email,
                           "Virement reçu",
                           virRecuMail(found.nom,req.src,req.montant)) 
                       }, (err:any)=>{
@@ -557,8 +554,7 @@ export class GestionVirements{
                             motif)
                       }
                       MailController
-                        .sendMail("no-reply@tharwa.dz",
-                          user.email,
+                        .sendMail(user.email,
                           objetMail,msg
                         )
                     },(error:any)=>{
@@ -573,8 +569,7 @@ export class GestionVirements{
                     if(statut== STATUT_VIR_VALIDE && comptes[0].id_user != comptes[1].id_user){
                       getUserContact(comptes[1-indiceSrc].id_user,function(user:any){
                         MailController
-                        .sendMail("no-reply@tharwa.dz",
-                          user.email,
+                        .sendMail(user.email,
                           'Virement reçu',virRecuMail(user.nom,virement.emmetteur,virement.montant)
                         )
                       },(error:any)=>{
@@ -632,8 +627,7 @@ function notifierBanquierNouveauVirAValider(){
   }).then((banquiers:any)=>{
     banquiers.forEach((banquier:any) => {
       MailController
-      .sendMail("no-reply@tharwa.dz",
-      banquier.email,"Nouveau virement à valider",
+      .sendMail(banquier.email,"Nouveau virement à valider",
       nouveauVirAValiderNotifBanquier())
 
     });

@@ -241,8 +241,7 @@ export class GestionComptes{
                         }
 
                         MailController
-                        .sendMail("no-reply@tharwa.dz",
-                          user.email,objetMail,
+                        .sendMail(user.email,objetMail,
                           message)
 
                           res.status(200)

@@ -112,8 +112,7 @@ export class CreationComptes{
                   id:created.id
                 },function(compte:any){
                   MailController
-                  .sendMail("no-reply@tharwa.dz",
-                  created.email,"Création compte utilisateur THARWA",
+                  .sendMail(created.email,"Création compte utilisateur THARWA",
                   creationCompteUserClientMail(created.nom))
                   notifierBanquierNouveauCompteAValider()
                   
@@ -185,8 +184,7 @@ export class CreationComptes{
                 created.save()
 
                 MailController
-                .sendMail("no-reply@tharwa.dz",
-                  created.email,"Création compte banquier THARWA",
+                .sendMail(created.email,"Création compte banquier THARWA",
                   creationCompteUserBanquierMail(created.nom,created.email,password))
 
                 res.status(200);
@@ -335,8 +333,7 @@ export class CreationComptes{
                         //console.log("Statut crée")
 
                         MailController
-                        .sendMail("no-reply@tharwa.dz",
-                        created2.email,"Création compte utilisateur THARWA",
+                        .sendMail(created2.email,"Création compte utilisateur THARWA",
                         creationCompteUserClientMail(created2.nom))
                         //TODO: send mail to banquier !!
                         notifierBanquierNouveauCompteAValider()
@@ -397,8 +394,7 @@ function notifierBanquierNouveauCompteAValider(){
   }).then((banquiers:any)=>{
     banquiers.forEach((banquier:any) => {
       MailController
-      .sendMail("no-reply@tharwa.dz",
-      banquier.email,"Nouvelle demande de création d'un compte Tharwa",
+      .sendMail(banquier.email,"Nouvelle demande de création d'un compte Tharwa",
       nouvelleDemandeCreationCompteNotifBanquier())
 
     });

@@ -140,8 +140,7 @@ choisir= function (req:Express.Request,res:Express.Response) {
           }else if(choix=='MAIL'){
             console.log('Sending mail')
             MailController
-            .sendMail("no-reply@tharwa.dz",
-              result.email,"Code de vérification",
+            .sendMail(result.email,"Code de vérification",
               verificationMail(verificationToken,result.nom))
             res.status(200)
             res.send({

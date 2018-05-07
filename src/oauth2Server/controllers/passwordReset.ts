@@ -19,7 +19,7 @@ export class PasswordResetController{
                         email:email
                     }
                 }
-            ).then(user=>{
+            ).then((user:any)=>{
                     if(!user) {
                         res.status(400)
                         res.json(errorMsg('access_denied',"cet adresse email est introuvable"))
