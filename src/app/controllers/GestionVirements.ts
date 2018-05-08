@@ -3,7 +3,7 @@ import { sequelize } from '../../config/db';
 import {Parametre, seuil} from '../models/Parametre'
 import {Compte} from '../models/Compte'
 import {Virement} from '../models/Virement'
-import {Userdb, getUserContact} from '../../oauth2Server/models/User'
+import {Userdb, getUserContact, getUserInfos} from '../../oauth2Server/models/User'
 import {StatutVirement, STATUT_VIR_VALIDE, STATUT_VIR_AVALIDER, STATUT_VIR_REJETE} from '../models/StatutVirement'
 
 import { MailController } from './mailController';
@@ -462,8 +462,7 @@ export class GestionVirements{
   /* Partie Banquier */
   //Récupérer les virement à valider
   public getVirementAValider:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
-  
-    let statut = req.param('statut')
+    let statut = req.query.statut //param('statut')
     console.log("GET /virements?statut="+statut)
     GestionVirements.isValidStatutVir(statut, function(result:any){
       Virement.findAll({
@@ -471,8 +470,27 @@ export class GestionVirements{
           statut_virement:STATUT_VIR_AVALIDER
         }
       }).then((results:any)=>{
-        res.status(200)
-        res.send(results) 
+        var virs:any = []
+
+        results.forEach((vir:any) => {
+          GestionVirements.getVirSrcDest({
+            src:vir.emmetteur,
+            dest:vir.recepteur
+          },function(users:any){
+            virs.push({
+              vir:vir,
+              emetteur:users.emetteur,
+              recepteur:users.recepteur
+            })
+
+            if(virs.length == results.length){
+              res.status(200)
+              res.send(virs)
+            }
+          },(err:any)=>{
+
+          })  
+        });        
       })
     }, (error:any)=>{
       res.status(400);
@@ -483,6 +501,41 @@ export class GestionVirements{
     }) 
   }
 
+  public static getVirSrcDest = function(vir:any,callback:Function,error:ErrorEventHandler){
+    Compte.findAll({
+      where:{
+        num_compte:{
+          $or:[vir.src,vir.dest]
+        }
+      }
+    }).then((comptes:any)=>{
+      if(comptes){
+        let indiceSrc = 0
+        if(comptes[1].num_compte == vir.src) indiceSrc=1
+        Userdb.findAll({
+          where:{
+            id:{
+              $or:[comptes[0].id_user,comptes[1].id_user]
+            }
+          },
+          attributes:['nom','prenom','photo','adresse','email']
+        }).then((users:any)=>{
+          if(users){
+            let indiceUserSrc = 0
+            if(users[1].id == comptes[indiceSrc].id_user) indiceUserSrc=1
+            callback({
+              emetteur:users[indiceUserSrc],
+              recepteur:users[1-indiceUserSrc]
+            })
+          }else{
+            error('Users not found')
+          }
+        })
+      }else{
+        error('Comptes not found')
+      }
+    })
+  }
   //Valider un virement
   public modifStatutVir:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
     let statut = req.body.statut

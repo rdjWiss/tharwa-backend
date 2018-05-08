@@ -13,7 +13,7 @@ var should= Chai.should()
 
 // OK
 describe('Gestion des virements', function () {
-   it('Doit créer un enregistrement virement', function () {
+/*    it('Doit créer un enregistrement virement', function () {
      //Primary key
     let code = "THW000002DZDTHW000004DZD201842417158"
     let montant = 500
@@ -115,6 +115,29 @@ describe('Gestion des virements', function () {
     retour.should.equals(true)
     retour= GestionVirements.isValidChangementStatut(STATUT_VIR_AVALIDER,STATUT_VIR_REJETE)
     retour.should.equals(true)
+  }) */
+
+  it('Doit retourner les infos des users du virement',function(){
+    GestionVirements.getVirSrcDest({
+      src:'THW000002DZD',
+      dest:'THW000132DZD'
+    },function(infos:any){
+      // console.log(infos.emetteur.dataValues,infos.recepteur.dataValues)
+      infos.should.have.property('emetteur')
+      infos.emetteur.should.have.property('nom')
+      infos.emetteur.should.have.property('prenom')
+      infos.emetteur.should.have.property('photo')
+      infos.emetteur.should.have.property('adresse')
+      infos.emetteur.should.have.property('email')
+      infos.should.have.property('recepteur')
+      infos.recepteur.should.have.property('nom')
+      infos.recepteur.should.have.property('prenom')
+      infos.recepteur.should.have.property('photo')
+      infos.recepteur.should.have.property('adresse')
+      infos.recepteur.should.have.property('email')
+    },(error:any)=>{
+
+    })
   })
 });
 
