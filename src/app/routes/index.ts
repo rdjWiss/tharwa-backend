@@ -7,7 +7,7 @@ import {CreationComptes} from '../controllers/CreationComptes'
 import {GestionVirements} from '../controllers/GestionVirements'
 
 import{WebMiddleware,MobMiddleware} from '../middlewares/AppMiddleware'
-import {creerUserMiddleware} from '../middlewares/validationApp'
+import {creerUserMiddleware, creerAutreCompteBancaireMiddleware, modifStatutMiddleware, effectuerVirMiddleware} from '../middlewares/validationApp'
 import { Converssion } from '../controllers/Converssion';
 
 // Assigner à router l'instance de express.Router()
@@ -27,7 +27,7 @@ router.get('/users/:userEmail',gestionComptes.userExist);//to oauth
 //Filtrer les comptes bancaires selon le statut (paramètre)
 router.get('/comptes',WebMiddleware,gestionComptes.getComptes)
 //Mettre à jour le statut d'un compte bancaire
-router.put('/comptes/:numCompte',WebMiddleware,gestionComptes.modifCompte)
+router.put('/comptes/:numCompte',modifStatutMiddleware,WebMiddleware,gestionComptes.modifCompte)
 //Récuperer les comptes d'un user
 router.get('/users/:idUser/comptes',MobMiddleware,gestionComptes.getComptesClient)
 
@@ -36,19 +36,19 @@ router.get('/users/:idUser/comptes',MobMiddleware,gestionComptes.getComptesClien
 //Créer un nouveau compte utilisateur
 router.post('/users',creerUserMiddleware,creationComptes.creerCompteUser)//to oauth
 //Créer un autre compte bancaire
-router.post('/comptes',MobMiddleware,creationComptes.creerCompteBancaire)
+router.post('/comptes',creerAutreCompteBancaireMiddleware,MobMiddleware,creationComptes.creerCompteBancaire)
 
 //*** Gestion Virements
 //Récupérer le seuil de validation d'un virement
 router.get('/virements/seuil',MobMiddleware,gestionVir.getSeuil)
 //Effectuer virements entre comptes du meme client
-router.post('/virements/1',MobMiddleware, gestionVir.virementEntreComptes)
+router.post('/virements/1',effectuerVirMiddleware,MobMiddleware, gestionVir.virementEntreComptes)
 //Effectuer virement entre clients tharwa
-router.post('/virements/2',MobMiddleware, gestionVir.virementEntreClientsTharwa)
+router.post('/virements/2',effectuerVirMiddleware,MobMiddleware, gestionVir.virementEntreClientsTharwa)
 //Récupérer la liste des virements à valider
 router.get('/virements',WebMiddleware,gestionVir.getVirementAValider)
 //Modifier le statut d'un virement (valider/rejeter)
-router.put('/virements/:codeVir',WebMiddleware,gestionVir.modifStatutVir)
+router.put('/virements/:codeVir',modifStatutMiddleware,WebMiddleware,gestionVir.modifStatutVir)
 
 //Taux de change
 router.post('/convertir',converssion.convertir)
