@@ -11,6 +11,7 @@ import {GestionComptes} from './GestionComptes'
 import { type } from 'os';
 import { MailController } from './mailController';
 import { creationCompteUserBanquierMail, creationCompteUserClientMail, nouvelleDemandeCreationCompteNotifBanquier } from '../../config/messages';
+import { Sequelize } from '../../config/db';
 
 var crypto = require('crypto')
 var base64 = require('node-base64-image')
@@ -224,10 +225,13 @@ export class CreationComptes{
         }else {
           error('Erreur de création du compte courant')
         }  
+      }).catch(Sequelize.ValidationError, function (err:any) {
+        console.log(err.errors)
+        error('Erreur de validation du numero de compte')
       });
-      },(err:any)=>{
-        error(err)
-      })
+    },(err:any)=>{
+      error(err)
+    })
   } 
 
   //Créer un compte bancaire devise ou épargne
@@ -345,6 +349,10 @@ export class CreationComptes{
                           statut: result.dataValues
                         })
                       });
+                    }).catch(Sequelize.ValidationError, function (err:any) {
+                      console.log(err.errors)
+                      res.status(400);
+                      res.send('Erreur de validation du numero de compte')
                     });
                   }, (error:any)=>{
                 })

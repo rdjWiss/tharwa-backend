@@ -1,4 +1,4 @@
-const Sequelize = require('cu8-sequelize-oracle');
+export const Sequelize = require('cu8-sequelize-oracle');
 
 console.log("Connexion à la base de données!! ");
 export const sequelize = new Sequelize('xe', 'hr', 'password', {

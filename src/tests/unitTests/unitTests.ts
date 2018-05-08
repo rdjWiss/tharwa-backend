@@ -6,19 +6,22 @@ import { CreationComptes } from '../../app/controllers/CreationComptes';
 import { getUserContact } from '../../oauth2Server/models/User';
 import { STATUT_VIR_AVALIDER, STATUT_VIR_VALIDE, STATUT_VIR_REJETE } from '../../app/models/StatutVirement';
 import { GestionComptes } from '../../app/controllers/GestionComptes';
-import { Compte } from '../../app/models/Compte';
-import { Virement } from '../../app/models/Virement';
+import { Compte, regexpNumCompte } from '../../app/models/Compte';
+import { Virement, regexpCodeVir } from '../../app/models/Virement';
+import { image_base64 } from '../integrationTests/gestionVirements.test';
 
 var should= Chai.should()
 
+let userId = 6
 // OK
-describe('Gestion des virements', function () {
-/*    it('Doit créer un enregistrement virement', function () {
+/* describe('Gestion des virements', function () {
+  it('Doit créer un enregistrement virement (valide)', function () {
      //Primary key
-    let code = "THW000002DZDTHW000004DZD201842417158"
-    let montant = 500
+    let date = new Date()
     let src = 'THW000002DZD'
     let dest = 'THW000004DZD' 
+    let code = GestionVirements.genererCodeVir(date,src,dest)
+    let montant = 500
     let vir = {
       code:code,
       montant:montant,
@@ -27,35 +30,30 @@ describe('Gestion des virements', function () {
       justif:null,
       src:src,
       dest:dest,
-      statut:2,
-      user: 6,
-      type:1
+      statut:STATUT_VIR_VALIDE,//STATUT_VIR_AVALIDER
+      user: userId
     }
     GestionVirements.creerEnregVirement(vir,function(created:any){
       created.should.have.property("code_virement").equals(code)
       created.should.have.property("montant").equals(montant)
       created.should.have.property("emmetteur").equals(src)
       created.should.have.property("recepteur").equals(dest)
-      created.should.have.property("statut_virement").equals(2)
-      console.log(created.dataValues)
-
-      Virement.destroy({
-        where:{
-          code_virement:code
-        }
-      })
+      created.should.have.property("statut_virement").equals(STATUT_VIR_VALIDE)
+      // console.log(created.dataValues)
     },(error:any)=>{
       console.log(error)
     });
       
   })
+
  
   it('Le code du virement doit correspondre à l\'expression régulière', function(){
     let numCompte = 'THW000002DZD'
     var dateNow = new Date();
     let code = GestionVirements.genererCodeVir(dateNow,numCompte,numCompte)
     console.log(code)
-    code.should.match(/[A-Z]{3}\d{6}[A-Z]{3}[A-Z]{3}\d{6}[A-Z]{3}\d{12}/)
+    // code.should.match(/[A-Z]{3}\d{6}[A-Z]{3}[A-Z]{3}\d{6}[A-Z]{3}\d{12}/)
+    code.should.match(regexpCodeVir)
   })
 
   it('Doit retourner true si le numéro de compte src == dest',function(){
@@ -115,7 +113,7 @@ describe('Gestion des virements', function () {
     retour.should.equals(true)
     retour= GestionVirements.isValidChangementStatut(STATUT_VIR_AVALIDER,STATUT_VIR_REJETE)
     retour.should.equals(true)
-  }) */
+  }) 
 
   it('Doit retourner les infos des users du virement',function(){
     GestionVirements.getVirSrcDest({
@@ -139,12 +137,13 @@ describe('Gestion des virements', function () {
 
     })
   })
-});
+}); */
 
-/* describe('Gestion des comptes bancaires', function () {
-  it('Le numéro du compte doit correspondre à l\'expression régulière', function(){
+describe('Gestion des comptes bancaires', function () {
+  it('Le numéro du compte doit correspondre à l\'expression régulière du numero de compte', function(){
     CreationComptes.genererNouveauNumeroCompte('DZD',function(numCompte:string){
-      numCompte.should.match(/[A-Z]{3}\d{6}[A-Z]{3}/)
+      // numCompte.should.match(/[A-Z]{3}\d{6}[A-Z]{3}/)
+      numCompte.should.match(regexpNumCompte)
     }, (error:any)=>{
 
     })
@@ -224,7 +223,7 @@ describe('Gestion des virements', function () {
     type = typeCompteString(3)
     type.should.equals('Devise')
   })
-}); */
+});
 
 /* describe('Gestion des users', function () {
   it('Doit retourner le nom, email et telephone du user', function(){
