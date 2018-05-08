@@ -1,9 +1,9 @@
 import * as Express from 'express'
-import { sequelize } from '../../config/db';
+import { sequelize, Sequelize } from '../../config/db';
 import {Parametre, seuil} from '../models/Parametre'
 import {Compte} from '../models/Compte'
 import {Virement} from '../models/Virement'
-import {Userdb, getUserContact, getUserInfos} from '../../oauth2Server/models/User'
+import {Userdb, getUserContact} from '../../oauth2Server/models/User'
 import {StatutVirement, STATUT_VIR_VALIDE, STATUT_VIR_AVALIDER, STATUT_VIR_REJETE} from '../models/StatutVirement'
 
 import { MailController } from './mailController';
@@ -181,77 +181,130 @@ export class GestionVirements{
   }
 
   //Virement dont la source est THW (destination: THW ou autre)
-  public virementSrcTHW:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
+  public virementEntreClientsTharwa:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
     console.log("POST /virements/2")
 
     //TODO: rech dest par email
-    let user = req.body.user
+    let userId = req.body.user
     let src = req.body.src
     let dest = req.body.dest
     let montant = req.body.montant
     let motif = req.body.motif
-    let justif = req.body.justif  
-    console.log(src,"to",dest)
+    let justif = req.body.justif
+    let typeDest = req.body.type || 'NUM'  //EMAIL
+    console.log(src,"to",dest,typeDest)
     
     //true si dest thw sinon vers externe
     let virTHW = (dest.substr(0,3)=="THW")
 
-    if(GestionVirements.isSrcEqualDest(src,dest)){
-      res.status(400);
-      res.send({
-        err:"Bad request",
-        msg_err:"La source et dest doivent etre diff" 
-      })
-    }else{
-      //Récupérer le seuil de validation
-      GestionVirements.getSeuilVirement(function(seuil:number){
-        if(+montant>=seuil && !justif){
-          res.status(400);
-          res.send({
-            err:"Bad request",
-            msg_err:"Veuillez fournir un justificatif. Le montant dépasse le seuil de non validation" 
-          })
-        }else{
-          if(virTHW){
-            GestionVirements.virementInterneTharwa({
-              user:user,
-              src:src,
-              dest:dest,
-              montant:montant,
-              motif:motif,
-              justif:justif,
-              seuil:seuil
-            }, function(done:any){
-              console.log('OUT')
-              res.status(200)
-              res.send(done)
-            },(error:any)=>{
+    //Récupérer le seuil de validation
+    GestionVirements.getSeuilVirement(function(seuil:number){
+      if(+montant>=seuil && !justif){
+        res.status(400);
+        res.send({
+          err:"Bad request",
+          msg_err:"Veuillez fournir un justificatif. Le montant dépasse le seuil de non validation" 
+        })
+      }else{
+        //Si dest est un email, on cherche le compte courant du user
+        if(typeDest=='EMAIL'){
+          // console.log('EMAIL')
+          Userdb.findOne({
+            where:{
+              email:dest
+            },
+            attributes:['id']
+          }).then((user:any)=>{
+            if(!user){
               res.status(400);
               res.send({
-                err:"Bad request",
-                msg_err:error
-              }) 
-            })
-          }else{
-            //Si le recepteur n'est pas un client de tharwa
+                err:"Bad Request",
+                msg_err:'Email erroné/ n\'existe pas'
+              })
+            }else{
+              if(user.id == userId){
+                res.status(400);
+                res.send({
+                  err:"Bad Request",
+                  msg_err:'L\'email destinataire vous appartient'
+                })
+              }else{
+                Compte.findOne({
+                  where:{
+                    id_user:user.id,
+                    type_compte:COMPTE_COURANT
+                  },
+                  attributes:['num_compte']
+                }).then((compte:any)=>{
+                  if(!compte){
+                    res.status(400);
+                    res.send({
+                      err:"Bad Request",
+                      msg_err:'Compte courant du client recepteur not found'
+                    })
+                  }else{
+                    dest = compte.num_compte
+                    console.log('dest: ',dest)
+                    GestionVirements.virementInterneTharwa({
+                      user:userId,
+                      src:src,
+                      dest:dest,
+                      montant:montant,
+                      motif:motif,
+                      justif:justif,
+                      seuil:seuil
+                    }, function(done:any){
+                      console.log('OUT')
+                      res.status(200)
+                      res.send(done)
+                    },(error:any)=>{
+                      res.status(400);
+                      res.send({
+                        err:"Bad request",
+                        msg_err:error
+                      }) 
+                    })
+                  }
+                });
+              }
+            }
+          });
+        }
+        else{
+          GestionVirements.virementInterneTharwa({
+            user:userId,
+            src:src,
+            dest:dest,
+            montant:montant,
+            motif:motif,
+            justif:justif,
+            seuil:seuil
+          }, function(done:any){
+            console.log('OUT')
+            res.status(200)
+            res.send(done)
+          },(error:any)=>{
             res.status(400);
             res.send({
               err:"Bad request",
-              msg_err:"Virement externe." 
-            })
-          }
+              msg_err:error
+            }) 
+          })
         }
-      },(error:any)=>{
+      }
+    },(error:any)=>{
         res.status(500);
         res.send({
           err:"Erreur base de données",
           msg_err:error
         })
-      })
-    }
+    })
   }
 
   public static virementInterneTharwa = function(req:any,callback:Function, error:ErrorEventHandler){
+    if(GestionVirements.isSrcEqualDest(req.src,req.dest)){
+      error("La source et dest doivent etre diff") 
+    }else{ 
       //Vérifier les virements possible; 
       let numComptes = [req.src,req.dest]
       Compte.findAll({
@@ -378,6 +431,8 @@ export class GestionVirements{
         }     
       })
              
+  
+    }
   }
 
   public static getSeuilVirement= function(callback:Function, error:ErrorEventHandler){
@@ -443,7 +498,10 @@ export class GestionVirements{
       }else{
         error( 'Impossible de créer le virement')
       } 
-    })
+    }).catch(Sequelize.ValidationError, function (err:any) {
+      console.log(err.errors)
+      error('Erreur de validation du code virement')
+    });
   }
 
   public static getMontantCommissionVir = function(codeVir:any, callback:Function,error:ErrorEventHandler){

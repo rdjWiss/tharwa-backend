@@ -34,7 +34,7 @@ router.get('/users/:idUser/comptes',MobMiddleware,gestionComptes.getComptesClien
 
 //**** Création des comptes
 //Créer un nouveau compte utilisateur
-router.post('/users',/* creerUserMiddleware */creationComptes.creerCompteUser)//to oauth
+router.post('/users',creerUserMiddleware,creationComptes.creerCompteUser)//to oauth
 //Créer un autre compte bancaire
 router.post('/comptes',MobMiddleware,creationComptes.creerCompteBancaire)
 
@@ -44,7 +44,7 @@ router.get('/virements/seuil',MobMiddleware,gestionVir.getSeuil)
 //Effectuer virements entre comptes du meme client
 router.post('/virements/1',MobMiddleware, gestionVir.virementEntreComptes)
 //Effectuer virement entre clients tharwa
-router.post('/virements/2',MobMiddleware, gestionVir.virementSrcTHW)
+router.post('/virements/2',MobMiddleware, gestionVir.virementEntreClientsTharwa)
 //Récupérer la liste des virements à valider
 router.get('/virements',WebMiddleware,gestionVir.getVirementAValider)
 //Modifier le statut d'un virement (valider/rejeter)
