@@ -18,7 +18,8 @@ describe('Authentification', function() {
         .send({email: 'scott@stackabuse.com', passsword: 'abc123'})
         .end(function(err,res){
           err.should.have.status(401)
-          console.log(res.body.error_description)
+          res.body.should.have.property('code_err').equals('A01')
+          console.log(res.body.msg_err)
           done()
         })    
   });
@@ -77,6 +78,7 @@ describe('Authentification', function() {
     })
     .end(function(err,res){
         err.should.have.status(401)
+        res.body.should.have.property('code_err').equals('A11')
         done();
     })
     });
@@ -93,10 +95,28 @@ describe('Authentification', function() {
     .end(function(err,res){
 
         res.should.have.status(200)
+        res.body.should.have.property("code_pin")
         res.body.should.have.property("access_token")
         res.body.should.have.property("refresh_token")
         res.body.should.have.property("expires_in")
         res.body.should.have.property("user")
+        res.body.user.should.have.property('id')
+        res.body.user.should.have.property('nom')
+        res.body.user.should.have.property('prenom')
+        res.body.user.should.have.property('photo')
+        res.body.user.should.have.property('email')
+        res.body.user.should.have.property('fonctionId')
+        let fonction = res.body.user.fonctionId
+        if(fonction == 'C' || fonction == 'E'){
+            res.body.should.have.property('comptes')
+            res.body.comptes.should.be.an('array')
+            res.body.comptes.every((compte:any) => compte.should.have.property('num_compte'))
+            res.body.comptes.every((compte:any) => compte.should.have.property('balance'))
+            res.body.comptes.every((compte:any) => compte.should.have.property('date_creation'))
+            res.body.comptes.every((compte:any) => compte.should.have.property('type_compte'))
+            res.body.comptes.every((compte:any) => compte.should.have.property('code_monnaie'))
+            res.body.comptes.every((compte:any) => compte.should.have.property('statut_actuel'))
+        }
         res.body.token_type.should.equal("bearer")
         console.log(res.body)
         done();
@@ -105,38 +125,3 @@ describe('Authentification', function() {
 
 
 })
-
-/*describe('Input validation ', function() {
-
-    it("doit retourner une erreur si les champs email,password sont vides  http://tharwa:4000/login POST",function(done){
-      Chai.request(testServer)
-          .post('/login')
-          .send({email: '', passsword: ''})
-          .end(function(err,res){
-            err.should.have.status(401)
-            done()
-          })    
-    });
-
-
-    it("doit retourner une erreur de type invaide_request si les champs user,token sont vides  http://tharwa:4000/login POST",function(done){
-      Chai.request(testServer)
-          .post('/verifier')
-          .send({})
-          .end(function(err,res){
-            err.should.have.status(401)
-            done()
-          })    
-    });
-
-    
-    it("doit retourner une erreur de type invaide_request si les champs user,token sont vides  http://tharwa:4000/login POST",function(done){
-      Chai.request(testServer)
-          .post('/verifier')
-          .send({})
-          .end(function(err,res){
-            err.should.have.status(401)
-            done()
-          })    
-    });
-});*/

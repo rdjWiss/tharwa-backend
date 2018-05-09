@@ -3,7 +3,7 @@ import {Userdb} from '../../oauth2Server/models/User'
 import {Fonction} from '../../oauth2Server/models/Fonction'
 import {Compte} from '../../app/models/Compte'
 import { AvoirStatut } from '../models/AvoirStatut';
-import {Parametre} from '../models/Parametre'
+import {Parametre, NUM_SEQ_COMPTE} from '../models/Parametre'
 import {Monnaie, monnaies} from '../models/Monnaie'
 import {TypeCompte, typeComptes, COMPTE_COURANT, COMPTE_EPARGNE, COMPTE_DEVISE} from '../models/TypeCompte'
 
@@ -12,6 +12,7 @@ import { type } from 'os';
 import { MailController } from './mailController';
 import { creationCompteUserBanquierMail, creationCompteUserClientMail, nouvelleDemandeCreationCompteNotifBanquier } from '../../config/messages';
 import { Sequelize } from '../../config/db';
+import { getMessageErreur } from '../../config/errorMsg';
 
 var crypto = require('crypto')
 var base64 = require('node-base64-image')
@@ -57,10 +58,11 @@ export class CreationComptes{
     }).then((element:any)=>{
       if(element) {
         console.log("User exists")
-        res.status(401);
+        res.status(400);
         res.send({
           error: "Requete invalide",
-          msg_err:"L'utilisateur existe déjà"
+          code_err:'U01',
+          msg_err:getMessageErreur('U01')
         })
       }else{
         //Le user n'existe pas, le créer
@@ -75,7 +77,8 @@ export class CreationComptes{
             res.status(400);
             res.send({
               err:"Bad request",
-              msg_err:"Le champ fonction est invalide" 
+              code_err:'U02',
+              msg_err:getMessageErreur('U02')
             })
           }else{
             //Récupérer l'image et la sauvegarder
@@ -127,7 +130,8 @@ export class CreationComptes{
                   res.status(500)
                   res.send({
                     err:"Erreur base de données",
-                    msg_err:error 
+                    code_err:error,
+                    msg_err:getMessageErreur(error)
                   })
                 })
                 /* let numSeq;
@@ -223,11 +227,11 @@ export class CreationComptes{
             callback(compte)
           });
         }else {
-          error('Erreur de création du compte courant')
+          error('D01')
         }  
       }).catch(Sequelize.ValidationError, function (err:any) {
         console.log(err.errors)
-        error('Erreur de validation du numero de compte')
+        error('D02')
       });
     },(err:any)=>{
       error(err)
@@ -258,7 +262,8 @@ export class CreationComptes{
           res.status(400);
           res.send({
             err:"Bad request",
-            msg_err:"Le id user est erroné. Ou le user n'est pas un client" 
+            code_err:'U03',
+            msg_err:getMessageErreur('U03')
           })
         }else{
           //vérifier code monnaie
@@ -266,7 +271,8 @@ export class CreationComptes{
             res.status(400);
             res.send({
               err:"Bad request",
-              msg_err:"Monnaie non supportée" 
+              code_err:'C02',
+              msg_err:getMessageErreur('C02')
             })
           }
           //Vérifier typeCompte
@@ -275,19 +281,15 @@ export class CreationComptes{
             res.status(400);
             res.send({
               err:"Bad request",
-              msg_err:"Type compte erroné" 
-            })
-          }else if(!user || !typeCompte){
-            res.status(400);
-            res.send({
-              err:"Bad request",
-              msg_err:"Champs user ou type compte manquants" 
+              code_err:'C01',
+              msg_err:getMessageErreur('C01')
             })
           }else if(typeCompte==COMPTE_COURANT){
             res.status(400);
             res.send({
               err:"Bad request",
-              msg_err:"Impossible de créer un compte courant " 
+              code_err:'C03',
+              msg_err:getMessageErreur('C03') 
             })
           }else{
             Compte.findAll({
@@ -309,14 +311,16 @@ export class CreationComptes{
                 res.status(400);
                 res.send({
                   err:"Bad request",
-                  msg_err:"Vous ne pouvez pas créer un autre compte de ce type " 
+                  code_err:'C04',
+                  msg_err:getMessageErreur('C04')
                 })
               }else if((typeCompte==COMPTE_EPARGNE && monnaie!="DZD") ||
                 (typeCompte==COMPTE_DEVISE && monnaie!="EUR" && monnaie!="USD") ){
                   res.status(400);
                   res.send({
                     err:"Bad request",
-                    msg_err:"La monnaie ne correspond pas au type du compte " 
+                    code_err:'C05',
+                    msg_err:getMessageErreur('C05')
                   })
               }else{
                 CreationComptes.genererNouveauNumeroCompte(monnaie,
@@ -352,9 +356,19 @@ export class CreationComptes{
                     }).catch(Sequelize.ValidationError, function (err:any) {
                       console.log(err.errors)
                       res.status(400);
-                      res.send('Erreur de validation du numero de compte')
+                      res.send({
+                        err:"Erreur DB",
+                        code_err:'D02',
+                        msg_err:getMessageErreur('D02')
+                      });
                     });
                   }, (error:any)=>{
+                    res.status(400);
+                    res.send({
+                      err:"Erreur DB",
+                      code_err:error,
+                      msg_err:getMessageErreur(error)
+                    });
                 })
               }
             }) 
@@ -369,7 +383,7 @@ export class CreationComptes{
     //Récupérer le numéro séquentiel
     Parametre.findOne({
       where:{
-        id_param:2
+        id_param:NUM_SEQ_COMPTE
       }
     }).then( (result:any) =>{
       if(result){
@@ -386,7 +400,7 @@ export class CreationComptes{
         //console.log("Num compte: "+numCompte)
         callback(numCompte)
       }else{
-        error('Erreur Base de données')
+        error('D03')
       }
     })
   }
@@ -400,11 +414,12 @@ function notifierBanquierNouveauCompteAValider(){
       fonctionId:'B'
     }
   }).then((banquiers:any)=>{
-    banquiers.forEach((banquier:any) => {
-      MailController
-      .sendMail(banquier.email,"Nouvelle demande de création d'un compte Tharwa",
-      nouvelleDemandeCreationCompteNotifBanquier())
-
-    });
+    if(banquiers){
+      banquiers.forEach((banquier:any) => {
+        MailController
+        .sendMail(banquier.email,"Nouvelle demande de création d'un compte Tharwa",
+        nouvelleDemandeCreationCompteNotifBanquier())
+      });
+    }
   })
 }

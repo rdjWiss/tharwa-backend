@@ -8,13 +8,14 @@ import { stat } from 'fs';
 import { MailController } from './mailController';
 import { verificationMail, validationCompteUserMail, rejetCompteUserMail,
   validationCompteBankMail,rejetCompteBankMail } from '../../config/messages';
-import { COMPTE_EPARGNE, COMPTE_DEVISE, COMPTE_COURANT } from '../models/TypeCompte';
+import { COMPTE_EPARGNE, COMPTE_DEVISE, COMPTE_COURANT, typeCompteString } from '../models/TypeCompte';
+import { getMessageErreur } from '../../config/errorMsg';
 const Sequelize = require('cu8-sequelize-oracle');
 
 export class GestionComptes{
 
   public userExist:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
-    console.log('GET users/'+req.params.userEmail)
+    console.log('GET comptes/'+req.params.userEmail)
     
     //Rechercher le user en bdd
     Userdb.findOne({
@@ -42,7 +43,7 @@ export class GestionComptes{
   //Récupérer la liste des comptes d'un user donné
   public getComptesClient:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any) {
     let id_user = parseInt(req.params.idUser)
-    console.log("GET /users/"+id_user+"/comptes")
+    console.log("GET /comptes/"+id_user+"/comptes")
 
     Userdb.findOne({
       where:{
@@ -53,7 +54,8 @@ export class GestionComptes{
         res.status(400);
         res.send({
           err:"Bad request",
-          msg_err:"Id user erroné" 
+          code_err:'U03',
+          msg_err:getMessageErreur('U03')
         })
       }else{
         Compte.findAll({
@@ -77,7 +79,8 @@ export class GestionComptes{
       res.status(400);
       res.send({
         err:"Bad request",
-        msg_err:"Statut erroné" 
+        code_err:'C06',
+        msg_err:getMessageErreur('C06')
       })
     }else{
       //Rechercher les comptes dont le statut actuel = statut voulu
@@ -87,42 +90,43 @@ export class GestionComptes{
         },attributes:['num_compte', 'type_compte', 'code_monnaie', 'id_user','statut_actuel']
       }).then((results:any) =>{
         if(results){
-          var users:any = []
-          //Récupérer les id des users des comptes concernés
-          results.forEach((element:any) => {
-
-            //TODO: A changer par un acces à la bdd
-            if(element.type_compte == COMPTE_COURANT) 
-              element.type_compte = "Courant"
-            else if (element.type_compte == COMPTE_EPARGNE) 
-              element.type_compte = "Epargne"
-            else if (element.type_compte == COMPTE_DEVISE) 
-              element.type_compte = "Devise"
-
-            Userdb.findOne({
-              where:{
-                id:element.id_user
-              },
-              attributes: ['id', 'nom', 'prenom', 'photo','email','fonctionId','adresse','telephone']
-            }).then((user:any)=>{
-              
-              element.user = user
-              if(!user) console.log("user",user,element.id_user)
-              users.push({
-                compte:element.dataValues,
-                user:user.dataValues
-              })
+          var comptes:any = []
+          //Récupérer les id des comptes des comptes concernés
+          if(results.length != 0){
+            results.forEach((element:any) => {              
+              element.type_compte = typeCompteString(element.type_compte)
+  
+              Userdb.findOne({
+                where:{
+                  id:element.id_user
+                },
+                attributes: ['id', 'nom', 'prenom', 'photo','email','fonctionId','adresse','telephone']
+              }).then((user:any)=>{
+                
+                element.user = user
+                if(!user) console.log("user",user,element.id_user)
+                comptes.push({
+                  compte:element.dataValues,
+                  user:user.dataValues
+                  
+                })
+  
+                if(comptes.length == results.length){
+                  res.status(200)
+                  res.send(comptes) 
+                }
+              });
             });
-          });
-          setTimeout(function() {
+          }else{
             res.status(200)
-            res.send(users) 
-          }, 100) 
+            res.send(comptes)
+          }      
         }else{
           res.status(404);
           res.send({
-            error: "Not found",
-            error_msg:""
+            error: "Erreur DB",
+            code_err:'D01',
+            error_msg:"Impossible de récupérer les comptes"
           })
         }
       });
@@ -147,7 +151,8 @@ export class GestionComptes{
       res.status(400)
       res.send({
         err:"Bad request",
-        msg_err: "Statut erroné"
+        code_err:"C06",
+        msg_err: getMessageErreur('C06')
       })
     }
     else{
@@ -161,7 +166,8 @@ export class GestionComptes{
             res.status(400)
             res.send({
               err:"Erreur",
-              msg_err:"Modification statut non permise"
+              code_err:'C07',
+              msg_err:getMessageErreur('C07')
             })
           }  
           else{
@@ -171,7 +177,8 @@ export class GestionComptes{
               res.status(400)
               res.send({
                 err:"Erreur",
-                msg_err:"Motif obligatoire"
+                code_err:'C08',
+                msg_err:getMessageErreur('C08')
               })
             }else {
               //Créer un nouveau statut du compte dans la table AvoirsStatut
@@ -258,7 +265,8 @@ export class GestionComptes{
                       res.status(401)
                       res.send({
                         err:"Not Found",
-                        msg_err:"User not found"
+                        code_err:'U03',
+                        msg_err:getMessageErreur('U03')
                       })
                     }
                   })
@@ -271,7 +279,8 @@ export class GestionComptes{
           res.status(404)
           res.send({
             err:"Not Found",
-            msg_err:"Compte not found"
+            code_err:'C00',
+            msg_err:getMessageErreur('C00')
           })
         }
       })

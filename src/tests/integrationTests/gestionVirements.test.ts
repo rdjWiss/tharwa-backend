@@ -73,9 +73,15 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
     Chai.request(testServer)
       .post('/virements/1')
       .set("client_id","541")
-      .send({})
+      .send({
+        user:idClient,
+        src:numCompteCourant,
+        dest:numCompteCourant,
+        montant:500
+      })
       .end(function(err,res){
         err.should.have.status(401)
+        res.body.should.have.property('code_err').equals('A02')
         console.log(res.body.msg_err)
         done()
     })
@@ -93,6 +99,7 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
       })
       .end(function(err,res){
         err.should.have.status(400)
+        res.body.should.have.property('code_err').equals('V03')
         console.log(res.body.msg_err)
         done()
     })
@@ -105,11 +112,12 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
       .send({
         user:idClient,
         src:numCompteCourant,
-        dest:"numCompteCourant",
+        dest:"THW000000AAA",
         montant:500
       })
       .end(function(err,res){
         err.should.have.status(400)
+        res.body.should.have.property('code_err').equals('V01')
         console.log(res.body.msg_err)
         done()
     })
@@ -127,6 +135,7 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
       })
       .end(function(err,res){
         err.should.have.status(400)
+        res.body.should.have.property('code_err').equals('V01')
         console.log(res.body.msg_err)
         done()
     })
@@ -152,6 +161,7 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
         })
         .end(function(err,res){
           err.should.have.status(400)
+          res.body.should.have.property('code_err').equals('V02')
           console.log(res.body.msg_err)
           done()
         })
@@ -183,6 +193,7 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
         })
         .end(function(err,res){
           res.should.have.status(400)
+          res.body.should.have.property('code_err').equals('V04')
           console.log(res.body.msg_err)
           done()
         })
@@ -211,6 +222,7 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
           })
           .end(function(err,res){
             err.should.have.status(400)
+            res.body.should.have.property('code_err').equals('V05')
             console.log(res.body.msg_err)
             done()
         })
@@ -406,9 +418,15 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
     Chai.request(testServer)
       .post('/virements/2')
       .set("client_id","541")
-      .send({})
+      .send({
+        user:idClient,
+        src:numCompteCourant,
+        dest:numCompteCourant,
+        montant:500
+      })
       .end(function(err,res){
         err.should.have.status(401)
+        res.body.should.have.property('code_err').equals('A02')
         console.log(res.body.msg_err)
         done()
     })
@@ -427,6 +445,7 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
       })
       .end(function(err,res){
         err.should.have.status(400)
+        res.body.should.have.property('code_err').equals('V03')
         console.log("Retour",res.body.msg_err)
         done()
     })
@@ -444,6 +463,7 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
       })
       .end(function(err,res){
         err.should.have.status(400)
+        res.body.should.have.property('code_err').equals('V06')
         console.log(res.body.msg_err)
         done()
     })
@@ -457,11 +477,12 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
       .send({
         user:idClient,
         src:numCompteCourant,
-        dest:"THW00000000000000000000",
+        dest:"THW000000AAA",
         montant:500
       })
       .end(function(err,res){
         err.should.have.status(400)
+        res.body.should.have.property('code_err').equals('V10')
         console.log(res.body.msg_err)
         done()
     })
@@ -474,11 +495,12 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
       .send({
         user:0,
         src:numCompteCourant,
-        dest:"THW000000DZD",
+        dest:"THW000002DZD",
         montant:500
       })
       .end(function(err,res){
         err.should.have.status(400)
+        res.body.should.have.property('code_err').equals('V11')
         console.log(res.body.msg_err)
         done()
     })
@@ -505,6 +527,7 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
         })
         .end(function(err,res){
           err.should.have.status(400)
+          res.body.should.have.property('code_err').equals('V02')
           console.log(res.body.msg_err)
           done()
         })
@@ -534,6 +557,7 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
           })
           .end(function(err,res){
             err.should.have.status(400)
+            res.body.should.have.property('code_err').equals('V09')
             console.log(res.body.msg_err)
             done()
         })
@@ -564,6 +588,7 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
         })
         .end(function(err,res){
           err.should.have.status(400)
+          res.body.should.have.property('code_err').equals('V04')
           console.log(res.body.msg_err)
           done()
         })
@@ -592,6 +617,7 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
           })
           .end(function(err,res){
             err.should.have.status(400)
+            res.body.should.have.property('code_err').equals('V05')
             console.log(res.body.msg_err)
             done()
         })
@@ -670,7 +696,7 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
   })
 }); */
 
-describe('Virement entre clients de tharwa (Rech par email)',function(){
+/* describe('Virement entre clients de tharwa (Rech par email)',function(){
   before(function() {
     Userdb.findOne({
       where:{
@@ -695,25 +721,6 @@ describe('Virement entre clients de tharwa (Rech par email)',function(){
     });
   });
 
-  it('Doit retourner 400 si le num de compte src == dest',function(done){
-    this.timeout(10000);//Set le timeout à 10_000 ms
-    Chai.request(testServer)
-      .post('/virements/2')
-      .set("client_id","152")
-      .send({
-        user:idClient,
-        src:numCompteCourant,
-        dest:emailClient,
-        montant:500,
-        type:'EMAIL'
-      })
-      .end(function(err,res){
-        err.should.have.status(400)
-        console.log("Retour",res.body.msg_err)
-        done()
-    })
-  });
-
   it('Doit retourner 400 si le montant dépassent le seuil et pas de justificatif',function(done){
     Chai.request(testServer)
       .post('/virements/2')
@@ -727,6 +734,7 @@ describe('Virement entre clients de tharwa (Rech par email)',function(){
       })
       .end(function(err,res){
         err.should.have.status(400)
+        res.body.should.have.property('code_err').equals('V06')
         console.log(res.body.msg_err)
         done()
     })
@@ -746,6 +754,7 @@ describe('Virement entre clients de tharwa (Rech par email)',function(){
       })
       .end(function(err,res){
         err.should.have.status(400)
+        res.body.should.have.property('code_err').equals('U04')
         console.log(res.body.msg_err)
         done()
     })
@@ -764,6 +773,7 @@ describe('Virement entre clients de tharwa (Rech par email)',function(){
       })
       .end(function(err,res){
         err.should.have.status(400)
+        res.body.should.have.property('code_err').equals('V11')
         console.log(res.body.msg_err)
         done()
     })
@@ -791,6 +801,7 @@ describe('Virement entre clients de tharwa (Rech par email)',function(){
         })
         .end(function(err,res){
           err.should.have.status(400)
+          res.body.should.have.property('code_err').equals('V02')
           console.log(res.body.msg_err)
           done()
         })
@@ -821,6 +832,7 @@ describe('Virement entre clients de tharwa (Rech par email)',function(){
           })
           .end(function(err,res){
             err.should.have.status(400)
+            res.body.should.have.property('code_err').equals('V07')
             console.log(res.body.msg_err)
             done()
         })
@@ -852,6 +864,7 @@ describe('Virement entre clients de tharwa (Rech par email)',function(){
         })
         .end(function(err,res){
           err.should.have.status(400)
+          res.body.should.have.property('code_err').equals('V04')
           console.log(res.body.msg_err)
           done()
         })
@@ -881,6 +894,7 @@ describe('Virement entre clients de tharwa (Rech par email)',function(){
           })
           .end(function(err,res){
             err.should.have.status(400)
+            res.body.should.have.property('code_err').equals('V05')
             console.log(res.body.msg_err)
             done()
         })
@@ -959,7 +973,7 @@ describe('Virement entre clients de tharwa (Rech par email)',function(){
         })
       },2000)
   })
-});
+}); */
 
 //OK
 /* describe('Recupération de la liste des vir à valider',function(){
@@ -984,12 +998,13 @@ describe('Virement entre clients de tharwa (Rech par email)',function(){
       })
       .end(function(err,res){
         err.should.have.status(400)
+        res.body.should.have.property('code_err').equals('V15')
         console.log(res.body.msg_err)
         done()
     })  
   });
 
-  it('Doit retourner la liste des comptes à valider si statut = 1',function(done){
+  it('Doit retourner la liste des comptes à valider ',function(done){
     Chai.request(testServer)
       .get('/virements?statut='+STATUT_VIR_AVALIDER)
       .set("client_id","541")
@@ -998,14 +1013,29 @@ describe('Virement entre clients de tharwa (Rech par email)',function(){
       .end(function(err,res){
         res.should.have.status(200)
         res.body.should.be.an('array')
-        res.body.every((vir:any) => vir.should.have.property('code_virement'))
-        res.body.every((vir:any) => vir.should.have.property('montant'))
-        res.body.every((vir:any) => vir.should.have.property('motif'))
-        res.body.every((vir:any) => vir.should.have.property('date_virement'))
-        res.body.every((vir:any) => vir.should.have.property('justificatif'))
-        res.body.every((vir:any) => vir.should.have.property('emmetteur'))
-        res.body.every((vir:any) => vir.should.have.property('recepteur'))
-        res.body.every((vir:any) => vir.should.have.property('statut_virement'))
+        res.body.every((element:any) => {
+          element.should.have.property('vir')
+          element.vir.should.have.property('code_virement')
+          element.vir.should.have.property('montant')
+          element.vir.should.have.property('date_virement')
+          element.vir.should.have.property('justificatif')
+          element.vir.should.have.property('emmetteur')
+          element.vir.should.have.property('recepteur')
+          element.vir.should.have.property('statut_virement')
+          element.should.have.property('emetteur')
+          element.emetteur.should.have.property('nom')
+          element.emetteur.should.have.property('prenom')
+          element.emetteur.should.have.property('photo')
+          element.emetteur.should.have.property('adresse')
+          element.emetteur.should.have.property('email')
+          element.should.have.property('recepteur')
+          element.recepteur.should.have.property('nom')
+          element.recepteur.should.have.property('prenom')
+          element.recepteur.should.have.property('photo')
+          element.recepteur.should.have.property('adresse')
+          element.recepteur.should.have.property('email')
+        })
+        
         // console.log(res.body)
         done()
     })  
@@ -1044,9 +1074,11 @@ describe('Virement entre clients de tharwa (Rech par email)',function(){
       .put('/virements/THW4566')
       .set("client_id","152")
       .send({
+        statut:'111'
       })
       .end(function(err,res){
         err.should.have.status(401)
+        res.body.should.have.property('code_err').equals('A02')
         console.log(res.body.msg_err)
         done()
     })  
@@ -1061,6 +1093,7 @@ describe('Virement entre clients de tharwa (Rech par email)',function(){
       })
       .end(function(err,res){
         err.should.have.status(400)
+        res.body.should.have.property('code_err').equals('V15')
         console.log(res.body.msg_err)
         done()
     })  
@@ -1075,6 +1108,7 @@ describe('Virement entre clients de tharwa (Rech par email)',function(){
       })
       .end(function(err,res){
         err.should.have.status(400)
+        res.body.should.have.property('code_err').equals('V13')
         console.log(res.body.msg_err)
         done()
     })  
@@ -1098,6 +1132,7 @@ describe('Virement entre clients de tharwa (Rech par email)',function(){
           })
           .end(function(err,res){
             err.should.have.status(400)
+            res.body.should.have.property('code_err').equals('V13')
             console.log(res.body.msg_err)
             done()
         })  
@@ -1124,6 +1159,7 @@ describe('Virement entre clients de tharwa (Rech par email)',function(){
           })
           .end(function(err,res){
             err.should.have.status(400)
+            res.body.should.have.property('code_err').equals('V14')
             console.log(res.body.msg_err)
             done()
         })  

@@ -13,8 +13,9 @@ const testServer = appServer.app.listen(5000)
 
 const emailClient = 'tharwaclient152@gmail.com' //mdp:tharwa152
 
-let numCompteCourant = 0
-let numCompteEpargne = 0
+//Seront modifiés dans les tests
+let numCompteCourant = 'THW000132DZD'
+let numCompteEpargne = 'THW000134DZD'
 
 let idUser = 6
 
@@ -50,7 +51,8 @@ let idUser = 6
 
 }); */
 
-describe('Récupération de la liste des comptes d\'un user',function(){
+//OK
+/* describe('Récupération de la liste des comptes d\'un user',function(){
   it('Doit renvoyer 400 si le id user est erroné(n\'existe pas sur GET /users/idUser/comptes',function(done){
     Chai.request(testServer)
     .get('/users/-1/comptes')
@@ -59,6 +61,7 @@ describe('Récupération de la liste des comptes d\'un user',function(){
     })
     .end(function(err,res){
       err.should.have.status(400)
+      res.body.should.have.property('code_err').equals('U03')
       console.log(res.body.msg_err)
       done()
     })    
@@ -72,19 +75,21 @@ describe('Récupération de la liste des comptes d\'un user',function(){
     })
     .end(function(err,res){
       res.should.have.status(200)
-      res.body.should.be.an('array')
-      res.body.every((compte:any) => compte.should.have.property('num_compte'))
-      res.body.every((compte:any) => compte.should.have.property('balance'))
-      res.body.every((compte:any) => compte.should.have.property('date_creation'))
-      res.body.every((compte:any) => compte.should.have.property('type_compte'))
-      res.body.every((compte:any) => compte.should.have.property('code_monnaie'))
-      res.body.every((compte:any) => compte.should.have.property('id_user'))
-      res.body.every((compte:any) => compte.should.have.property('statut_actuel'))
-      console.log(res.body)
+      res.body.should.have.property('comptes')
+      res.body.comptes.should.be.an('array')
+      res.body.comptes.every((compte:any) =>{
+        compte.should.have.property('num_compte')
+        compte.should.have.property('balance')
+        compte.should.have.property('type_compte')
+        compte.should.have.property('code_monnaie')
+        compte.should.have.property('id_user')
+        compte.should.have.property('statut_actuel')
+      })
+      // console.log(res.body)
       done()
     })    
   })
-})
+}) */
 
 //OK
 /* describe('Récupération des comptes selon un statut',function(){
@@ -96,6 +101,7 @@ describe('Récupération de la liste des comptes d\'un user',function(){
       })
       .end(function(err,res){
         err.should.have.status(401)
+        res.body.should.have.property('code_err').equals('A02')
         console.log(res.body.msg_err)
         done()
     })  
@@ -109,20 +115,69 @@ describe('Récupération de la liste des comptes d\'un user',function(){
       })
       .end(function(err,res){
         err.should.have.status(400)
+        res.body.should.have.property('code_err').equals('C06')
         console.log(res.body.msg_err)
         done()
     })  
   });
 
-  it('Doit retourner la liste des comptes à valider si statut = 1',function(done){
+  it('Doit retourner la liste des comptes à valider ',function(done){
     Chai.request(testServer)
-      .get('/comptes?statut=1')
+      .get('/comptes?statut='+STATUT_COMPTE_AVALIDER)
       .set("client_id","541")
       .send({
       })
       .end(function(err,res){
         res.should.have.status(200)
-        console.log(res.body)
+        res.body.should.be.an('array')
+        res.body.every((element:any) =>{
+          element.should.have.property('compte')
+          element.compte.should.have.property('num_compte')
+          element.compte.should.have.property('type_compte')
+          element.compte.should.have.property('code_monnaie')
+          element.compte.should.have.property('id_user')
+          element.compte.should.have.property('statut_actuel').equals(STATUT_COMPTE_AVALIDER)
+          element.should.have.property('user')
+          element.user.should.have.property('id')
+          element.user.should.have.property('prenom')
+          element.user.should.have.property('photo')
+          element.user.should.have.property('email')
+          element.user.should.have.property('fonctionId')
+          element.user.should.have.property('adresse')
+          element.user.should.have.property('telephone')
+        })
+        // console.log(res.body)
+        done()
+    })  
+  });
+
+  it('Doit retourner la liste des comptes valide',function(done){
+    Chai.request(testServer)
+      .get('/comptes?statut='+STATUT_COMPTE_ACTIF)
+      .set("client_id","541")
+      .send({
+      })
+      .end(function(err,res){
+        res.should.have.status(200)
+        res.body.should.be.an('array')
+        res.body.every((element:any) =>{
+          element.should.have.property('compte')
+          element.compte.should.have.property('num_compte')
+          element.compte.should.have.property('type_compte')
+          element.compte.should.have.property('code_monnaie')
+          element.compte.should.have.property('id_user')
+          element.compte.should.have.property('statut_actuel').equals(STATUT_COMPTE_ACTIF)
+          element.should.have.property('user')
+          element.user.should.have.property('id')
+          element.user.should.have.property('prenom')
+          element.user.should.have.property('photo')
+          element.user.should.have.property('email')
+          element.user.should.have.property('fonctionId')
+          element.user.should.have.property('adresse')
+          element.user.should.have.property('telephone')
+        })
+
+        // console.log(res.body)
         done()
     })  
   });
@@ -173,9 +228,11 @@ describe('Récupération de la liste des comptes d\'un user',function(){
       .put('/comptes/'+numCompteCourant)
       .set("client_id","152")
       .send({
+        statut:'566'
       })
       .end(function(err,res){
         err.should.have.status(401)
+        res.body.should.have.property('code_err').equals('A02')
         console.log(res.body.msg_err)
         done()
     })  
@@ -190,6 +247,7 @@ describe('Récupération de la liste des comptes d\'un user',function(){
       })
       .end(function(err,res){
         err.should.have.status(400)
+        res.body.should.have.property('code_err').equals('C06')
         console.log(res.body.msg_err)
         done()
     })  
@@ -204,6 +262,7 @@ describe('Récupération de la liste des comptes d\'un user',function(){
       })
       .end(function(err,res){
         err.should.have.status(400)
+        res.body.should.have.property('code_err').equals('C07')
         console.log(res.body.msg_err)
         done()
     })  
@@ -227,6 +286,7 @@ describe('Récupération de la liste des comptes d\'un user',function(){
           })
           .end(function(err,res){
             err.should.have.status(400)
+            res.body.should.have.property('code_err').equals('C07')
             console.log(res.body.msg_err)
             done()
         })  
@@ -253,6 +313,7 @@ describe('Récupération de la liste des comptes d\'un user',function(){
           })
           .end(function(err,res){
             err.should.have.status(400)
+            res.body.should.have.property('code_err').equals('C07')
             console.log(res.body.msg_err)
             done()
         })  
@@ -279,6 +340,7 @@ describe('Récupération de la liste des comptes d\'un user',function(){
           })
           .end(function(err,res){
             err.should.have.status(400)
+            res.body.should.have.property('code_err').equals('C07')
             console.log(res.body.msg_err)
             done()
         })  
@@ -305,6 +367,7 @@ describe('Récupération de la liste des comptes d\'un user',function(){
           })
           .end(function(err,res){
             err.should.have.status(400)
+            res.body.should.have.property('code_err').equals('C07')
             console.log(res.body.msg_err)
             done()
         })  
@@ -331,6 +394,7 @@ describe('Récupération de la liste des comptes d\'un user',function(){
           })
           .end(function(err,res){
             err.should.have.status(400)
+            res.body.should.have.property('code_err').equals('C08')
             console.log(res.body.msg_err)
             done()
         })  
@@ -357,6 +421,7 @@ describe('Récupération de la liste des comptes d\'un user',function(){
           })
           .end(function(err,res){
             err.should.have.status(400)
+            res.body.should.have.property('code_err').equals('C08')
             console.log(res.body.msg_err)
             done()
         })  

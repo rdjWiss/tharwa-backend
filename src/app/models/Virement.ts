@@ -5,7 +5,7 @@ import {Compte } from './Compte'
 import { LigneOrdre } from './LigneOrdre';
 import { StatutVirement } from './StatutVirement';
 
-export const regexpCodeVir = /^[A-Z]{3}\d{6}[A-Z]{3}[A-Z]{3}\d{6}[A-Z]{3}\d{12}$/
+export const regexpCodeVir = /^[A-Z]{3}\d{6}[A-Z]{3}[A-Z]{3}\d{6}[A-Z]{3}\d{14}$/
 
 export var Virement = sequelize.define('Virement',{
 	code_virement:{

@@ -2,6 +2,7 @@ import { Request, Response,RequestHandler, NextFunction } from 'express'
 import * as Jwt from '../jwtconf'
 import { Userdb } from '../models/User';
 import { VerificationToken } from '../models/VerificationToken';
+import { getMessageErreur } from '../../config/errorMsg';
 
 const appKeys = [
   {
@@ -26,25 +27,23 @@ const findClient=function(id: any):boolean{
 }
 
 export const authMiddleware:RequestHandler = function(req,res,next){
-
-  //console.log(req.headers);
-  //console.log(req.body);
-
   let clientId = req.headers.client_id
-  console.log(clientId)
+  // console.log(clientId)
 
   if( !clientId ){
     res.status(401)
     res.send({
-      error:"Requete Invalide",
-      error_description:"verifier les champs clientId"
+      err:"Requete Invalide",
+      code_err:"A01",
+      msg_err:getMessageErreur('A01')
     })
   }else{
     if(!findClient(clientId)){
       res.status(401)
       res.send({
-        error:"Client non autorisé",
-        error_description:"L'application n'est pas authorisée"
+        err:"Client non autorisé",
+        code_err:"A02",
+        msg_err:getMessageErreur('A02')
       })
     } else {
       // Traitement normal 
@@ -56,19 +55,20 @@ export const authMiddleware:RequestHandler = function(req,res,next){
   } 
 }
 
-//Vérifie l'expiration du token lors de la connexion
+//Vérifier l'expiration du token lors de la connexion
 export const expireMiddleware:RequestHandler = function(req,res,next){
 
   let user = Jwt.decode(req.body.user)
   if(!user){
     res.status(401)
     res.send({
-      error:"Requete Invalide",
-      error_description:"verifier le champ user"
+      err:"Requete Invalide",
+      code_err:"A03",
+      msg_err:getMessageErreur('A03')
     })
   }else{
     var dateNow = new Date();
-    console.log(user);
+    // console.log(user);
     if(user.exp < dateNow.getTime()){
       VerificationToken.find({
         where:{
@@ -79,16 +79,18 @@ export const expireMiddleware:RequestHandler = function(req,res,next){
         result.used = 0;
         result.save();
       })
-      res.status(410);
+      res.status(401);
       res.send({
-        message: "Votre token a expiré"
+        err:"Accès refusé",
+        code_err:"A04",
+        msg_err:getMessageErreur('A04')
       })
     }
     else{
       // Ajouter les informations de l'utilisateur pour des utilisations auterieurs;
       req.body.userDecoded=user;
-      console.log("Test append")
-      console.log(req.body)
+      // console.log("Test append")
+      // console.log(req.body)
       next()
     }
   }

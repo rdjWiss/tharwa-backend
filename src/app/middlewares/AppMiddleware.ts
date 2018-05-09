@@ -1,4 +1,5 @@
 import { Request, Response,RequestHandler, NextFunction } from 'express';
+import { getMessageErreur } from '../../config/errorMsg';
 
 export const WebMiddleware:RequestHandler = function(req,res,next){
 
@@ -7,7 +8,8 @@ export const WebMiddleware:RequestHandler = function(req,res,next){
     res.status(401)
     res.send({
       error:"Requete non autorisée",
-      msg_err:"L'application n'est pas autorisé"
+      code_err:"A02",
+      msg_err:getMessageErreur('A02')
     })
   }else{
     next()
@@ -23,7 +25,8 @@ export const MobMiddleware:RequestHandler = function(req,res,next){
     res.status(401)
     res.send({
       error:"Requete non autorisée",
-      msg_err:"L'application n'est pas autorisé"
+      code_err:"A02",
+      msg_err:getMessageErreur('A02')
     })
   }else{
     next()

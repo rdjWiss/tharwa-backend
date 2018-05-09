@@ -1,5 +1,6 @@
 var jwtsimple =require('jwt-simple');
 import { accesTokenResponse } from "./config/authserver";
+import { getCodePinTime } from "../app/models/Parametre";
 export const secretJwt = "Le*%5623code&856)de='766hashage(-dq562"
 
 //Créer un token de validation à partir du userid en entrée
@@ -12,27 +13,33 @@ export function validationReq(userid:any):string{
 }
 
 //Générer un access token et refresh token
-export function genToken(user:any,fonction:string, codeV:any): accesTokenResponse{
-    var expires = expiresIn(60*2); // 2 Heures
-    var accessToken = jwtsimple.encode({
-        exp: expires,
-        userId: user.id
-    },secretJwt);
-    var refreshToken = genRefreshToken(user);
+export function genToken(user:any,fonction:string, codeV:any,callback:Function,
+        error:ErrorEventHandler){
+  var expires = expiresIn(5); // 5min
+  var accessToken = jwtsimple.encode({
+    exp: expires,
+    userId: user.id
+  },secretJwt);
+  var refreshToken = genRefreshToken(user);
+  //Récupérer le parmètre: durée de validité du code pin   
+  getCodePinTime(function(time:any){
     var verificationToken = jwtsimple.encode({
-        exp: expiresIn(60),//1 heure
-        userId: user.id
+      exp: expiresIn(time),//parametre
+      userId: user.id
     },secretJwt);
-    return {
-        verification_token: verificationToken,
-        access_token: accessToken ,
-        refresh_token: refreshToken,
-        expires_in: expires,
-        token_type:"bearer", 
-        scope: fonction,
-        user:user,
-        comptes:Array<object>()
-    };
+    callback({
+      code_pin: verificationToken,
+      access_token: accessToken ,
+      refresh_token: refreshToken,
+      expires_in: expires,
+      token_type:"bearer", 
+      scope: fonction,
+      user:user,
+      comptes:Array<object>()
+    });
+  },(err:any)=>{
+    error('A13')
+  }) 
 }
 
 //Génére un refresh token qui expire dans 3 heures

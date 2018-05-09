@@ -1,6 +1,6 @@
 import * as Express from 'express'
 import { sequelize, Sequelize } from '../../config/db';
-import {Parametre, seuil} from '../models/Parametre'
+import {Parametre} from '../models/Parametre'
 import {Compte} from '../models/Compte'
 import {Virement} from '../models/Virement'
 import {Userdb, getUserContact} from '../../oauth2Server/models/User'
@@ -17,6 +17,7 @@ import { start } from 'repl';
 import { STATUT_COMPTE_ACTIF } from '../models/StatutCompte';
 import { COMPTE_COURANT, COMPTE_DEVISE, typeCompteString } from '../models/TypeCompte';
 import { CommissionVirement } from '../models/CommissionVirement';
+import { getMessageErreur } from '../../config/errorMsg';
 
 var base64 = require('node-base64-image')
 let conversion = new Converssion()
@@ -35,12 +36,13 @@ export class GestionVirements{
       res.status(400);
       res.send({
         err:"Bad request",
-        msg_err:error
+        code_err:error,
+        msg_err:getMessageErreur(error)
       })
     })
   }
   //Virement entre comptes du meme user
-  virementEntreComptes:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){    
+  public virementEntreComptes:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){    
     console.log("POST /virement/1")
 
     let user = req.body.user
@@ -55,7 +57,8 @@ export class GestionVirements{
       res.status(400);
       res.send({
         err:"Bad request",
-        msg_err:"La source et dest doivent etre diff" 
+        code_err:'V03',
+        msg_err:getMessageErreur('V03')
       })
     }else{
       let numComptes = [src,dest]
@@ -72,8 +75,8 @@ export class GestionVirements{
           res.status(400);
           res.send({
             err:"Bad request",
-            msg_err:'L\'un des numéros de comptes est erroné.'+
-            'Ou l\'un de ces comptes ne vous appartient pas'
+            code_err:'V01',
+            msg_err:getMessageErreur('V01')
           })
         }else{
           //Si un des comptes n'est pas actif
@@ -83,7 +86,8 @@ export class GestionVirements{
             res.status(400);
             res.send({
               err:"Bad request",
-              msg_err:"L'un des comptes n'est pas actif" 
+              code_err:'V02',
+              msg_err:getMessageErreur('V02')
             })
           }else{
             let indiceSrc=0;
@@ -96,17 +100,19 @@ export class GestionVirements{
               isValidVirementComptesDuMemeClient(
                 comptes[indiceSrc],
                 comptes[1-indiceSrc])){
-                  res.status(400);
-              res.send({
-                err:"Bad request",
-                msg_err:"Impossible d'effectuer un virement entre deux comptes non courants" 
-              })
+                res.status(400);
+                res.send({
+                  err:"Bad request",
+                  code_err:'V04',
+                  msg_err:getMessageErreur('V04')
+                })
             }
             else if(comptes[indiceSrc].balance < montant){
               res.status(400);
               res.send({
                 err:"Bad request",
-                msg_err:"Vous n'avez pas assez d'argent pour effectuer ce virement" 
+                code_err:'V05',
+                msg_err:getMessageErreur('V05')
               })
             }
             else{
@@ -127,13 +133,12 @@ export class GestionVirements{
                 dest:dest,
                 statut:statut,
                 user: comptes[0].id_user,
-                type:1
               }
               // console.log(vir)
               
               GestionVirements.creerEnregVirement(vir,(created:any)=>{
                 getUserContact(comptes[indiceSrc].id_user, function(user:any){
-                  var srcCompteString = typeCompteString(comptes[indiceSrc].type_compte)
+                  var srcCompteString =  (comptes[indiceSrc].type_compte)
                   var destCompteString =typeCompteString(comptes[1-indiceSrc].type_compte)
                   var msg=''
                   
@@ -155,21 +160,30 @@ export class GestionVirements{
                       "Virement entre vos comptes",msg)
 
                   },(error:any)=>{
-                    res.status(400);
+                    res.status(500);
                     res.send({
-                      err:"Error",
-                      msg_err:error
+                      err:"Error DB",
+                      code_err:error,
+                      msg_err:getMessageErreur(error)
                     })
                   })
-                }, (err:any)=>{})
+                }, (err:any)=>{
+                  res.status(500);
+                  res.send({
+                    err:"Error",
+                    code_err:err,
+                    msg_err:getMessageErreur(err)
+                  })
+                })
                 
                 res.status(200)
                 res.send(created)
               },(error:any)=>{
                 res.status(400);
                 res.send({
-                  err:"Error",
-                  msg_err:error
+                  err:"Error DB",
+                  code_err:error,
+                  msg_err:getMessageErreur(error)
                 })
               })
             }
@@ -203,7 +217,8 @@ export class GestionVirements{
         res.status(400);
         res.send({
           err:"Bad request",
-          msg_err:"Veuillez fournir un justificatif. Le montant dépasse le seuil de non validation" 
+          code_err:'V06',
+          msg_err:getMessageErreur('V06')
         })
       }else{
         //Si dest est un email, on cherche le compte courant du user
@@ -219,14 +234,16 @@ export class GestionVirements{
               res.status(400);
               res.send({
                 err:"Bad Request",
-                msg_err:'Email erroné/ n\'existe pas'
+                code_err:'U04',
+                msg_err:getMessageErreur('U04')
               })
             }else{
               if(user.id == userId){
                 res.status(400);
                 res.send({
                   err:"Bad Request",
-                  msg_err:'L\'email destinataire vous appartient'
+                  code_err:'V07',
+                  msg_err:getMessageErreur('V07')
                 })
               }else{
                 Compte.findOne({
@@ -240,7 +257,8 @@ export class GestionVirements{
                     res.status(400);
                     res.send({
                       err:"Bad Request",
-                      msg_err:'Compte courant du client recepteur not found'
+                      code_err:'V08',
+                      msg_err:getMessageErreur('V08')
                     })
                   }else{
                     dest = compte.num_compte
@@ -261,7 +279,8 @@ export class GestionVirements{
                       res.status(400);
                       res.send({
                         err:"Bad request",
-                        msg_err:error
+                        code_err:error,
+                        msg_err:getMessageErreur(error)
                       }) 
                     })
                   }
@@ -287,7 +306,8 @@ export class GestionVirements{
             res.status(400);
             res.send({
               err:"Bad request",
-              msg_err:error
+              code_err:error,
+              msg_err:getMessageErreur(error)
             }) 
           })
         }
@@ -295,15 +315,16 @@ export class GestionVirements{
     },(error:any)=>{
         res.status(500);
         res.send({
-          err:"Erreur base de données",
-          msg_err:error
+          err:"Erreur DB",
+          code_err:error,
+          msg_err:getMessageErreur(error)
         })
     })
   }
 
   public static virementInterneTharwa = function(req:any,callback:Function, error:ErrorEventHandler){
     if(GestionVirements.isSrcEqualDest(req.src,req.dest)){
-      error("La source et dest doivent etre diff") 
+      error('V03') 
     }else{ 
       //Vérifier les virements possible; 
       let numComptes = [req.src,req.dest]
@@ -316,28 +337,28 @@ export class GestionVirements{
       }).then((comptes:any)=>{   
       //On a récupéré moins de deux comptes 
       if(comptes.length<2){
-        error("Le numéro de compte est erroné" )
+        error("V10" )
       }else {
         let indiceSrc=0;
         if(comptes[1].num_compte == req.src) indiceSrc=1
 
         if(comptes[indiceSrc].id_user != req.user){
-          error("Le compte src n'appartient pas au user" )
+          error("V11" )
         }else if(!GestionVirements.isCompteActif(comptes[0])
                   || !GestionVirements.isCompteActif(comptes[1])){
-          error("L'un des comptes n'est pas actif")
+          error("V02")
         }
         //Vérifier propriétaires diff
         else if(comptes[0].id_user == comptes[1].id_user){
-          error("Les comptes emetteur et recepteur appartiennent au meme client" )
+          error("V09" )
         }//Vir Possible: seulement courant <-> courant
         else if(!GestionVirements.isValidVirementEntreClientDiff(comptes[0],comptes[1])){
-          error("Impossible d'effectuer un virement entre des comptes non courant")
+          error("V04")
         }
         else{
           //Vérification de la balance du compte
           if(comptes[indiceSrc].balance < req.montant){
-            error("Vous n'avez pas assez d'argent pour effectuer ce virement" )
+            error("V05" )
           }else{
               //Générer le code de virement
               var dateNow = new Date();
@@ -442,7 +463,7 @@ export class GestionVirements{
       if(result){
         callback(+result.valeur)
       }else{
-        error('Erreur dans récupération du seuil de validation')
+        error('D07')
       }
       
     });
@@ -496,11 +517,11 @@ export class GestionVirements{
       if(created){
         callback(created)
       }else{
-        error( 'Impossible de créer le virement')
+        error( 'D05')
       } 
     }).catch(Sequelize.ValidationError, function (err:any) {
       console.log(err.errors)
-      error('Erreur de validation du code virement')
+      error('D06')
     });
   }
 
@@ -510,7 +531,7 @@ export class GestionVirements{
         id_virement:codeVir
       }
     }).then((commission:any)=>{
-      if(!commission) error('Erreur dans la récupération de la commission')
+      if(!commission) error('D04')
       else{
         callback(commission)
       }
@@ -554,7 +575,8 @@ export class GestionVirements{
       res.status(400);
       res.send({
         err:"Bad request",
-        msg_err:error
+        code_err:error,
+        msg_err:getMessageErreur(error)
       })
     }) 
   }
@@ -615,7 +637,8 @@ export class GestionVirements{
             res.status(400)
             res.send({
               err:"Bad request",
-              msg_err: "Code virement erroné"
+              code_err:'V12',
+              msg_err: getMessageErreur('V12')
             })
           }else{
             //Vérifier que le changement du statut du virement est valide
@@ -623,7 +646,8 @@ export class GestionVirements{
               res.status(400)
               res.send({
                 err:"Bad request",
-                msg_err: "Modification statut virement rejeté"
+                code_err:'V13',
+                msg_err: getMessageErreur('V13')
               })
             }else{
               //Vérifier que le motif est fourni en cas de rejet
@@ -631,7 +655,8 @@ export class GestionVirements{
                 res.status(400)
                 res.send({
                   err:"Bad request",
-                  msg_err: "Vous devez fournir un motif de rejet d'un virement"
+                  code_err:'V14',
+                  msg_err: getMessageErreur('V14')
                 })
               }else {
                  //Modifier statut du virement: valider ou rejeter
@@ -672,7 +697,8 @@ export class GestionVirements{
                       res.status(400)
                       res.send({
                         err:"Bad request",
-                        msg_err: error
+                        code_err:error,
+                        msg_err:getMessageErreur(error)
                       })
                     })
 
@@ -687,7 +713,8 @@ export class GestionVirements{
                         res.status(400);
                         res.send({
                           err:"Bad request",
-                          msg_err:error
+                          code_err:error,
+                          msg_err:getMessageErreur(error)
                         })
                       })
                     }
@@ -703,7 +730,8 @@ export class GestionVirements{
         res.status(400);
         res.send({
           err:"Bad request",
-          msg_err:error
+          code_err:error,
+          msg_err:getMessageErreur(error)
         })
     }) 
   }
@@ -717,7 +745,7 @@ export class GestionVirements{
       if(result){
         callback(true)
       }else{
-        error('Statut virement erroné')
+        error('V15')
       }
     })
   }

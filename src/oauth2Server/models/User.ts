@@ -79,7 +79,7 @@ export function getUserContact(userId:any,callback:Function,error:ErrorEventHand
     where:{
       id:userId
     },
-    attribures:['nom','email','telephone']
+    attributes:['nom','email','telephone']
   }).then((found:any)=>{
     if(found){
       callback ({

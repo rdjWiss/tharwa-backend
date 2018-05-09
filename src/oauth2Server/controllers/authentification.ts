@@ -16,25 +16,26 @@ import { VerificationToken } from '../models/VerificationToken';
 import { errorMsg } from "../config/authserver";
 import { verificationMail,verificationMessage } from '../../config/messages'
 import { Compte } from '../../app/models/Compte';
+import { getMessageErreur } from '../../config/errorMsg';
 export class OAuthnetification{
     
 
 login:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
   console.log("/login");
 
-  var appKey = req.headers.client_id
+  var cleApp = req.headers.client_id
   var fct ;
   //Vérifier la fonction du user
   //Seuls les clients et Employeurs peuvent utiliser l'application mobile
   //Et seuls les gestionnaires et banquiers l'application web
-  if(appKey=="152") fct = ["C","E"]
+  if(cleApp=="152") fct = ["C","E"]
   else fct = ["G","B"]
-  let cryptedPassword = crypto.createHash('md5').update(req.body.password).digest('hex')
+  let mdpCrypte = crypto.createHash('md5').update(req.body.password).digest('hex')
   
   Userdb.findOne({
     where: {
       'email':req.body.email,
-      'password': cryptedPassword,
+      'password': mdpCrypte,
       'fonctionId':{
         $or: fct
       },
@@ -44,13 +45,17 @@ login:Express.RequestHandler=function (req:Express.Request,res:Express.Response,
     if(!user){
       res.status(401);
       res.send({
-        err: "Bad Credentials"
+        err: "Bad Credentials",
+        code_err:"A05",
+        msg_err:getMessageErreur('A05')
       })     
     }else{
       if(user.active == "FALSE"){
         res.status(401);
         res.send({
-          err: "Compte non actif"
+          err: "Accès non autorisé",
+          code_err:"A06",
+          msg_err:getMessageErreur('A06')
         })  
       }else{
         res.status(200)
@@ -72,8 +77,9 @@ choisir= function (req:Express.Request,res:Express.Response) {
   if(!choix || !userHash) {
     res.status(400);
     res.send({
-      error: "Invalid Request",
-      error_description:"Verifiez les champs choix et user"
+      err: "Invalid Request",
+      code_err:"A07",
+      msg_err:getMessageErreur('A07')
     })
   }else {
     let user=Jwt.decode(userHash)
@@ -81,8 +87,9 @@ choisir= function (req:Express.Request,res:Express.Response) {
     if(!user) {
       res.status(401);
       res.send({
-        error: "Access Denied",
-        error_description:"Le token est invalid"
+        err: "Access Denied",
+        code_err:"A10",
+        msg_err:getMessageErreur('A10')
       })
     }else{//Sinon
       var verificationToken:string;
@@ -96,13 +103,13 @@ choisir= function (req:Express.Request,res:Express.Response) {
           //Si token non utilisé, l'utiliser
           if(result.used == -1 && result.attempts >= 3){
             verificationToken = result.token
-            console.log(verificationToken);
+            // console.log(verificationToken);
           }else{
             //Génération d'un nouveau code de vérification
             verificationToken= randtoken.generator({
               chars: '0-9'
             }).generate(4)  
-            console.log(verificationToken); 
+            // console.log(verificationToken); 
           }
           
           result.token=verificationToken;
@@ -138,7 +145,6 @@ choisir= function (req:Express.Request,res:Express.Response) {
             })
                                   
           }else if(choix=='MAIL'){
-            console.log('Sending mail')
             MailController
             .sendMail(result.email,"Code de vérification",
               verificationMail(verificationToken,result.nom))
@@ -149,7 +155,11 @@ choisir= function (req:Express.Request,res:Express.Response) {
           }
           else{
               res.status(400)
-              res.send('Invalid Request')
+              res.send({
+                err: "Requete invalide",
+                code_err:"A08",
+                msg_err:getMessageErreur('A08')
+              })
           }
         })
       });  
@@ -165,19 +175,21 @@ verifyToken= function (req:Express.Request,res:Express.Response){
   if(!token || !user  ){
     res.status(400);
     res.send({
-    error: "Requete invalide",
-    error_description:"Verifier les champs token et user"
+    err: "Requete invalide",
+    code_err:"A09",
+    msg_err:getMessageErreur('A09')
     })
   }else{
     let userClair=Jwt.decode(user)
     if(!userClair) {
       res.status(401);
       res.send({
-        error: "Accès refusé",
-        error_description:"Le user Hash est invalide"
+        err: "Accès refusé",
+        code_err:"A10",
+        msg_err:getMessageErreur('A10')
       })
     }else{
-      console.log(userClair)
+      // console.log(userClair)
       VerificationToken.find({
         where:{
           userdbId: userClair.id,
@@ -189,34 +201,39 @@ verifyToken= function (req:Express.Request,res:Express.Response){
         if(!result) {
           res.status(401);
           res.send({
-            error: "Accès refusé",
-            error_description:"Le token est invalide"
+            err: "Accès refusé",
+            code_err:"A10",
+            msg_err:getMessageErreur('A10')
           })
         }else if(result.expire < dateNow.getTime()){
           result.used=0;
           result.save()
           res.status(401);
           res.send({
-            error: "Accès refusé",
-            error_description:"Le token a expiré"
+            err: "Accès refusé",
+            code_err:"A04",
+            msg_err:getMessageErreur('A04')
           })
         }else if(result.token != token){
           var retour ={
-            error: "Accès refusé",
-            error_description:""
+            err: "Accès refusé",
+            code_err:"",
+            msg_err:""
           }
 
           //console.log(token);
-          console.log(result.attempts);
+          // console.log(result.attempts);
           result.attempts=result.attempts+1
           
           if(result.attempts == 3){
             result.used=0 //Le token n'a pas été utilisé mais a dépassé les attempts
             //Ne peut plus etre utilisé
-            retour.error_description = "Le token incorrect. Nombre d'essai dépassé. Redirection";
+            retour.code_err = 'A14'
+            retour.msg_err = getMessageErreur('A14');
           }
           else {
-            retour.error_description = "Le token incorrect";
+            retour.code_err = 'A11'
+            retour.msg_err = getMessageErreur('A11');
           }
           result.save()
           res.status(401);
@@ -225,8 +242,9 @@ verifyToken= function (req:Express.Request,res:Express.Response){
           if(result.attempts==3){
             res.status(401);
             res.send({
-              error: "Accès refusé",
-              error_description:"Le nombre d'essai est dépassé"
+              err: "Accès refusé",
+              code_err:"A12",
+              msg_err:getMessageErreur('A12')
             })
           }else{
             
@@ -237,21 +255,28 @@ verifyToken= function (req:Express.Request,res:Express.Response){
                 result.used=1
                 result.attempts=result.attempts+1
                 result.save()
-                const auth=Jwt.genToken(infoUser,infoUser.fonctionId, result.token)
-                console.log("Logged In")
+                Jwt.genToken(infoUser,infoUser.fonctionId, result.token,function(auth:any){
+                  //const auth=Jwt.genToken(infoUser,infoUser.fonctionId, result.token)
+                  console.log("Logged In")
 
-                Compte.findAll({
-                  where:{
-                    id_user:infoUser.id,
-                  },attributes:['num_compte','balance','date_creation', 
-                    'type_compte','code_monnaie','statut_actuel']
-                }).then((comptes:any)=>{
-                  auth.comptes = comptes
-                  res.status(200)
-                  res.send(auth); 
+                  Compte.findAll({
+                    where:{
+                      id_user:infoUser.id,
+                    },attributes:['num_compte','balance','date_creation', 
+                      'type_compte','code_monnaie','statut_actuel']
+                  }).then((comptes:any)=>{
+                    auth.comptes = comptes
+                    res.status(200)
+                    res.send(auth); 
+                  })
+                },(error:any)=>{
+                  res.status(500);
+                  res.send({
+                    err: "Erreur Serveur",
+                    code_err:error,
+                    msg_err:getMessageErreur(error)
+                  })
                 })
-
-                
               })
             }
           }
