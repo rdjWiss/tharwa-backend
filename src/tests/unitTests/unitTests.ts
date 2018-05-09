@@ -9,6 +9,10 @@ import { GestionComptes } from '../../app/controllers/GestionComptes';
 import { Compte, regexpNumCompte } from '../../app/models/Compte';
 import { Virement, regexpCodeVir } from '../../app/models/Virement';
 import { image_base64 } from '../integrationTests/gestionVirements.test';
+import * as Jwt from '../../oauth2Server/jwtconf';
+import { expireMiddleware } from '../../oauth2Server/middleware/authorization';
+import { tokenExpired } from '../../oauth2Server/middleware/tokenExpiration';
+
 
 var should= Chai.should()
 
@@ -139,7 +143,7 @@ let userId = 6
   })
 }); */
 
-describe('Gestion des comptes bancaires', function () {
+/* describe('Gestion des comptes bancaires', function () {
   it('Le numéro du compte doit correspondre à l\'expression régulière du numero de compte', function(){
     CreationComptes.genererNouveauNumeroCompte('DZD',function(numCompte:string){
       // numCompte.should.match(/[A-Z]{3}\d{6}[A-Z]{3}/)
@@ -223,7 +227,7 @@ describe('Gestion des comptes bancaires', function () {
     type = typeCompteString(3)
     type.should.equals('Devise')
   })
-});
+}); */
 
 /* describe('Gestion des users', function () {
   it('Doit retourner le nom, email et telephone du user', function(){
@@ -239,3 +243,32 @@ describe('Gestion des comptes bancaires', function () {
   })
 
 }); */
+
+describe('Gestion des tokens',function(){
+  it('Doit retourner false si le token n\'a pas expiré',function(){
+    let token = Jwt.encode({
+      user:'here',
+      exp:Jwt.expiresIn(60)//1 heure
+    })
+    let decoded = Jwt.decode(token)
+
+    var dateNow = new Date();
+    let retour = tokenExpired(decoded.exp,dateNow)
+    retour.should.equals(false)
+  })
+
+  it('Doit retourner false si le token n\'a pas expiré',function(){
+    let token = Jwt.encode({
+      user:'here',
+      exp:Jwt.expiresIn(1)//1minute
+    })
+    let decoded = Jwt.decode(token)
+
+    var dateNow = new Date().getTime();
+    dateNow+= (2* 60 * 1000)
+
+    let retour =  tokenExpired(decoded.exp,new Date(dateNow))
+    retour.should.equals(true)
+    
+  })
+})

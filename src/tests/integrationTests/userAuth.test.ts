@@ -118,7 +118,7 @@ describe('Authentification', function() {
             res.body.comptes.every((compte:any) => compte.should.have.property('statut_actuel'))
         }
         res.body.token_type.should.equal("bearer")
-        console.log(res.body)
+        // console.log(res.body)
         done();
     })
     });

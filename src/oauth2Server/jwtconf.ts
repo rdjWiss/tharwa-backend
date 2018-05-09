@@ -1,7 +1,7 @@
 var jwtsimple =require('jwt-simple');
 import { accesTokenResponse } from "./config/authserver";
 import { getCodePinTime } from "../app/models/Parametre";
-export const secretJwt = "Le*%5623code&856)de='766hashage(-dq562"
+const secretJwt = "Le*%5623code&856)de='766hascdq0%/*hage(-dq562"
 
 //Créer un token de validation à partir du userid en entrée
 export function validationReq(userid:any):string{
@@ -18,14 +18,14 @@ export function genToken(user:any,fonction:string, codeV:any,callback:Function,
   var expires = expiresIn(5); // 5min
   var accessToken = jwtsimple.encode({
     exp: expires,
-    userId: user.id
+    id: user.id
   },secretJwt);
   var refreshToken = genRefreshToken(user);
   //Récupérer le parmètre: durée de validité du code pin   
   getCodePinTime(function(time:any){
     var verificationToken = jwtsimple.encode({
       exp: expiresIn(time),//parametre
-      userId: user.id
+      code:codeV
     },secretJwt);
     callback({
       code_pin: verificationToken,
@@ -47,30 +47,41 @@ function genRefreshToken(user:any) {
     var expiration = expiresIn(60*3);
     var rtoken = jwtsimple.encode({
         exp: expiration,
-        user: user
+        id: user
     }, secretJwt)
     return rtoken;
 
 }
 
+export function genAccessToken(user:any){
+  var expiration = expiresIn(5);
+  var token = jwtsimple.encode({
+    exp: expiration,
+    id: user
+}, secretJwt)
+return token;
+}
+
 //Décode le validation token 
-export const decode=function(hash:any){
+export const decode=function(hash:any):any{
     try {
         var result= jwtsimple.decode(hash,secretJwt)
+        // console.log(result)
         return result
     } catch (error) {
         return null
     }
 }
 
-export const encode=function(object:any){
+export const encode=function(object:any):any{
     return jwtsimple.encode({
+        id: object.id,
         exp: object.exp
     },secretJwt);
 }
 
 //Génére une date d'expiration
-function expiresIn(numMinutes:number) {
+export function expiresIn(numMinutes:number) {
     var dateObj = new Date();
     return dateObj.setMinutes(dateObj.getMinutes() + numMinutes);
 }

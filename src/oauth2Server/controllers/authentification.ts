@@ -1,13 +1,9 @@
 var oauthServer=require("oauth2-server");
-var Request = oauthServer.Request;
-var Response = oauthServer.Response;
 var randtoken= require('rand-token');
-var jwtconf = require('../jwtconf')
 var crypto = require('crypto')
 
 import * as Jwt from '../jwtconf'
 import * as Express from 'express'
-
 
 import {Userdb} from '../models/User'
 import { SmsController  } from '../../app/controllers/smsController'
@@ -17,6 +13,7 @@ import { errorMsg } from "../config/authserver";
 import { verificationMail,verificationMessage } from '../../config/messages'
 import { Compte } from '../../app/models/Compte';
 import { getMessageErreur } from '../../config/errorMsg';
+
 export class OAuthnetification{
     
 
@@ -189,7 +186,7 @@ verifyToken= function (req:Express.Request,res:Express.Response){
         msg_err:getMessageErreur('A10')
       })
     }else{
-      // console.log(userClair)
+      console.log(userClair)
       VerificationToken.find({
         where:{
           userdbId: userClair.id,
@@ -198,6 +195,7 @@ verifyToken= function (req:Express.Request,res:Express.Response){
         }
       }).then((result:any) =>{
         var dateNow = new Date();
+        // console.log(userClair < new Date().getTime(),result.dataValues)
         if(!result) {
           res.status(401);
           res.send({

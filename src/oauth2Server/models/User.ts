@@ -88,7 +88,7 @@ export function getUserContact(userId:any,callback:Function,error:ErrorEventHand
         tel: found.telephone
       })
     }else{
-      error("User not found")
+      error('U03')
     }
   });
 }

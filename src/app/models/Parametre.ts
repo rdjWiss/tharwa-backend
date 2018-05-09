@@ -41,9 +41,9 @@ export function getCodePinTime(callback:Function, error:ErrorEventHandler){
     }
   }).then((param:any)=>{
     if(!param){
-      error('Erreur DB')
+      error('D08')
     }else{
-      console.log(param.valeur)
+      // console.log(param.valeur)
       callback(param.valeur)//min
     }
   })

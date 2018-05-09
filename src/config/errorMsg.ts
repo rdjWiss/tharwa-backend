@@ -16,6 +16,10 @@ export function getMessageErreur(codeErr:string):string{
     else if (codeErr == 'A12') return `Le nombre d'essai est dépassé`
     else if (codeErr == 'A13') return `Erreur de génération des tokens`
     else if (codeErr == 'A14') return `Le token incorrect. Nombre d'essai dépassé. Redirection`
+    else if (codeErr == 'A15') return `Verifiez les champs des tokens`
+    else if (codeErr == 'A16') return `Access token expired`
+    else if (codeErr == 'A17') return `Code pin expired`
+    else if (codeErr == 'A18') return `Refresh token expired`
   
   }else if(type=='U'){
     console.log('Erreur User')
@@ -63,6 +67,7 @@ export function getMessageErreur(codeErr:string):string{
     else if (codeErr == 'D05') return `Impossible de créer le virement`
     else if (codeErr == 'D06') return `Erreur de validation du code virement`
     else if (codeErr == 'D07') return `Erreur dans récupération du seuil de validation`
+    else if (codeErr == 'D08') return `Erreur dans récupération du délai d'expiration du code pin`
   }
   return ''
 }
