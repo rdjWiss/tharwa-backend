@@ -30,13 +30,14 @@ export class RefreshTokens{
       }else{
         res.status(200)
         res.send({
-          access_token:Jwt.genAccessToken(user)
+          access_token:Jwt.genAccessToken(user),
+          refresh_token: Jwt.genRefreshToken(user)
         })
       }
     })
   }
 
-  public refreshPinChoisir= function (req:Express.Request,res:Express.Response) {
+  /* public refreshPinChoisir= function (req:Express.Request,res:Express.Response) {
     console.log("/choisir");
     
     // const user =req.body.user
@@ -108,5 +109,5 @@ export class RefreshTokens{
       }
     }
     
-  }
+  } */
 }

@@ -98,21 +98,22 @@ choisir= function (req:Express.Request,res:Express.Response) {
       }).then((result:any) =>{
         if(result){
           //Si token non utilisé, l'utiliser
-          if(result.used == -1 && result.attempts >= 3){
+          if(result.used == -1 && result.attempts <3){
             verificationToken = result.token
-            // console.log(verificationToken);
+            // console.log(verificationToken)
+            result.attempts++
           }else{
             //Génération d'un nouveau code de vérification
             verificationToken= randtoken.generator({
               chars: '0-9'
             }).generate(4)  
             // console.log(verificationToken); 
+            result.token=verificationToken;
+            result.attempts=0;
+            result.used=-1;
+            result.expire= user.exp;
           }
           
-          result.token=verificationToken;
-          result.attempts=0;
-          result.used=-1;
-          result.expire= user.exp;
           result.save()
 
         }else{
@@ -147,7 +148,8 @@ choisir= function (req:Express.Request,res:Express.Response) {
               verificationMail(verificationToken,result.nom))
             res.status(200)
             res.send({
-                Message: "Mail sent"+verificationToken
+                Message: "Mail sent "+verificationToken,
+                code:verificationToken
             })
           }
           else{

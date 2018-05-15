@@ -1,6 +1,0 @@
-
-
-mocha .\build\tests\unitTests\userAuth.test.js
-mocha .\build\tests\unitTests\tokens.test.js
-mocha .\build\tests\unitTests\creationCompte.test.js
-mocha .\build\tests\unitTests\gestionComptes.test.js

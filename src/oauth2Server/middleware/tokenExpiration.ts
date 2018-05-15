@@ -52,7 +52,8 @@ export const pinCodeExpireMiddleware:RequestHandler = function(req,res,next){
         res.send({
           err:"Accès refusé",
           code_err:'A17',
-          msg_err:getMessageErreur('A17')
+          msg_err:getMessageErreur('A17'),
+          userId: Jwt.validationReq(req.user)
         })
       }else{
         next()
@@ -93,8 +94,6 @@ export const refreshTokenExpireMiddleware:RequestHandler = function(req,res,next
 }
 
 export const tokenExpired= function(token:any,dateNow:any):boolean{
-  //var dateNow = new Date();
-  // console.log(dateNow.getTime(), token)
   if (token < dateNow.getTime()) return true
   else return false
 }

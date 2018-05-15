@@ -28,7 +28,7 @@ router.post('/resetpassword',resetPassMiddleware, reset.askReset )
 //Refresh access token
 router.post('/refreshaccess',refreshTokenExpireMiddleware,refresh.refreshAccessToken)
 router.post('/testtokens',accessTokenExpireMiddleware,pinCodeExpireMiddleware)
-router.post('/refreshpin/1',accessTokenExpireMiddleware, refresh.refreshPinChoisir)
+router.post('/refreshpin/1',accessTokenExpireMiddleware,auth.choisir )//refresh.refreshPinChoisir)
 router.post('/refreshpin/2',accessTokenExpireMiddleware,auth.verifyToken)
 
 //Toutes les autres routes

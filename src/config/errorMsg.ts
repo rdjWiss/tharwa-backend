@@ -60,7 +60,8 @@ export function getMessageErreur(codeErr:string):string{
   
   }else if(type == 'D'){
     console.log('Erreur DB')
-    if (codeErr == 'D01') return `Erreur de création du compte courant`
+    if( codeErr == 'D00') return `Erreur DB`
+    else if (codeErr == 'D01') return `Erreur de création du compte courant`
     else if (codeErr == 'D02') return `Erreur de validation du numero de compte`
     else if (codeErr == 'D03') return `Impossible de récupérer le numéro sequentiel du compte`
     else if (codeErr == 'D04') return `Erreur dans la récupération de la commission`

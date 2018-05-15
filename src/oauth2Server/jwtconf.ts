@@ -43,7 +43,7 @@ export function genToken(user:any,fonction:string, codeV:any,callback:Function,
 }
 
 //Génére un refresh token qui expire dans 3 heures
-function genRefreshToken(user:any) {
+export function genRefreshToken(user:any) {
     var expiration = expiresIn(60*3);
     var rtoken = jwtsimple.encode({
         exp: expiration,
