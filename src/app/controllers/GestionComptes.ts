@@ -11,7 +11,6 @@ import { verificationMail, validationCompteUserMail, rejetCompteUserMail,
 import { COMPTE_EPARGNE, COMPTE_DEVISE, COMPTE_COURANT, typeCompteString } from '../models/TypeCompte';
 import { getMessageErreur } from '../../config/errorMsg';
 const Sequelize = require('cu8-sequelize-oracle');
-import { logger } from '../../config/logger'
 
 export class GestionComptes{
 
@@ -33,7 +32,6 @@ export class GestionComptes{
         })
       }else{//Sinon
         console.log("email !exist")
-        logger.log("Test DE connexion utilisateur ...")
         res.status(200);
         res.send({
           exist: "false"
