@@ -69,6 +69,7 @@ export function getMessageErreur(codeErr:string):string{
     else if (codeErr == 'D06') return `Erreur de validation du code virement`
     else if (codeErr == 'D07') return `Erreur dans récupération du seuil de validation`
     else if (codeErr == 'D08') return `Erreur dans récupération du délai d'expiration du code pin`
+    else if (codeErr == 'D09') return `Èrreur de récupération de la liste des banquiers`
   }
   return ''
 }
