@@ -565,7 +565,7 @@ let timePin = 60 //min
   
 }) */
 
-describe('Récupérer l\'historique d\'un compte',function(){
+/* describe('Récupérer l\'historique d\'un compte',function(){
   it('Doit retourner 200 et l\'historique des comptes du user',function(done){
     let access_token = Jwt.encode({
       id:374,//idUser,
@@ -609,5 +609,47 @@ describe('Récupérer l\'historique d\'un compte',function(){
         })  
 
      })
-})
+}) */
 
+describe('Récupérer les comptes pour blocage',function(){
+  it('Doit retourner 200 et les comptes respectant les critères',function(done){
+    let access_token = Jwt.encode({
+      id:374,//idUser,
+      exp: Jwt.expiresIn(5)
+    })
+
+    let nom='dj'
+    let prenom='m'
+    let email='redj'
+
+    Chai.request(testServer)
+      .get('/comptes/rech/?nom='+nom+'&prenom='+prenom+'&email='+email)
+      .set("client_id","541")
+      .send({
+        access_token:access_token,
+      })
+      .end(function(err,res){
+        res.should.have.status(200)
+        res.body.should.be.an('array')
+        res.body.forEach((compte:any) => {
+          compte.should.have.property('num_compte')
+          compte.should.have.property('date_creation')
+          compte.should.have.property('statut_actuel')
+          compte.should.have.property('type_compte')
+          compte.should.have.property('code_monnaie')
+          compte.should.have.property('id_user')
+          compte.should.have.property('userdb')
+          compte.userdb.should.have.property('nom')
+          compte.userdb.should.have.property('prenom')
+          compte.userdb.should.have.property('adresse')
+          compte.userdb.should.have.property('telephone')
+          compte.userdb.should.have.property('email')
+          compte.userdb.should.have.property('photo')
+        });
+        console.log(res.body)
+        done()
+    })  
+
+     
+  })
+})

@@ -454,6 +454,100 @@ export class GestionComptes{
       })
   }
 
+  //Récupérer les comptes actifs pour déblocage
+  public getComptesParFiltrage:Express.RequestHandler= (req:Express.Request,res:Express.Response,next:any)=>{
+    let nom = req.query.nom || ''
+    let prenom = req.query.prenom || ''
+    let email = req.query.email || ''
+
+    console.log('nom',nom,'prenom',prenom,'email',email)
+    Compte.findAll({
+      include:[
+        {
+          model:Userdb,
+          where:{
+            $and:{
+              nom:sequelize.where(sequelize.fn('LOWER',sequelize.col('nom')),
+              'LIKE','%'+nom+'%'),
+              prenom: sequelize.where(sequelize.fn('LOWER',sequelize.col('prenom')),
+                  'LIKE','%'+prenom+'%'),
+              email:{ $like: '%'+email+'%'}
+            }
+          },
+          attributes:['nom','prenom','adresse','telephone','email','photo']
+        }
+      ],
+      attributes:['num_compte','date_creation','statut_actuel','type_compte','code_monnaie','id_user']
+    }).then((results:any)=>{
+      if(results){
+        if(results.length != 0)
+        results.forEach((compte:any) => {
+          compte.dataValues.type_compte = typeCompteString(compte.dataValues.type_compte)
+          // console.log(compte.dataValues.type_compte)
+          if(compte == results[results.length-1]){
+            res.status(200)
+            res.send(results)
+          }
+        });
+      }else {
+        res.status(200)
+        res.send(results)
+      }
+        
+    })
+
+    /* Userdb.findAll({
+      where:{
+        $and:{
+          nom:sequelize.where(sequelize.fn('LOWER',sequelize.col('nom')),
+          'LIKE','%'+nom+'%'),
+          prenom: sequelize.where(sequelize.fn('LOWER',sequelize.col('prenom')),
+              'LIKE','%'+prenom+'%'),
+          email:{ $like: '%'+email+'%'}
+        }
+      },
+      include:[
+        {
+          model:Compte
+        }
+      ],
+      attributes:['id','nom','prenom','adresse','telephone','email','photo']
+    }).then((users:any)=>{
+      if(!users){
+
+      }else{
+        let results:any = []
+        if(users.length!=0){
+          users.forEach((user:any) => {
+            Compte.findAll({
+              where:{
+                id_user:user.id
+              },
+              attributes:['num_compte','date_creation','statut_actuel','type_compte','code_monnaie','id_user']
+            }).then((comptes:any)=>{
+              if(!comptes){
+
+              }else{
+                console.log(comptes[0].dataValues)
+                results.push({
+                  user:user,
+                  comptes:comptes
+                })
+              }
+
+              if(results.length == users.length){
+                res.status(200)
+                res.send(results)
+              }
+            })
+          });
+        }else{
+          res.status(200)
+          res.send(users)
+        }
+      }
+    }) */
+  }
 }
 
   

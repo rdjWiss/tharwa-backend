@@ -7,11 +7,13 @@ import { getUserContact } from '../../oauth2Server/models/User';
 import { STATUT_VIR_AVALIDER, STATUT_VIR_VALIDE, STATUT_VIR_REJETE } from '../../app/models/StatutVirement';
 import { GestionComptes } from '../../app/controllers/GestionComptes';
 import { Compte, regexpNumCompte } from '../../app/models/Compte';
-import { Virement, regexpCodeVir } from '../../app/models/Virement';
+import { Virement, regexpCodeVir, VIR_INTERNE, VIR_EXTERNE } from '../../app/models/Virement';
 import { image_base64 } from '../integrationTests/gestionVirements.test';
 import * as Jwt from '../../oauth2Server/jwtconf';
 import { expireMiddleware } from '../../oauth2Server/middleware/authorization';
 import { tokenExpired } from '../../oauth2Server/middleware/tokenExpiration';
+import { getTypeCommission } from '../../app/models/Commission';
+import { getMessageErreur } from '../../config/errorMsg';
 
 
 var should= Chai.should()
@@ -50,7 +52,6 @@ let userId = 6
       
   })
 
- 
   it('Le code du virement doit correspondre à l\'expression régulière', function(){
     let numCompte = 'THW000002DZD'
     var dateNow = new Date();
@@ -112,10 +113,16 @@ let userId = 6
      })
   })
 
-  it('Doit retourner true si le changement du statut d\'un virement est valide',function(){
+  it(`Doit retourner true si le changement du statut d\'un virement est valide 
+    (A VALIDER -> VALIDE)`,function(){
     var retour = GestionVirements.isValidChangementStatut(STATUT_VIR_AVALIDER,STATUT_VIR_VALIDE)
     retour.should.equals(true)
-    retour= GestionVirements.isValidChangementStatut(STATUT_VIR_AVALIDER,STATUT_VIR_REJETE)
+
+  }) 
+
+  it(`Doit retourner true si le changement du statut d\'un virement est valide 
+    (A VALIDER -> REJETE)`,function(){
+    var retour = GestionVirements.isValidChangementStatut(STATUT_VIR_AVALIDER,STATUT_VIR_REJETE)
     retour.should.equals(true)
   }) 
 
@@ -139,6 +146,47 @@ let userId = 6
       infos.recepteur.should.have.property('email')
     },(error:any)=>{
 
+    })
+  })
+
+  it('Doit retourner le type du virement: interne',function(){
+    let retour = GestionVirements.typeVirement('THW000002DZD','THW000004DZD',function(type:string){
+      type.should.equals(VIR_INTERNE)
+      // console.log(type)
+    },(error:any)=>{
+      console.log(error)
+    })
+  })
+
+  it('Doit retourner le type du virement: externe et état émis',function(){
+    let retour = GestionVirements.typeVirement('THW000002DZD','BNA000004DZD',
+      function(type:string, etat:string){
+      type.should.equals(VIR_EXTERNE)
+      etat.should.equals('EMIS')
+      // console.log(type,etat)
+    },(error:any)=>{
+      console.log(error)
+    })
+  })
+
+  it('Doit retourner le type du virement: externe et état reçu',function(){
+    let retour = GestionVirements.typeVirement('BNA000002DZD','THW000002DZD',
+      function(type:string, etat:string){
+      type.should.equals(VIR_EXTERNE)
+      etat.should.equals('RECU')
+      // console.log(type,etat)
+    },(error:any)=>{
+      console.log(error)
+    })
+  })
+
+  it('Doit retourner le type du virement: NONE',function(){
+    let retour = GestionVirements.typeVirement('BNA000002DZD','BNA000002DZD',
+      function(type:string){
+      // console.log(type,etat)
+    },(error:any)=>{
+      console.log(error)
+      error.should.equals('NONE')
     })
   })
 }); */
@@ -178,7 +226,7 @@ let userId = 6
      
   })
 
-  it('Doit retourner true si la modification(passage) de status est valid',function(){
+  it(`Doit retourner true si la modification(passage) de status est valid `,function(){
     var retour = GestionComptes.isValidChangementStatut(STATUT_COMPTE_AVALIDER,STATUT_COMPTE_ACTIF)
     retour.should.equals(true)
 
@@ -186,7 +234,7 @@ let userId = 6
     retour.should.equals(true)
 
     retour = GestionComptes.isValidChangementStatut(STATUT_COMPTE_ACTIF,STATUT_COMPTE_BLOQUE)
-    retour.should.equals(true)
+    retour.should.equal(true)
 
     retour = GestionComptes.isValidChangementStatut(STATUT_COMPTE_BLOQUE,STATUT_COMPTE_ACTIF)
     retour.should.equals(true)
@@ -243,7 +291,7 @@ let userId = 6
   })
 
 }); */
-
+/* 
 describe('Gestion des tokens',function(){
   it('Doit retourner false si le token n\'a pas expiré',function(){
     let token = Jwt.encode({
@@ -271,4 +319,25 @@ describe('Gestion des tokens',function(){
     retour.should.equals(true)
     
   })
-})
+}) */
+
+/* describe('Historique',function(){
+  it('Doit retourner le type de la commission selon l\'id',function(){
+    let type = getTypeCommission(2)
+    type.should.equals("Epargne vers courant")
+  })
+}) */
+
+/* describe('Récupération du message d\'erreur',function(){
+  it('Doit retourner le message d\'erreur correspondant au code d\'erreur',function(){
+    let msg = getMessageErreur('D00')
+    msg.should.equals('Erreur DB')
+    console.log(msg)
+
+    // console.log(getMessageErreur('A01'))
+    // console.log(getMessageErreur('U01'))
+    // console.log(getMessageErreur('C01'))
+    // console.log(getMessageErreur('V01'))
+    // console.log(getMessageErreur('D01'))
+  })
+}) */
