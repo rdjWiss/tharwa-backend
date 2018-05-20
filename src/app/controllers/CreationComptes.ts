@@ -13,6 +13,7 @@ import { MailController } from './mailController';
 import { creationCompteUserBanquierMail, creationCompteUserClientMail, nouvelleDemandeCreationCompteNotifBanquier } from '../../config/messages';
 import { Sequelize } from '../../config/db';
 import { getMessageErreur } from '../../config/errorMsg';
+import { logger } from '../../config/logger';
 
 var crypto = require('crypto')
 var base64 = require('node-base64-image')
@@ -34,6 +35,7 @@ export class CreationComptes{
         filename: filnamePath+filename
       },
       function(err:any){
+        logger.taglog("warn","Erreur reception photo",err,['Creation Compte','Photo'])
         console.log("error "+err);
         res.status(200)
         res.send("OK")
@@ -48,8 +50,8 @@ export class CreationComptes{
 
     let emailUser = req.body.email;
     let password = req.body.password
-    console.log(emailUser)
-    
+
+    logger.taglog("info","Demande Creation comptes",{email:req.body.email},['Creation Compte','Inscription'])
     //Vérifier si l'email existe
     Userdb.findOne({
       where: {
@@ -58,6 +60,7 @@ export class CreationComptes{
     }).then((element:any)=>{
       if(element) {
         console.log("User exists")
+        logger.taglog('debug','Email existant',"L'adresse mail existe déja ",['Creation Compte',"Inscription"])
         res.status(400);
         res.send({
           error: "Requete invalide",
@@ -74,6 +77,7 @@ export class CreationComptes{
         }).then((result:any)=>{
           //Si la fonction envoyée ne fait pas partie des fonctions supportées
           if(!result){
+            logger.taglog('error','Fonction inexistante','La fonction demandé nexiste pas ! ',['Creation Compte'])
             res.status(400);
             res.send({
               err:"Bad request",
@@ -93,7 +97,8 @@ export class CreationComptes{
                 filename: filnamePath+filename
               },
               function(err:any){
-                console.log("error "+err);
+                logger.taglog("warn","Erreur reception photo",err,['Creation Compte','Photo'])
+
               });
               photo = filename+".jpg"
             }
@@ -109,12 +114,13 @@ export class CreationComptes{
               photo: photo,
               fonctionId: req.body.fonction
             }).then( (created:any) =>{
-              console.log("User created")
+              logger.taglog("info",'Creation Compte utilisateur',{id:created.id,fonction:created.fonction,email:created.email},['Creation Compte','Inscription Finie'])
             //Si le user est un client ou employeur on lui crée un compte bancaire courant
               if(created.fonctionId == "E" || created.fonctionId == "C"){
                 CreationComptes.creerCompteCourant({
                   id:created.id
                 },function(compte:any){
+                  logger.taglog('info','Creation compte courant',{id:created.id, num_compte:compte.num_compte},['Creation Compte','Compte Courant'])
                   MailController
                   .sendMail(created.email,"Création compte utilisateur THARWA",
                   creationCompteUserClientMail(created.nom))
@@ -127,6 +133,7 @@ export class CreationComptes{
                     bank_compte: compte.dataValues
                   })
                 }, (error:any)=>{
+                  logger.taglog('error','Erreur creation Compte courant',error,['Creation Compte','Bug'])
                   res.status(500)
                   res.send({
                     err:"Erreur base de données",
@@ -191,7 +198,7 @@ export class CreationComptes{
                 MailController
                 .sendMail(created.email,"Création compte banquier THARWA",
                   creationCompteUserBanquierMail(created.nom,created.email,password))
-
+                
                 res.status(200);
                 res.send({
                   msg:"Le compte a été crée",
