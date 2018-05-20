@@ -43,4 +43,6 @@ Virement.belongsTo(Compte,{foreignKey:'recepteur'});
 //Virement.hasOne(LigneOrdre,{foreignKey:'code_virement'}	)
 Virement.belongsTo(StatutVirement,{foreignKey:'statut_virement'})
 
-//Virement.sync({force:true})
+//Types virements
+export const VIR_INTERNE = 'INT'
+export const VIR_EXTERNE= 'EXT'

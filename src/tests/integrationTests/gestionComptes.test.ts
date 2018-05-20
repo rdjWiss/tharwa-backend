@@ -18,6 +18,7 @@ let numCompteCourant = 'THW000132DZD'
 let numCompteEpargne = 'THW000134DZD'
 
 let idUser = 6
+let timePin = 60 //min
 
 //OK
 /* describe('Vérification si email exist', function() {
@@ -563,3 +564,50 @@ let idUser = 6
   it('Doit retourner 200 si le déblocage d\'un compte épargne est successful');
   
 }) */
+
+describe('Récupérer l\'historique d\'un compte',function(){
+  it('Doit retourner 200 et l\'historique des comptes du user',function(done){
+    let access_token = Jwt.encode({
+      id:374,//idUser,
+      exp: Jwt.expiresIn(5)
+    })
+
+    let code_pin= Jwt.encode({
+      code:'1235',
+      exp: Jwt.expiresIn(timePin)
+    })
+
+    Chai.request(testServer)
+          .get('/historique')
+          .set("client_id","152")
+          .send({
+            access_token:access_token,
+            code_pin:code_pin,
+          })
+          .end(function(err,res){
+            res.should.have.status(200)
+            res.body.should.be.an('array')
+            res.body.forEach((element:any) => {
+              element.should.have.property("type")
+              if(['VEC','VE','VR'].indexOf(element.type)!=-1){
+                element.should.have.property("code_virement")
+                element.should.have.property("montant")
+                element.should.have.property("motif")
+                element.should.have.property("date_virement")
+                element.should.have.property("emmetteur")
+                element.should.have.property("recepteur")
+                element.should.have.property("statut_virement")
+                element.should.have.property("justificatif")
+              }else if (['CV','CG'].indexOf(element.type)!= -1){
+                element.should.have.property("id_commission")
+                element.should.have.property("montant_commission")
+                element.should.have.property("date_commission")
+              }
+            });
+            console.log(res.body)
+            done()
+        })  
+
+     })
+})
+

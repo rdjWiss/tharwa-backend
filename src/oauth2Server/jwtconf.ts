@@ -3,6 +3,9 @@ import { accesTokenResponse } from "./config/authserver";
 import { getCodePinTime } from "../app/models/Parametre";
 const secretJwt = "Le*%5623code&856)de='766hascdq0%/*hage(-dq562"
 
+const accessTokenExpireTime = 5 //min
+const refreshTokenExpireTime = 3*60 //3 heures
+
 //Créer un token de validation à partir du userid en entrée
 export function validationReq(userid:any):string{
   return jwtsimple.encode({
@@ -15,7 +18,7 @@ export function validationReq(userid:any):string{
 //Générer un access token et refresh token
 export function genToken(user:any,fonction:string, codeV:any,callback:Function,
         error:ErrorEventHandler){
-  var expires = expiresIn(5); // 5min
+  var expires = expiresIn(accessTokenExpireTime); // 5min
   var accessToken = jwtsimple.encode({
     exp: expires,
     id: user.id
@@ -44,7 +47,7 @@ export function genToken(user:any,fonction:string, codeV:any,callback:Function,
 
 //Génére un refresh token qui expire dans 3 heures
 export function genRefreshToken(user:any) {
-    var expiration = expiresIn(60*3);
+    var expiration = expiresIn(refreshTokenExpireTime);
     var rtoken = jwtsimple.encode({
         exp: expiration,
         id: user
@@ -54,7 +57,7 @@ export function genRefreshToken(user:any) {
 }
 
 export function genAccessToken(user:any){
-  var expiration = expiresIn(5);
+  var expiration = expiresIn(accessTokenExpireTime);
   var token = jwtsimple.encode({
     exp: expiration,
     id: user

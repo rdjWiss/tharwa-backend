@@ -10,7 +10,14 @@ import { verificationMail, validationCompteUserMail, rejetCompteUserMail,
   validationCompteBankMail,rejetCompteBankMail } from '../../config/messages';
 import { COMPTE_EPARGNE, COMPTE_DEVISE, COMPTE_COURANT, typeCompteString } from '../models/TypeCompte';
 import { getMessageErreur } from '../../config/errorMsg';
+import { Virement } from '../models/Virement';
+import { CommissionVirement } from '../models/CommissionVirement';
+import { getTypeCommission } from '../models/Commission';
 const Sequelize = require('cu8-sequelize-oracle');
+
+const VIR_ENTRE_COMPTES ='VEC'
+const VIR_EMIS = 'VE'
+const VIR_RECU = 'VR'
 
 export class GestionComptes{
 
@@ -136,7 +143,7 @@ export class GestionComptes{
   }
 
   //Modifier le statut d'un compte bancaire
-  public modifCompte:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
+  public modifCompte:Express.RequestHandler= (req:Express.Request,res:Express.Response,next:any)=>{
     
     let statut = req.body.statut
     let motif = req.body.motif
@@ -162,8 +169,9 @@ export class GestionComptes{
         }
       }).then((result:any)=>{
         if(result){
-          if(!GestionComptes.isValidChangementStatut(result.statut_actuel,statut)){
-            res.status(400)
+          // if(!GestionComptes.isValidChangementStatut(result.statut_actuel,statut)){
+         if(this.isValidChangementStatut(result.statut_actuel,statut)){ 
+          res.status(400)
             res.send({
               err:"Erreur",
               code_err:'C07',
@@ -288,7 +296,7 @@ export class GestionComptes{
 
   }
 
-  public static isValidChangementStatut = function(ancienStatut:any, nouveauStatut:any):boolean{
+  public  isValidChangementStatut = function(ancienStatut:any, nouveauStatut:any):boolean{
     return (ancienStatut==STATUT_COMPTE_AVALIDER && 
                     (nouveauStatut==STATUT_COMPTE_ACTIF || nouveauStatut==STATUT_COMPTE_REJETE ))
             || (ancienStatut==STATUT_COMPTE_ACTIF && nouveauStatut==STATUT_COMPTE_BLOQUE)
@@ -307,6 +315,144 @@ export class GestionComptes{
           || (ancienStatut == STATUT_COMPTE_BLOQUE && nouveauStatut == STATUT_COMPTE_ACTIF)) 
   }
 
+  //Récupérer l'historique d'un user (de tout ses comptes)
+  public getHistorique:Express.RequestHandler= (req:Express.Request,res:Express.Response,next:any)=>{
+    console.log('Historique')
+
+    let self = this
+    let user = req.user;
+
+    //Trouver les comptes de user
+    Compte.findAll({ where: { id_user:user } })
+    .then((comptes:any)=>{
+      if(comptes){
+        let numComptes:Array<string> = []
+        comptes.forEach((compte:any) => {
+          numComptes.push(compte.num_compte)
+          if(numComptes.length == comptes.length){
+            self.getHistoriqueVir(self,numComptes, function(historique:Array<any>, codesVir:any){
+              if(historique.length != 0){
+                self.getHistoriqueCommissionVir(codesVir, function(commissions:Array<any>){
+                  historique =  historique.concat(commissions)
+                  historique = historique.sort((a:any, b:any)=>{
+                    return (a.dataValues.date > b.dataValues.date)? -1 : 1
+                  })
+                  res.status(200)
+                  res.send(historique)
+                },(err:any)=>{
+                  res.status(500)
+                  res.send({
+                    err:"Erreur DB",
+                    code_err:err,
+                    msg_err: getMessageErreur(err)
+                  })
+                })
+              }else{
+                res.status(200)
+                res.send(historique)
+              }
+            }, (err:any)=>{
+              res.status(500)
+              res.send({
+                err:"Erreur DB",
+                code_err:err,
+                msg_err: getMessageErreur(err)
+              })
+            })    
+          }
+        });
+      }else{
+        res.status(500)
+        res.send({
+          err:"Erreur DB",
+          code_err:'D10',
+          msg_err: getMessageErreur('D10')
+        })
+      }
+    })
+
+    console.log(user)
+  }
+
+  public getTypeVirement= function( listComptesUser:any,src:string,dest:string):string{
+    if( listComptesUser.indexOf(src)!=-1 && listComptesUser.indexOf(dest)!=-1 )
+      return VIR_ENTRE_COMPTES
+    else  if(listComptesUser.indexOf(src)!=-1)
+      return VIR_EMIS
+    else  if(listComptesUser.indexOf(dest)!=-1)
+      return VIR_RECU 
+    else return ''
+  }
+
+  public getHistoriqueVir = function(classSelf:any,listComptes:Array<string>,callback:Function,
+    error:ErrorEventHandler) {
+      //Trouver les virements émis ou reçus par ces comptes
+      Virement.findAll({
+        where:{
+          $or:{
+            emmetteur:{ $or: listComptes},
+            recepteur:{ $or: listComptes}
+          }
+        },
+        order:[
+          ['date_virement','DESC']
+        ]
+    }).then((virements:any)=>{
+      if(!virements){
+        error('D11')
+      }else{
+        let nbrVir = virements.length
+        let historique:any = []
+        let codesVir:Array<string> = []
+        if(virements.length != 0)
+          virements.forEach((vir:any) => {
+            vir.dataValues.type = classSelf.getTypeVirement(listComptes,vir.emmetteur,vir.recepteur)
+            vir.dataValues.date = vir.date_virement
+            historique.push(vir)
+            codesVir.push(vir.code_virement)
+            // console.log(vir.dataValues)
+            if(historique.length == nbrVir){
+              callback(historique,codesVir)
+            }
+          });
+        else callback(historique,codesVir)
+      }
+    })
+  }
+
+  public getHistoriqueCommissionVir = function(codesVir:Array<string>, callback:Function,
+    error:ErrorEventHandler){
+      CommissionVirement.findAll({
+        where:{
+          id_virement:{
+            $or: codesVir
+          }
+        },
+        order:[
+          ['date_commission','DESC']
+        ],
+        attributes:['id_commission','montant_commission','date_commission']
+      }).then((commissions:any)=>{
+          if(!commissions){
+            error('D04')
+          }else{
+            if(commissions.length != 0){
+              commissions.forEach((commission:any) => {
+                commission.dataValues.type='CV'
+                commission.dataValues.date = commission.date_commission
+                // console.log(getTypeCommission(commission.dataValues.id_commission))
+                commission.dataValues.id_commission = getTypeCommission(commission.dataValues.id_commission)
+                if(commission == commissions[commissions.length - 1]){
+                  callback(commissions)
+                }
+              });
+            }else{
+              callback(commissions)
+            }
+            
+          }
+      })
+  }
 
 }
 

@@ -28,3 +28,22 @@ export var Commission = sequelize.define('Commission',{
 		}
 	}
 })
+
+
+export const getTypeCommission= function(idCom:number){
+	let typeCom = [
+		{id: "2" , type: "Epargne vers courant"},
+		{id: "3" , type: "Courant vers devise"},
+		{id: "4" , type: "Devise vers courant"},
+		{id: "5" , type: "Vers un autre client THARWA"},
+		{id: "6" , type: "Vers un client d’une autre banque"},
+		{id: "7" , type: "Virement reçu depuis une autre banque"},
+		{id: "8" , type: "Commission mensuelle frais de gestion compte courant"},
+		{id: "9" , type: "Commission mensuelle frais de gestion compte épargne"},
+		{id: "10" , type: "Commission mensuelle frais de gestion compte devise"}
+	]
+
+	let filtre = typeCom.filter(item => item.id == idCom.toString())[0]
+	return filtre.type
+
+}

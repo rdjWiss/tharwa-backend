@@ -61,13 +61,14 @@ let dbErrors = [
   { codeErr : 'D01', msg:`Erreur de création du compte courant`},
   { codeErr : 'D02', msg:`Erreur de validation du numero de compte`},
   { codeErr : 'D03', msg:`Impossible de récupérer le numéro sequentiel du compte`},
-  { codeErr : 'D04', msg:`Erreur dans la récupération de la commission`},
+  { codeErr : 'D04', msg:`Erreur dans la récupération des/de la commission(s)`},
   { codeErr : 'D05', msg: `Impossible de créer le virement`},
   { codeErr : 'D06', msg: `Erreur de validation du code virement`},
   { codeErr : 'D07', msg: `Erreur dans récupération du seuil de validation`},
   { codeErr : 'D08', msg: `Erreur dans récupération du délai d'expiration du code pin`},
   { codeErr : 'D09', msg: `Èrreur de récupération de la liste des banquiers`},
   { codeErr : 'D10', msg: `Erreur de récupération des comptes`},
+  { codeErr : 'D11', msg: `Erreur de récupération des virements`},
 ]
 
 export function getMessageErreur(codeErr:string):string{
