@@ -65,7 +65,16 @@ router.put('/virements/:codeVir',modifStatutMiddleware,WebMiddleware,gestionVir.
 router.post('/convertir/',converssion.convertir)
 
 /** Gestion de la banque */
-router.get('/gestion/banquiers', accessTokenExpireMiddleware, gestionBanque.getListBanquiers)
+router.get('/gestion/banquiers', WebMiddleware,/* accessTokenExpireMiddleware, */ gestionBanque.getListBanquiers)
+//Récupérer la liste des banques
+router.get('/gestion/banques',WebMiddleware,gestionBanque.getListBanques)
+//Créer une banque
+router.post('/gestion/banques',WebMiddleware,gestionBanque.ajouterBanque)
+//Modifier une banque
+router.put('/gestion/banques/:codeBanque',WebMiddleware,gestionBanque.modifierBanque)
+//Supprimer une banque
+router.delete('/gestion/banques/:codeBanque',WebMiddleware,gestionBanque.supprimerBanque)
+
 
 //TODO: remove
 router.post('/image', creationComptes.image)

@@ -71,6 +71,15 @@ let dbErrors = [
   { codeErr : 'D11', msg: `Erreur de récupération des virements`},
 ]
 
+let banqueErrors = [
+  { codeErr:'B01', msg:'Veuillez fournir tous les cahmps pour la création'},
+  { codeErr:'B02', msg:'Erreur de validation des champs lors de la création de la banque: '},
+  { codeErr:'B03', msg:'Erreur: code banque existe'},
+  { codeErr:'B04', msg:'Impossible de récupérer la liste des banques'},
+  { codeErr:'B05', msg:'Aucune banque ne correspond à ce code '},
+  { codeErr:'B06', msg:'Erreur lors de la modification de la banque '},
+]
+
 export function getMessageErreur(codeErr:string):string{
 
   let type= codeErr.substr(0,1)
@@ -86,6 +95,8 @@ export function getMessageErreur(codeErr:string):string{
     errorArray = virementErrors
   }else if(type == 'D'){ // Erreur DB
     errorArray = dbErrors
+  }else if (type == 'B'){
+    errorArray = banqueErrors
   }else return ''
 
   return errorArray.filter(m => m.codeErr == codeErr)[0].msg
