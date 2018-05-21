@@ -13,7 +13,8 @@ var transport = new (winston.transports.DailyRotateFile)({
     maxSize: '20m',
     maxFiles: '14d',
     dirname:'./Log',
-    level:'info'
+    level:'info',
+    name:'file#info'
   });
 var erreorTransport= new (winston.transports.DailyRotateFile)({
     filename: 'erreurs-log-%DATE%.log',
@@ -22,6 +23,7 @@ var erreorTransport= new (winston.transports.DailyRotateFile)({
     maxSize: '20m',
     maxFiles: '14d',
     dirname:'./Erreurs',
+    name:'file#erreur',
     level:'error'
 })
 
@@ -42,7 +44,7 @@ var erreorTransport= new (winston.transports.DailyRotateFile)({
     ]
   }); */
 winston.add(winston.transports.DailyRotateFile,transport)
-
+winston.add(winston.transports.DailyRotateFile,erreorTransport)
 winston.taglog=function(level:String,titre:String,message:any,tags:String){
     console.log("Test Yemchi")
             winston.log(level,{
