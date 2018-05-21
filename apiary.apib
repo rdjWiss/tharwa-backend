@@ -105,15 +105,45 @@ API D'authentification
                
             }
 
-+ Response 300 (application/json)
++ Response 200 (application/json)
 
     + Headers
 
             Location: /PasswordReset
+    
+    + Body
+
+            {
+
+            }
 
 
-           
 
++ Response 401 (application/json)
+
+    + Body
+
+            {
+                "error":"type d'erreur",
+                "error_description":"Description de l'erreur "
+            }
+## Password Reset Token [/passwordtoken]
+
+###Valider la demande de password reset 
++ Request (application/json)
+
+    + Headers
+
+            client_id: "152"
+            client_secret:"Test"
+
+    + Body
+
+            {
+                "reset_token": "email de l'utilisateur",
+            }
+
++ Response 200 (application/json)
 
 + Response 401 (application/json)
 
