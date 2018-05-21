@@ -14,17 +14,18 @@ var transport = new (winston.transports.DailyRotateFile)({
     maxFiles: '14d',
     dirname:'./Log',
     level:'info',
+    levelOnly:'true',
     name:'file#info'
   });
 var erreorTransport= new (winston.transports.DailyRotateFile)({
-    filename: 'erreurs-log-%DATE%.log',
+    filename: 'silly-log-%DATE%.log',
     datePattern: 'YYYY-MM-DD',
     zippedArchive: true,
     maxSize: '20m',
     maxFiles: '14d',
-    dirname:'./Erreurs',
-    name:'file#erreur',
-    level:'error'
+    dirname:'./Dev',
+    name:'file#dev',
+    level:'silly'
 })
 
 
