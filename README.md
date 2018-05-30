@@ -1,4 +1,5 @@
-[![NSP Status](https://nodesecurity.io/orgs/projet2cs/projects/e32cf98f-7f9c-4ffa-a4e0-35b3c5fe49ba/badge)](https://nodesecurity.io/orgs/projet2cs/projects/e32cf98f-7f9c-4ffa-a4e0-35b3c5fe49ba)
+[![NSP Status](https://nodesecurity.io/orgs/projet2cs/projects/e32cf98f-7f9c-4ffa-a4e0-35b3c5fe49ba/badge)](https://nodesecurity.io/orgs/projet2cs/projects/e32cf98f-7f9c-4ffa-a4e0-35b3c5fe49ba) [![HitCount](http://hits.dwyl.io/transdz/Backend.svg)](http://hits.dwyl.io/transdz/Backend)
+
 
 
 # Tharwa Backend
