@@ -32,6 +32,7 @@ export var Commission = sequelize.define('Commission',{
 
 export const getTypeCommission= function(idCom:number){
 	let typeCom = [
+		{id: "1" , type: "Courant vers Epargne"},
 		{id: "2" , type: "Epargne vers courant"},
 		{id: "3" , type: "Courant vers devise"},
 		{id: "4" , type: "Devise vers courant"},

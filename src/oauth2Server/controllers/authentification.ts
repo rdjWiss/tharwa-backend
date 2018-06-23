@@ -107,7 +107,7 @@ choisir= function (req:Express.Request,res:Express.Response) {
             verificationToken= randtoken.generator({
               chars: '0-9'
             }).generate(4)  
-            // console.log(verificationToken); 
+            console.log(verificationToken); 
             result.token=verificationToken;
             result.attempts=0;
             result.used=-1;
@@ -119,8 +119,7 @@ choisir= function (req:Express.Request,res:Express.Response) {
         }else{
           verificationToken= randtoken.generator({
             chars: '0-9'
-          }).generate(4)  
-          console.log(verificationToken); 
+          }).generate(4)    
 
           VerificationToken.create({
             userdbId: user.id,
@@ -130,7 +129,7 @@ choisir= function (req:Express.Request,res:Express.Response) {
             expire: user.exp
           })
         }
-
+        console.log(verificationToken); 
         Userdb.findById(user.id)
         .then((result:any)=>{
           if(choix=='SMS'){

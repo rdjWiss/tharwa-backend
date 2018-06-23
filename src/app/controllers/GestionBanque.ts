@@ -3,11 +3,13 @@ import { Userdb } from '../../oauth2Server/models/User';
 import { getMessageErreur } from '../../config/errorMsg';
 import { Banque } from '../models/Banque';
 import { Sequelize } from '../../config/db';
+import { logger } from '../../config/logger';
 
 export class GestionBanque{
 
   //Récupérer la liste des banquiers
   public getListBanquiers:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
+    logger.taglog("info","Récupération de la liste des banquiers",'',['Gestionnaire','Banquiers'])
     console.log('GET /liste banquiers')
     Userdb.findAll({
       where:{
@@ -31,6 +33,7 @@ export class GestionBanque{
 
   //CRUD Banque
   public ajouterBanque:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
+    console.log('add banque')
     let codeBanque= req.body.code_banque
     let nom= req.body.nom
     let adresse= req.body.adresse
@@ -78,6 +81,7 @@ export class GestionBanque{
   }
 
   public modifierBanque:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
+    console.log('modifier banque')
     let codeBanque= req.params.codeBanque
     let nom= req.body.nom
     let adresse= req.body.adresse
@@ -119,6 +123,7 @@ export class GestionBanque{
   }
 
   public supprimerBanque:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
+    console.log('supprimer banque')
     let codeBanque= req.params.codeBanque
 
     Banque.findOne({

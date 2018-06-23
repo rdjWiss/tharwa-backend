@@ -149,7 +149,7 @@ export class GestionComptes{
     let motif = req.body.motif
 
     let numCompte = req.params.numCompte
-    console.log("PUT comptes/"+numCompte)
+    console.log("PUT comptes/"+numCompte,statut)
     
     //TODO: Vérifier que seule les banquiers peuvent executer cette fonction 
 
@@ -170,7 +170,7 @@ export class GestionComptes{
       }).then((result:any)=>{
         if(result){
           // if(!GestionComptes.isValidChangementStatut(result.statut_actuel,statut)){
-         if(this.isValidChangementStatut(result.statut_actuel,statut)){ 
+         if(!this.isValidChangementStatut(result.statut_actuel,statut)){ 
           res.status(400)
             res.send({
               err:"Erreur",
@@ -317,10 +317,9 @@ export class GestionComptes{
 
   //Récupérer l'historique d'un user (de tout ses comptes)
   public getHistorique:Express.RequestHandler= (req:Express.Request,res:Express.Response,next:any)=>{
-    console.log('Historique')
-
     let self = this
     let user = req.user;
+    console.log('GET Historique ',user)
 
     //Trouver les comptes de user
     Compte.findAll({ where: { id_user:user } })
@@ -371,7 +370,7 @@ export class GestionComptes{
       }
     })
 
-    console.log(user)
+    // console.log(user)
   }
 
   public getTypeVirement= function( listComptesUser:any,src:string,dest:string):string{
@@ -386,6 +385,7 @@ export class GestionComptes{
 
   public getHistoriqueVir = function(classSelf:any,listComptes:Array<string>,callback:Function,
     error:ErrorEventHandler) {
+      console.log('Get historique virements')
       //Trouver les virements émis ou reçus par ces comptes
       Virement.findAll({
         where:{
@@ -422,6 +422,7 @@ export class GestionComptes{
 
   public getHistoriqueCommissionVir = function(codesVir:Array<string>, callback:Function,
     error:ErrorEventHandler){
+      console.log('Get historique commissions virements')
       CommissionVirement.findAll({
         where:{
           id_virement:{
@@ -438,13 +439,13 @@ export class GestionComptes{
           }else{
             if(commissions.length != 0){
               commissions.forEach((commission:any) => {
-                commission.dataValues.type='CV'
-                commission.dataValues.date = commission.date_commission
-                // console.log(getTypeCommission(commission.dataValues.id_commission))
-                commission.dataValues.id_commission = getTypeCommission(commission.dataValues.id_commission)
-                if(commission == commissions[commissions.length - 1]){
-                  callback(commissions)
-                }
+                  commission.dataValues.type='CV'
+                  commission.dataValues.date = commission.date_commission
+                  // console.log(getTypeCommission(commission.dataValues.id_commission))
+                  commission.dataValues.id_commission = getTypeCommission(commission.dataValues.id_commission)
+                  if(commission == commissions[commissions.length - 1]){
+                    callback(commissions)
+                  }
               });
             }else{
               callback(commissions)
@@ -454,7 +455,7 @@ export class GestionComptes{
       })
   }
 
-  //Récupérer les comptes actifs pour déblocage
+  //Récupérer les comptes actifs pour BLOCAGE
   public getComptesParFiltrage:Express.RequestHandler= (req:Express.Request,res:Express.Response,next:any)=>{
     let nom = req.query.nom || ''
     let prenom = req.query.prenom || ''
@@ -462,6 +463,9 @@ export class GestionComptes{
 
     console.log('nom',nom,'prenom',prenom,'email',email)
     Compte.findAll({
+      where:{
+        statut_actuel:STATUT_COMPTE_ACTIF
+      },
       include:[
         {
           model:Userdb,

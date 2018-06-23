@@ -1,5 +1,6 @@
 
 import * as Express from 'express'
+import { logger } from '../../config/logger';
 
 const https = require('https');
 const API_PATH='https://globalcurrencies.xignite.com/xGlobalCurrencies.json/';
@@ -15,14 +16,16 @@ const API_TOKEN='52B4A9C2E57E44AEAA0D3CDE5167D7FC';
 export class Converssion{
 
 
-    public getTauxdeChange:Express.RequestHandler=function(req:Express.Request,res:Express.Response){
+    public getTauxdeChange:Express.RequestHandler=(req:Express.Request,res:Express.Response)=>{
             this.recupererTauxdeChange(
                 (response:any)=>{
+                        logger.taglog('info','Demande Taux de change ','Converison',['Conversion'])
                         res.status(200)
                         res.json(response)
                   },
 
                 (error:any)=>{
+                    logger.taglog('error','erreur dans demande Taux de change ',error,['Bug','Conversion'])
                         res.status(500)
                         res.json({
                             error:error
@@ -45,11 +48,12 @@ export class Converssion{
 
         convertirMontant(montant, source, dest,
                      (reponse: any) => {
-            console.log("Conversion termine ")
+                         logger.taglog("verbose","Conversion avec succes","Conversion ",["Conversion"])
             res.status(200)
             res.json(reponse)
             },
             (error: any) => {
+                logger.taglog("error","Probleme dans la conversion","Conversion",["Bug","Conversion"])
                 res.status(500)
                 res.send({
                     error: error

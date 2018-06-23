@@ -6,7 +6,7 @@ import { getMessageErreur } from '../../config/errorMsg';
 //var dateNow = new Date(2018,4,14,21,6,45); possible
 
 export const accessTokenExpireMiddleware:RequestHandler = function(req,res,next){
-  let accessToken = Jwt.decode(req.body.access_token)
+  let accessToken = Jwt.decode(req.headers.access_token)
   console.log(accessToken)
   if(!accessToken){
     res.status(400)
@@ -35,7 +35,7 @@ export const accessTokenExpireMiddleware:RequestHandler = function(req,res,next)
 
 export const pinCodeExpireMiddleware:RequestHandler = function(req,res,next){
 
-  let pinCode = Jwt.decode(req.body.code_pin)
+  let pinCode = Jwt.decode(req.headers.code_pin)
 
   if(req.headers.client_id == '152'){
     if(!pinCode){
@@ -66,7 +66,7 @@ export const pinCodeExpireMiddleware:RequestHandler = function(req,res,next){
 }
 
 export const refreshTokenExpireMiddleware:RequestHandler = function(req,res,next) {
-  let refreshToken = Jwt.decode(req.body.refresh_token)
+  let refreshToken = Jwt.decode(req.headers.refresh_token)
 
   if(!refreshToken){
     res.status(400)

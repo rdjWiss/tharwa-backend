@@ -15,9 +15,10 @@ import { modeleMail } from '../../config/modelMail';
 import { Converssion, convertirMontant } from './Converssion';
 import { start } from 'repl';
 import { STATUT_COMPTE_ACTIF } from '../models/StatutCompte';
-import { COMPTE_COURANT, COMPTE_DEVISE, typeCompteString } from '../models/TypeCompte';
+import { COMPTE_COURANT, COMPTE_DEVISE, typeCompteString, COMPTE_EPARGNE } from '../models/TypeCompte';
 import { CommissionVirement } from '../models/CommissionVirement';
 import { getMessageErreur } from '../../config/errorMsg';
+import { logger } from '../../config/logger';
 
 var base64 = require('node-base64-image')
 let conversion = new Converssion()
@@ -83,6 +84,7 @@ export class GestionVirements{
           //TODO: plus d'infos de quels compte n'est pas actif
           if(!GestionVirements.isCompteActif(comptes[0])
               || !GestionVirements.isCompteActif(comptes[1])){
+                logger.taglog('debug','Virement refuse','compte inactif ',['Virement','refuse'])
             res.status(400);
             res.send({
               err:"Bad request",
@@ -109,6 +111,7 @@ export class GestionVirements{
             }
             else if(comptes[indiceSrc].balance < montant){
               res.status(400);
+              logger.taglog('debug','Virement refuse','solde insuffisante',['Virement','refuse'])
               res.send({
                 err:"Bad request",
                 code_err:'V05',
@@ -138,13 +141,16 @@ export class GestionVirements{
               
               GestionVirements.creerEnregVirement(vir,(created:any)=>{
                 getUserContact(comptes[indiceSrc].id_user, function(user:any){
-                  var srcCompteString =  (comptes[indiceSrc].type_compte)
-                  var destCompteString =typeCompteString(comptes[1-indiceSrc].type_compte)
+                  var srcCompteString =  typeCompteString(comptes[indiceSrc].type_compte)
+                  var destCompteString = typeCompteString(comptes[1-indiceSrc].type_compte)
                   var msg=''
                   
                   var msgCommission=''
+                  /* if(comptes[indiceSrc].type_compte == COMPTE_COURANT && 
+                    comptes[1-indiceSrc].type_compte == COMPTE_EPARGNE) */
                   GestionVirements.getMontantCommissionVir(vir.code,function(commission:any){
-                    console.log(commission.montant)
+                    console.log('commission montant',commission.montant)
+                    logger.taglog('info','Commission Retiree',commission,['Virement','Commission'])
                     if(commission.montant_commission != 0){
                       msgCommission = `<br/>Une commission de `+commission.montant_commission+
                           ` DZD a été retirée de votre compte courant pour ce virement.`
@@ -179,8 +185,11 @@ export class GestionVirements{
                 res.status(200)
                 res.send(created)
               },(error:any)=>{
+                logger.taglog('error','Erreur base de donnes ',error,['Virement','error'])
+
                 res.status(400);
                 res.send({
+                  
                   err:"Error DB",
                   code_err:error,
                   msg_err:getMessageErreur(error)
@@ -515,6 +524,7 @@ export class GestionVirements{
       statut_virement:vir.statut
     }).then((created:any)=>{
       if(created){
+        logger.taglog('info','Nouveau Virement',Virement,['Virement','Nouveau Virement'])
         callback(created)
       }else{
         error( 'D05')
@@ -643,6 +653,7 @@ export class GestionVirements{
           }else{
             //Vérifier que le changement du statut du virement est valide
             if(!GestionVirements.isValidChangementStatut(virement.statut_virement,statut)){
+
               res.status(400)
               res.send({
                 err:"Bad request",
@@ -652,6 +663,7 @@ export class GestionVirements{
             }else{
               //Vérifier que le motif est fourni en cas de rejet
               if(statut == STATUT_VIR_REJETE && !motif){
+                logger.taglog('warn','Rejet sans motif',virement,['Virement','Rejet annule'])
                 res.status(400)
                 res.send({
                   err:"Bad request",
@@ -660,6 +672,8 @@ export class GestionVirements{
                 })
               }else {
                  //Modifier statut du virement: valider ou rejeter
+                 logger.taglog('info','Virement '+statut,virement,['Virement','Changement Statut'])
+ 
                 virement.statut_virement = statut;
                 virement.save()
 
@@ -759,6 +773,7 @@ export class GestionVirements{
 
 function notifierBanquierNouveauVirAValider(){
 
+  
   Userdb.findAll({
     where:{
       fonctionId:'B'

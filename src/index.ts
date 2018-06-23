@@ -10,11 +10,11 @@ import * as https from 'https';
 import { authServer } from './oauth2Server/index'
 import { appServer } from './app/index'
 import {socket, NotificationController} from './app/controllers/NotificationController'
+import {logger } from "./config/logger"
 var http=require('http')
-
 var notif = new NotificationController()
-
 console.log("Lancement de serveur d'authentification ")
+logger.info("Lancement de serveur d'authentification en cours ")
 //Lancement du serveur Http d'authentification sur le port 4000
 authServer.app.listen(process.env.PORT ||  4000)
 // authServer.app.listen(process.env.PORT ||  1000)

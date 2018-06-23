@@ -37,6 +37,11 @@ export class RefreshTokens{
     })
   }
 
+  public test:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
+    res.status(200)
+    res.send('OK')
+  }
+
   /* public refreshPinChoisir= function (req:Express.Request,res:Express.Response) {
     console.log("/choisir");
     
