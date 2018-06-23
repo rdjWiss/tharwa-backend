@@ -2,13 +2,15 @@ import { redis } from "../../config/redis";
 import { logger } from "../../config/logger";
 
 export var socket = require('socket.io')
-var backup
+var backup:any
 
 export class NotificationController{
   public initialiserNotificationSocket = function(server:any){
     const notif = socket(server)
     backup=notif
-    
+    notif.on("chat message",function(client:any){
+      console.log("Test Message chat")
+    })
     notif.on('connection',function(client:any){
       console.log('test ')
       // console.log(client)
@@ -31,10 +33,10 @@ export class NotificationController{
     
   }
 
-  /* public notifierUser=function(socketId,message){
-     console.log(backup.sockets.connected))
+  public notifierUser=function(socketId:any,message:any){
+     console.log(backup.sockets.connected)
 
-    } */
+    }
   
 
 }

@@ -54,6 +54,7 @@ winston.taglog=function(level:String,titre:String,message:any,tags:String){
         message:message,
         tags:tags
     })
+
             
 }
 // Log des Requetes Morgan 

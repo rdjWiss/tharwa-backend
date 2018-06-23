@@ -149,7 +149,8 @@ export class GestionVirements{
                   /* if(comptes[indiceSrc].type_compte == COMPTE_COURANT && 
                     comptes[1-indiceSrc].type_compte == COMPTE_EPARGNE) */
                   GestionVirements.getMontantCommissionVir(vir.code,function(commission:any){
-                    console.log('commission montant',commission.montant)
+                  console.log('commission montant',commission.montant)
+
                     logger.taglog('info','Commission Retiree',commission,['Virement','Commission'])
                     if(commission.montant_commission != 0){
                       msgCommission = `<br/>Une commission de `+commission.montant_commission+
