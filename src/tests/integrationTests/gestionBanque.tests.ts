@@ -11,6 +11,7 @@ const testServer = appServer.app.listen(5000)
 let codeBanque = 'BFF'
 let email ='bff@gmail.com'
 
+//OK
 /* describe('Récupération de la liste des banquiers',function(){
   it('Doit retourner 200 et la liste des banquiers',function(done){
     let access_token = Jwt.encode({
@@ -41,7 +42,8 @@ let email ='bff@gmail.com'
   })
 }) */
 
-describe('Gestion des banques',function(){
+//OK
+/* describe('Gestion des banques',function(){
   it('Doit retourner 400 si un des champs manque (code banque, nom, email, ...)',function(done){
     Chai.request(testServer)
     .post('/gestion/banques/')
@@ -184,4 +186,4 @@ describe('Gestion des banques',function(){
       done()
     })  
   })
-})
+}) */

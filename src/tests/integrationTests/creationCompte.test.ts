@@ -18,9 +18,9 @@ let idClient = 0
 let idEmploy = 0
 
 //OK
-/* describe('Création d\'un compte user', function() {
+describe('Création d\'un compte user', function() {
   
-  it("Doit retourner 401 si l'email/user existe",
+  /* it("Doit retourner 401 si l'email/user existe",
     function(done){
     Chai.request(testServer)
       .post('/users')
@@ -54,7 +54,7 @@ let idEmploy = 0
         password: 'abc123',
 
         nom : "tharwa",
-        prenom : "client",
+        prenom : "banquier",
         adress: "Oued Smar",
         tel: "213659125992",
         photo: image_base64,
@@ -67,9 +67,9 @@ let idEmploy = 0
         done()
       })    
     })
-  });
+  }); */
 
-  it("Doit retourner 200 si le compte user (Client) et bancaire sont crées",
+  /* it("Doit retourner 200 si le compte user (Client) et bancaire sont crées",
     function(done){
     //Supprimer le user
     Userdb.destroy({
@@ -117,9 +117,9 @@ let idEmploy = 0
         done()
       })    
 
-  }); 
+  });  */
 
-}); */
+});
 
 //OK
 /* describe('Création d\'un autre compte bancaire', function() {

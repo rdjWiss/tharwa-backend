@@ -20,8 +20,9 @@ let hashChoix = ''
 
 let code:any
 
+//OK
 describe('Verification des tokens: code, access et refresh', function() {
-  /* before(function(){
+  before(function(){
     access_token = Jwt.encode({
       id:userId,
       exp: Jwt.expiresIn(-5)
@@ -43,9 +44,9 @@ describe('Verification des tokens: code, access et refresh', function() {
       Chai.request(testServer)
         .post('/testtokens')
         .set("client_id","152")
+        .set('access_token',access_token)
+        .set('code_pin',code_pin)
         .send({
-          code_pin: code_pin,
-          access_token: access_token ,
         })
         .end(function(err,res){
           err.should.have.status(401)
@@ -60,8 +61,8 @@ describe('Verification des tokens: code, access et refresh', function() {
     Chai.request(testServer)
       .post('/refreshaccess')
       .set("client_id","152")
+      .set('refresh_token',refresh_token)
       .send({
-        refresh_token:refresh_token
       })
       .end(function(err,res){
         err.should.have.status(401)
@@ -81,17 +82,18 @@ describe('Verification des tokens: code, access et refresh', function() {
     Chai.request(testServer)
       .post('/refreshaccess')
       .set("client_id","152")
+      .set('refresh_token',refresh_token)
       .send({
-        refresh_token:refresh_token
       })
       .end(function(err,res){
         res.should.have.status(200)
         res.body.should.have.property('access_token')
         console.log(Jwt.decode(res.body.access_token))
+
         // console.log(res.body)
         done()
       })    
-  }); */
+  });
 
   it("Doit retourner 401 si le code pin token a expiré'",
     function(done){
@@ -108,9 +110,9 @@ describe('Verification des tokens: code, access et refresh', function() {
       Chai.request(testServer)
         .post('/testtokens')
         .set("client_id","152")
+        .set('access_token',access_token)
+        .set('code_pin',code_pin)
         .send({
-          code_pin: code_pin,
-          access_token: access_token ,
         })
         .end(function(err,res){
           err.should.have.status(401)
@@ -132,9 +134,9 @@ describe('Verification des tokens: code, access et refresh', function() {
       //.post('/refreshpin/1')
       .post('/choisir')
       .set("client_id","152")
+      .set('access_token',access_token)
       .send({
         user:hashChoix,
-        access_token:access_token,
         choix:'MAIL'
       })
       .end(function(err,res){
@@ -147,14 +149,14 @@ describe('Verification des tokens: code, access et refresh', function() {
     
   });
 
-  /* it("Doit retourner 200 si le code pin saisi par le client est correct  ",function(done){
+  it("Doit retourner 200 si le code pin saisi par le client est correct  ",function(done){
 
     this.timeout(10000)
     Chai.request(testServer)
     .post('/refreshpin/2')
     .set("client_id","152")
+    .set('access_token',access_token)
     .send({
-        access_token:access_token,
         user:access_token,
         token:code+''
     })
@@ -187,6 +189,6 @@ describe('Verification des tokens: code, access et refresh', function() {
       // console.log(res.body.code_err)
       done();
     })
-  }); */
+  });
 
 });

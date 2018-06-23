@@ -21,9 +21,10 @@ const emailClient = 'tharwaclient152@gmail.com' //mdp:tharwa152
 //A modifier / sinon seront modifiés dans les tests
 let idClient = 371
 let numCompteCourant = 'THW000132DZD'
-let numCompteEpargne = 'THW000134DZD'
-let numCompteDevise = 'THW000135EUR'
+let numCompteEpargne = 'THW000168DZD'
+let numCompteDevise = 'THW000169EUR'
 
+let idClientDiff = 6
 let numCompteCourantClientDiff = 'THW000002DZD'
 let emailClientDiff = 'ew_redjem@esi.dz'
 
@@ -262,7 +263,7 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
       }
     })
     
-  });
+  }); 
 
   it('Doit retourner 200 si le virement est effectué (epargne-courant) avec succès',function(done){
     this.timeout(10000);//Set le timeout à 10_000 ms
@@ -298,9 +299,9 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
     },2000)
     
     
-  });
+  }); 
 
-  it('Doit retourner 200 si le virement est effectué (courant-devise) avec succès',function(done){
+   it('Doit retourner 200 si le virement est effectué (courant-devise) avec succès',function(done){
     this.timeout(10000);//Set le timeout à 10_000 ms
     setTimeout(function(){
       Compte.findOne({
@@ -568,7 +569,9 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
   it('Doit retourner 400 si l\'un des comptes n\'est pas un compte courant',function(done){
     Compte.findAll({
       where:{
-        id_user:idClient
+        $or:{
+          id_user: [idClient,idClientDiff]
+        }
       }
     }).then((comptes:any)=>{
       if(comptes){
@@ -696,6 +699,7 @@ let virEmis = 'THW000132DZDTHW000002DZD20180505183507'
   })
 }); */
 
+//OK
 /* describe('Virement entre clients de tharwa (Rech par email)',function(){
   before(function() {
     Userdb.findOne({

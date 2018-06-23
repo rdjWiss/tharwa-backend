@@ -152,7 +152,7 @@ let timePin = 60 //min
     })  
   });
 
-  it('Doit retourner la liste des comptes valide',function(done){
+  it('Doit retourner la liste des comptes validés',function(done){
     Chai.request(testServer)
       .get('/comptes?statut='+STATUT_COMPTE_ACTIF)
       .set("client_id","541")
@@ -184,7 +184,6 @@ let timePin = 60 //min
   });
 
 }); */
-
 //OK
 /* describe('Modification du statut d\'un compte',function(){
   before(function() {
@@ -202,7 +201,7 @@ let timePin = 60 //min
         }).then((courant:any)=>{
           if(courant) {
             numCompteCourant = courant.num_compte
-            console.log(numCompteCourant)
+            console.log("Compte courant",numCompteCourant)
             courant.statut_actuel = 1
             courant.save()
           }
@@ -224,7 +223,7 @@ let timePin = 60 //min
     });
   });
 
-  it('Doit retourner 400 si la requete provient d\'un client mobile',function(done){
+  it('Doit retourner 401 si la requete provient d\'un client mobile',function(done){
     Chai.request(testServer)
       .put('/comptes/'+numCompteCourant)
       .set("client_id","152")
@@ -254,7 +253,8 @@ let timePin = 60 //min
     })  
   });
 
-  it('Doit retourner 400 si le nouveau statut est "à valider/1"',function(done){
+  it('Doit retourner 400 si le nouveau statut est "à valider/1/"',function(done){
+    console.log('jkfs')
     Chai.request(testServer)
       .put('/comptes/'+numCompteCourant)
       .set("client_id","541")
@@ -264,7 +264,7 @@ let timePin = 60 //min
       .end(function(err,res){
         err.should.have.status(400)
         res.body.should.have.property('code_err').equals('C07')
-        console.log(res.body.msg_err)
+        console.log("err",res.body)
         done()
     })  
   });
@@ -565,11 +565,14 @@ let timePin = 60 //min
   
 }) */
 
+//OK
 /* describe('Récupérer l\'historique d\'un compte',function(){
   it('Doit retourner 200 et l\'historique des comptes du user',function(done){
+    this.timeout(5000);
+
     let access_token = Jwt.encode({
-      id:374,//idUser,
-      exp: Jwt.expiresIn(5)
+      id:371,//idUser,
+      exp: Jwt.expiresIn(5)//5mins
     })
 
     let code_pin= Jwt.encode({
@@ -580,9 +583,9 @@ let timePin = 60 //min
     Chai.request(testServer)
           .get('/historique')
           .set("client_id","152")
+          .set("access_token",access_token)
+          .set("code_pin",code_pin)
           .send({
-            access_token:access_token,
-            code_pin:code_pin,
           })
           .end(function(err,res){
             res.should.have.status(200)
@@ -603,6 +606,7 @@ let timePin = 60 //min
                 element.should.have.property("montant_commission")
                 element.should.have.property("date_commission")
               }
+              // console.log(element.type,element.date)
             });
             console.log(res.body)
             done()
@@ -611,7 +615,8 @@ let timePin = 60 //min
      })
 }) */
 
-describe('Récupérer les comptes pour blocage',function(){
+//OK
+/* describe('Récupérer les comptes pour blocage',function(){
   it('Doit retourner 200 et les comptes respectant les critères',function(done){
     let access_token = Jwt.encode({
       id:374,//idUser,
@@ -625,8 +630,8 @@ describe('Récupérer les comptes pour blocage',function(){
     Chai.request(testServer)
       .get('/comptes/rech/?nom='+nom+'&prenom='+prenom+'&email='+email)
       .set("client_id","541")
+      .set("access_token",access_token)
       .send({
-        access_token:access_token,
       })
       .end(function(err,res){
         res.should.have.status(200)
@@ -652,4 +657,4 @@ describe('Récupérer les comptes pour blocage',function(){
 
      
   })
-})
+}) */
