@@ -13,6 +13,7 @@ import {creerUserMiddleware, creerAutreCompteBancaireMiddleware, modifStatutMidd
 import { Converssion } from '../controllers/Converssion';
 import { CODE_PIN_VALIDITE } from '../models/Parametre';
 import { GestionBanque } from '../controllers/GestionBanque';
+import { Conversion } from '../controllers/Conversion';
 
 // Assigner à router l'instance de express.Router()
 const router: Router = Router();
@@ -22,6 +23,8 @@ const creationComptes = new CreationComptes();
 const gestionVir = new GestionVirements();
 const converssion = new Converssion();
 const gestionBanque = new GestionBanque()
+
+const conversionApi = new Conversion()
 
 router.use(authMiddleware)
 //router.use(TokensExpireMiddleware)
@@ -62,7 +65,8 @@ router.get('/virements',WebMiddleware,gestionVir.getVirementAValider)
 router.put('/virements/:codeVir',modifStatutMiddleware,WebMiddleware,gestionVir.modifStatutVir)
 
 //Taux de change
-router.post('/convertir/',converssion.convertir)
+router.post('/convertir/test',converssion.convertir)
+router.post('/convertir',conversionApi.convertir)
 
 /** Gestion de la banque */
 router.get('/gestion/banquiers', WebMiddleware,/* accessTokenExpireMiddleware, */ gestionBanque.getListBanquiers)
