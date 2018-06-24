@@ -7,7 +7,7 @@ import { sequelize } from '../../config/db';
 import { stat } from 'fs';
 import { MailController } from './mailController';
 import { verificationMail, validationCompteUserMail, rejetCompteUserMail,
-  validationCompteBankMail,rejetCompteBankMail } from '../../config/messages';
+  validationCompteBankMail,rejetCompteBankMail, blocageCompteBankMail } from '../../config/messages';
 import { COMPTE_EPARGNE, COMPTE_DEVISE, COMPTE_COURANT, typeCompteString } from '../models/TypeCompte';
 import { getMessageErreur } from '../../config/errorMsg';
 import { Virement } from '../models/Virement';
@@ -170,8 +170,8 @@ export class GestionComptes{
       }).then((result:any)=>{
         if(result){
           // if(!GestionComptes.isValidChangementStatut(result.statut_actuel,statut)){
-         if(!this.isValidChangementStatut(result.statut_actuel,statut)){ 
-          res.status(400)
+          if(!this.isValidChangementStatut(result.statut_actuel,statut)){ 
+            res.status(400)
             res.send({
               err:"Erreur",
               code_err:'C07',
@@ -262,11 +262,23 @@ export class GestionComptes{
                           res.status(200)
                           res.send(result)
                       }else {
+                        if(statut = STATUT_COMPTE_BLOQUE){
+                          objetMail = "Compte tharwa bloqué"
+                          message = blocageCompteBankMail(user.nom,
+                              typeCompteString(compte.type_compte),motif)
+
+                          MailController
+                          .sendMail(user.email,objetMail,
+                            message)
+
+                          res.status(200)
+                          res.send("OK")
+                        }
                       //TODO: traiter les autres cas
                       //Actif -> Bloqué
                       //Bloqué -> Actif
-                      res.status(200)
-                      res.send("OK")
+                      /* res.status(200)
+                      res.send("OK") */
                       }
                       
                     }else{
@@ -318,8 +330,8 @@ export class GestionComptes{
   //Récupérer l'historique d'un user (de tout ses comptes)
   public getHistorique:Express.RequestHandler= (req:Express.Request,res:Express.Response,next:any)=>{
     let self = this
-    let user = req.user;
-    console.log('GET Historique ',user)
+    let user = parseInt(req.query.user)//req.user;
+    console.log('GET Historique?user= ',user)
 
     //Trouver les comptes de user
     Compte.findAll({ where: { id_user:user } })
@@ -457,9 +469,9 @@ export class GestionComptes{
 
   //Récupérer les comptes actifs pour BLOCAGE
   public getComptesParFiltrage:Express.RequestHandler= (req:Express.Request,res:Express.Response,next:any)=>{
-    let nom = req.query.nom || ''
-    let prenom = req.query.prenom || ''
-    let email = req.query.email || ''
+    let nom = req.query.recherche || ''
+    let prenom = req.query.recherche || ''
+    let email = req.query.recherche || ''
 
     console.log('nom',nom,'prenom',prenom,'email',email)
     Compte.findAll({
@@ -470,12 +482,13 @@ export class GestionComptes{
         {
           model:Userdb,
           where:{
-            $and:{
+            $or:{
               nom:sequelize.where(sequelize.fn('LOWER',sequelize.col('nom')),
               'LIKE','%'+nom+'%'),
               prenom: sequelize.where(sequelize.fn('LOWER',sequelize.col('prenom')),
                   'LIKE','%'+prenom+'%'),
-              email:{ $like: '%'+email+'%'}
+              email:sequelize.where(sequelize.fn('LOWER',sequelize.col('email')),
+              'LIKE','%'+email+'%'),
             }
           },
           attributes:['nom','prenom','adresse','telephone','email','photo']
@@ -493,8 +506,14 @@ export class GestionComptes{
             res.send(results)
           }
         });
+        else{
+          //Aucun résultat
+          res.status(200)
+          res.send(results)
+        }
       }else {
-        res.status(200)
+        //TO
+        res.status(400)
         res.send(results)
       }
         

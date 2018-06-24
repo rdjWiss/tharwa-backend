@@ -35,14 +35,15 @@ router.get('/users/:userEmail',gestionComptes.userExist);//to oauth
 //Filtrer les comptes bancaires selon le statut (paramètre)
 router.get('/comptes/',WebMiddleware,gestionComptes.getComptes)
 //Mettre à jour le statut d'un compte bancaire
-router.put('/comptes/:numCompte',modifStatutMiddleware,WebMiddleware,gestionComptes.modifCompte)
+router.put('/comptes/:numCompte',modifStatutMiddleware,WebMiddleware,
+      gestionComptes.modifCompte)
 //Récuperer les comptes d'un user
 router.get('/users/:idUser/comptes',MobMiddleware,gestionComptes.getComptesClient)
 //Récupérer l'historique d'un compte
-router.get('/historique',accessTokenExpireMiddleware,pinCodeExpireMiddleware,
+router.get('/historique',/* accessTokenExpireMiddleware,pinCodeExpireMiddleware, */
             MobMiddleware,gestionComptes.getHistorique)
 //Récupérer les comptes pour déblocage selon des critères
-router.get('/comptes/rech/', WebMiddleware, accessTokenExpireMiddleware,
+router.get('/comptes/rech/', WebMiddleware, /* accessTokenExpireMiddleware, */
                   gestionComptes.getComptesParFiltrage)
 
 

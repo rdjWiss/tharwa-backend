@@ -63,7 +63,14 @@ export const rejetCompteBankMail=function(username:string,type:string, motif:str
     <br/>Motif: `+motif)
 }
 
-//*********** Virements entre comptes du meme client
+//Blocage compte
+export const blocageCompteBankMail=function(username:string,type:string, motif:string):string{
+
+    return modeleMail(username,`Votre compte bancaire `+type+` THARWA a été bloqué. `+
+    `</br>Motif: `+motif)
+}
+
+//***************** Virements entre comptes du meme client
 export const virEntreComptesMail=function(username:string, compte1:string,
         compte2:string,montant:any,commission:string):string{
     //TODO: ajouter code monnaie
@@ -74,11 +81,11 @@ export const virEntreComptesMail=function(username:string, compte1:string,
 
 export const virEntreComptesAValiderMail=function(username:string, compte1:string,
     compte2:string,montant:number):string{
-//TODO: ajouter code monnaie
-var msg =  modeleMail(username,`Vous venez d'effectuer un virement de `+montant+`
-entre vos comptes `+compte1+` et `+compte2+`. </br>Le montant de ce virement dépasse le seuil. 
-Vous recevrez un email dès que ce virement est validé`)      
-return msg
+    //TODO: ajouter code monnaie
+    var msg =  modeleMail(username,`Vous venez d'effectuer un virement de `+montant+`
+    entre vos comptes `+compte1+` et `+compte2+`. </br>Le montant de ce virement dépasse le seuil. 
+    Vous recevrez un email dès que ce virement est validé`)      
+    return msg
 }
 
 
@@ -96,7 +103,7 @@ export const rejetVirEntreComptesMail=function(username:string, compte1:string,
 }
 
 
-//*** Virement émis
+//***************************** Virement émis
 export const virSortantMail=function(username:string, compte:string, montant:number,
             commission:string):string{
     
@@ -127,8 +134,7 @@ export const rejetVirSortantMail=function(username:string, compte:string,
     `<br/>Le montant du virement a été restitué`)
 }
 
-
-//**** Virement reçu
+//******************************* Virement reçu
 export const virRecuMail=function(username:string, compte:string, montant:number):string{
     
     return modeleMail(username,`Vous venez de recevoir un virement
