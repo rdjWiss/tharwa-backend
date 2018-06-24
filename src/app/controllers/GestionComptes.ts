@@ -120,6 +120,7 @@ export class GestionComptes{
                 })
   
                 if(comptes.length == results.length){
+                  console.log()
                   if(statut != STATUT_COMPTE_BLOQUE){
                     res.status(200)
                     res.send(comptes) 
@@ -151,9 +152,10 @@ export class GestionComptes{
     
   }
 
-  public getCompteBloque= function(comptes:any,callback:Function){
+  public getCompteBloque=(comptes:any,callback:Function)=>{
 
       comptes.forEach((compte:any) => {
+        console.log('Compte',compte.compte.num_compte)
         DemandeDeblocage.findOne({
           where:{ num_compte : compte.compte.num_compte},
           attributes:['date_demande','justif','num_compte']
@@ -162,12 +164,45 @@ export class GestionComptes{
               compte.demande = found.dataValues
             }
 
-            if(compte == comptes[comptes.length-1]){
-              callback(comptes)
-            }
+            this.getStatutBlocage(compte.compte.num_compte, function(statut:any){
+              if(statut) compte.statut = statut
+
+              if(compte == comptes[comptes.length-1]){
+                callback(comptes)
+              }
+            })
         })
       });
 
+  }
+
+  public getStatutBlocage=function(numCompte:any, callback:Function){
+    AvoirStatut.findOne({
+      where : {
+        id_statut : STATUT_COMPTE_BLOQUE,
+        num_compte: numCompte
+      },
+      attributes:[ 'num_compte',
+      [sequelize.fn('max',sequelize.col('date_statut')),'date_statut']], 
+      
+      group: ['num_compte']
+           
+    }).then((result:any)=>{
+      if(!result) callback(null)
+      else{
+        AvoirStatut.findOne({
+          where:{
+            id_statut : STATUT_COMPTE_BLOQUE,
+            num_compte: numCompte,
+            date_statut : result.date_statut
+          }
+        }).then((found:any)=>{
+          console.log(found.dataValues)
+          callback(found)
+        })
+      }
+      
+    })
   }
 
   //Modifier le statut d'un compte bancaire
@@ -218,11 +253,14 @@ export class GestionComptes{
               })
             }else {
               //Créer un nouveau statut du compte dans la table AvoirsStatut
+              let date = new Date()
               AvoirStatut.create({
                 num_compte : numCompte,
                 id_statut: statut,
-                motif: motif
+                motif: motif,
+                date_statut:date.getTime()
               }).then((result:any) =>{
+                console.log(result.dataValues)
                 //Actualiser le statut actuel du compte
                 Compte.findOne({
                   where:{
@@ -670,6 +708,8 @@ export class GestionComptes{
       }
     })
   }
+
+ 
 }
 
   
