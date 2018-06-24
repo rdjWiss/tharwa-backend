@@ -70,6 +70,12 @@ export const blocageCompteBankMail=function(username:string,type:string, motif:s
     `</br>Motif: `+motif)
 }
 
+export const deblocageCompteBankMail=function(username:string,type:string, motif:string):string{
+
+    return modeleMail(username,`Votre compte bancaire `+type+` THARWA a été débloqué. `+
+    `</br>Motif: `+motif)
+}
+
 //***************** Virements entre comptes du meme client
 export const virEntreComptesMail=function(username:string, compte1:string,
         compte2:string,montant:any,commission:string):string{

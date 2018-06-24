@@ -7,7 +7,7 @@ import { sequelize } from '../../config/db';
 import { stat } from 'fs';
 import { MailController } from './mailController';
 import { verificationMail, validationCompteUserMail, rejetCompteUserMail,
-  validationCompteBankMail,rejetCompteBankMail, blocageCompteBankMail, nouvelleDemandeCreationCompteNotifBanquier, nouvelleDemandeDeblocageCompteNotifBanquier } from '../../config/messages';
+  validationCompteBankMail,rejetCompteBankMail, blocageCompteBankMail, nouvelleDemandeCreationCompteNotifBanquier, nouvelleDemandeDeblocageCompteNotifBanquier, deblocageCompteBankMail } from '../../config/messages';
 import { COMPTE_EPARGNE, COMPTE_DEVISE, COMPTE_COURANT, typeCompteString } from '../models/TypeCompte';
 import { getMessageErreur } from '../../config/errorMsg';
 import { Virement } from '../models/Virement';
@@ -208,7 +208,7 @@ export class GestionComptes{
           }  
           else{
             //Les modifications nécessitant un motif
-            if(GestionComptes.isChangementStatutNecessitantMotif(result.statut_actuel,statut) 
+            if(this.isChangementStatutNecessitantMotif(result.statut_actuel,statut) 
                 && motif==null){
               res.status(400)
               res.send({
@@ -289,8 +289,7 @@ export class GestionComptes{
 
                         res.status(200)
                         res.send(result)
-                      }else {
-                        if(statut = STATUT_COMPTE_BLOQUE){
+                      }else if(statut == STATUT_COMPTE_BLOQUE){
                           objetMail = "Compte tharwa bloqué"
                           message = blocageCompteBankMail(user.nom,
                               typeCompteString(compte.type_compte),motif)
@@ -301,14 +300,24 @@ export class GestionComptes{
 
                           res.status(200)
                           res.send({})
-                        }
-                      //TODO: traiter les autres cas
-                      //Actif -> Bloqué
-                      //Bloqué -> Actif
-                      /* res.status(200)
-                      res.send("OK") */
-                      }
-                      
+                      }else if(statut == STATUT_COMPTE_ACTIF){
+                        //Déblocage d'un compte 
+
+                        //Si demande de déblocage la supprimer
+                        this.accepterDemandeDeblocage(compte.num_compte,(result:any)=>{
+                          //Envoyer un mail au user
+                          objetMail = "Compte tharwa débloqué"
+                          message = deblocageCompteBankMail(user.nom,
+                              typeCompteString(compte.type_compte),motif)
+
+                          MailController
+                          .sendMail(user.email,objetMail,
+                            message)
+
+                          res.status(200)
+                          res.send({})
+                        }) 
+                      } 
                     }else{
                       res.status(401)
                       res.send({
@@ -349,10 +358,19 @@ export class GestionComptes{
       */
   }
 
-  public static isChangementStatutNecessitantMotif = function(ancienStatut:any, nouveauStatut:any):boolean{
+  public isChangementStatutNecessitantMotif = function(ancienStatut:any, nouveauStatut:any):boolean{
     return  (nouveauStatut == STATUT_COMPTE_REJETE 
           || nouveauStatut == STATUT_COMPTE_BLOQUE 
           || (ancienStatut == STATUT_COMPTE_BLOQUE && nouveauStatut == STATUT_COMPTE_ACTIF)) 
+  }
+
+  public accepterDemandeDeblocage = function(numeroCompte:String,callback:Function){
+    //Rechercher si une demande de déblocage existe
+    DemandeDeblocage.destroy({
+      where:{num_compte:numeroCompte}
+    }).then((destroyed:any)=>{
+      callback()
+    })
   }
 
   //Récupérer l'historique d'un user (de tout ses comptes)
@@ -540,66 +558,14 @@ export class GestionComptes{
           res.send(results)
         }
       }else {
-        //TO
+        //TODO: send error msg
         res.status(400)
         res.send(results)
       }
         
     })
 
-    /* Userdb.findAll({
-      where:{
-        $and:{
-          nom:sequelize.where(sequelize.fn('LOWER',sequelize.col('nom')),
-          'LIKE','%'+nom+'%'),
-          prenom: sequelize.where(sequelize.fn('LOWER',sequelize.col('prenom')),
-              'LIKE','%'+prenom+'%'),
-          email:{ $like: '%'+email+'%'}
-        }
-      },
-      include:[
-        {
-          model:Compte
-        }
-      ],
-      attributes:['id','nom','prenom','adresse','telephone','email','photo']
-    }).then((users:any)=>{
-      if(!users){
-
-      }else{
-        let results:any = []
-        if(users.length!=0){
-          users.forEach((user:any) => {
-            Compte.findAll({
-              where:{
-                id_user:user.id
-              },
-              attributes:['num_compte','date_creation','statut_actuel','type_compte','code_monnaie','id_user']
-            }).then((comptes:any)=>{
-              if(!comptes){
-
-              }else{
-                console.log(comptes[0].dataValues)
-                results.push({
-                  user:user,
-                  comptes:comptes
-                })
-              }
-
-              if(results.length == users.length){
-                res.status(200)
-                res.send(results)
-              }
-            })
-          });
-        }else{
-          res.status(200)
-          res.send(users)
-        }
-      }
-    }) */
   }
-
 
   //Demande de déblocage
   public demandeDeblocage:Express.RequestHandler= (req:Express.Request,res:Express.Response,next:any)=>{
