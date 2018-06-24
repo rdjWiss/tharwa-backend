@@ -1,6 +1,12 @@
 
-export const apiKey="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"
-export const apiKeyId="8zhxit_mQ2qsSDb0DQAGvg"
+//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
+//3Kh_ZBvjRYSRxkMKcVzPqw
+
+export const apiKey="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"
+export const apiKeyId="3Kh_ZBvjRYSRxkMKcVzPqw"
+
+//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
+//8zhxit_mQ2qsSDb0DQAGvg
 
 //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
 //8zhxit_mQ2qsSDb0DQAGvg
