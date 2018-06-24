@@ -42,6 +42,14 @@ export class RefreshTokens{
     res.send('OK')
   }
 
+  public codePinValide:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
+    res.status(200)
+    res.send({
+      "etat":"valide"
+    })
+  }
+
+
   /* public refreshPinChoisir= function (req:Express.Request,res:Express.Response) {
     console.log("/choisir");
     
