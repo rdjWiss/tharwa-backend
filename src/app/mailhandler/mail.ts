@@ -1,8 +1,13 @@
-var unzip=require("unzip")
-var MailListener=require("mail-listener4")
+const path=require("path")
+const decompress = require("decompress")
+const testCompress=require("decompress-zip")
+const MailListener=require("mail-listener4")
 import { logger } from "../../config/logger";
+import { DESTINATION_DIR, TRAITES_DIR } from "../../config/mail";
+import { VirementExtController } from "../controllers/VirementExtController";
+import { Compte } from "../models/Compte";
 var fs= require('fs')
-var Parser=require('xml2js-parser')
+var Parser=require('xml2js')
 
 
 export class MailHandler{
@@ -31,7 +36,7 @@ export class MailHandler{
                 fetchUnreadOnStart: false, // use it only if you want to get all unread email on lib start. Default is `false`,
                 mailParserOptions: {streamAttachments: true}, // options to be passed to mailParser lib.
                 attachments: true, // download attachments as they are encountered to the project directory
-                attachmentOptions: { directory: "./VirementsExternes/" } // specify a download directory for attachments
+                attachmentOptions: { directory: DESTINATION_DIR } // specify a download directory for attachments
               });
             
               this.mailListener.on("server:connected", function(){
@@ -50,7 +55,25 @@ export class MailHandler{
               this.mailListener.on("mail", function(mail, seqno, attributes){
                 // affichage des informations de mail
                 console.log("emailParsed", mail.attachments);
-                let attachment=mail.attachments[0];
+            
+                new VirementExtController().traiterVirement(`<?xml version="1.0" encoding="utf-8"?>
+                <virement>
+                <numero>THW000002DZDTHW000002DZD20180204105300</numero>
+                <date>20180204105300</date>
+                <titulaire>
+                <nom>Mostefai Mohammed Amine</nom>
+                <banque>THW</banque>
+                <compte>THW000002DZD</compte>
+                </titulaire>
+                <destinataire>
+                <nom>Batata Sofiane</nom>
+                <banque>THW</banque>
+                <compte>THW000003DZD</compte>
+                </destinataire>
+                <montant>300000</montant>
+                <motif>Pret pour projet immobilier</motif>
+                </virement>`)
+
                // console.log(attachment);
                // f(mail.attachments[0])
                 // Telechargement de fichier attaché 
@@ -77,29 +100,54 @@ export class MailHandler{
               
                
                
-                this.mailListener.on("attachment", function(attachment){
+                this.mailListener.on("attachment", function(attachment:any){
                    console.log("Attachement")
                    console.log(attachment.fileName)
-                  var file = fs.createWriteStream("./attachements/"+attachment.fileName);
-                     file.on('pipe',(file:File)=>{ 
+                  var file = fs.createWriteStream(DESTINATION_DIR+attachment.fileName);
+                   file.on('pipe',(file:File)=>{ 
                    console.log('Test download ')	
-                   });
+                     });
                    attachment.stream.on("end",()=>{
                      console.log("fin")
-                     fs.createReadStream('attachements/'+attachment.fileName)
-                     .pipe(unzip.Extract({ path: 'attachements/extracted' }));
-              
-                          fs.createReadStream('attachements/'+attachment.fileName)
-                         .pipe(unzip.Parse())
-                         .on('entry', function (entry:any) {
+                    /**
+                     * Troisieme methode de decompression mais rien ne marche 
+                     */
+                     /*
+                      var unzipper=new testCompress(DESTINATION_DIR+attachment.fileName)
+                     unzipper.on("error",(err)=>{
+                       console.log("aalo")
+                       console.log(err)
+                     }) 
+                     unzipper.on("extract",(err)=>{
+                        console.log("Test success")
+                     })
+                     unzipper.extract({
+                      path: TRAITES_DIR+attachment.fileName
+                  }); */
+                     /***
+                      *   2eme methode a essayer pour dezipper mais rien ne marche ++++
+                      *   si tu essaie ici et rien ne marche incremente le compteur 
+                      */
+                     /* decompress(DESTINATION_DIR+attachment.fileName, 
+                                TRAITES_DIR+attachment.fileName,
+                                ).then( files => {
+                        console.log('Fihcier decompresse avec succes !');
+                    }); */
+                        
+                     /*       fs.createReadStream(DESTINATION_DIR+attachment.fileName)
+                        .pipe(unzip.Extract({
+                            path:TRAITES_DIR
+                        })) */
+/*                         .pipe(unzip.Parse())
+                          .on('entry', function (entry:any) {
                            var fileName = entry.path;
                            var type = entry.type; // 'Directory' or 'File'
                      var size = entry.size;
                      console.log(entry)
                         console.log("Allo portto")
-                               entry.pipe(fs.createWriteStream('output/path'));
+                               entry.pipe(fs.createWriteStream(TRAITES_DIR+entry.path));
                        console.log("Test Ouverture")
-                         }); 
+                         });  */
                    })
               
                    attachment.stream.pipe(file)
@@ -113,8 +161,21 @@ export class MailHandler{
         }
 
    
-
+        stringToDate=(_date,_format,_delimiter)=>
+          {
+            var formatLowerCase=_format.toLowerCase();
+            var formatItems=formatLowerCase.split(_delimiter);
+            var dateItems=_date.split(_delimiter);
+            var monthIndex=formatItems.indexOf("mm");
+            var dayIndex=formatItems.indexOf("dd");
+            var yearIndex=formatItems.indexOf("yyyy");
+            var month=parseInt(dateItems[monthIndex]);
+            month-=1;
+            var formatedDate = new Date(dateItems[yearIndex],month,dateItems[dayIndex]);
+            return formatedDate;
+          }
 }
+
 
 
 
