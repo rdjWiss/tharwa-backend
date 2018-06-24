@@ -13,6 +13,7 @@ import {creerUserMiddleware, creerAutreCompteBancaireMiddleware, modifStatutMidd
 import { Converssion } from '../controllers/Converssion';
 import { CODE_PIN_VALIDITE } from '../models/Parametre';
 import { GestionBanque } from '../controllers/GestionBanque';
+import { Conversion } from '../controllers/Conversion';
 
 // Assigner à router l'instance de express.Router()
 const router: Router = Router();
@@ -23,6 +24,8 @@ const gestionVir = new GestionVirements();
 const converssion = new Converssion();
 const gestionBanque = new GestionBanque()
 
+const conversionApi = new Conversion()
+
 router.use(authMiddleware)
 //router.use(TokensExpireMiddleware)
 
@@ -32,15 +35,18 @@ router.get('/users/:userEmail',gestionComptes.userExist);//to oauth
 //Filtrer les comptes bancaires selon le statut (paramètre)
 router.get('/comptes/',WebMiddleware,gestionComptes.getComptes)
 //Mettre à jour le statut d'un compte bancaire
-router.put('/comptes/:numCompte',modifStatutMiddleware,WebMiddleware,gestionComptes.modifCompte)
+router.put('/comptes/:numCompte',modifStatutMiddleware,WebMiddleware,
+      gestionComptes.modifCompte)
 //Récuperer les comptes d'un user
 router.get('/users/:idUser/comptes',MobMiddleware,gestionComptes.getComptesClient)
 //Récupérer l'historique d'un compte
-router.get('/historique',accessTokenExpireMiddleware,pinCodeExpireMiddleware,
+router.get('/historique',/* accessTokenExpireMiddleware,pinCodeExpireMiddleware, */
             MobMiddleware,gestionComptes.getHistorique)
 //Récupérer les comptes pour déblocage selon des critères
-router.get('/comptes/rech/', WebMiddleware, accessTokenExpireMiddleware,
+router.get('/comptes/rech/', WebMiddleware, /* accessTokenExpireMiddleware, */
                   gestionComptes.getComptesParFiltrage)
+//Demande de déblocage
+router.post('/comptes/demandeDeblocage',MobMiddleware,gestionComptes.demandeDeblocage)
 
 
 //**** Création des comptes
@@ -61,8 +67,10 @@ router.get('/virements',WebMiddleware,gestionVir.getVirementAValider)
 //Modifier le statut d'un virement (valider/rejeter)
 router.put('/virements/:codeVir',modifStatutMiddleware,WebMiddleware,gestionVir.modifStatutVir)
 
+//To remove
+router.post('/convertir/test',converssion.convertir)
 //Taux de change
-router.post('/convertir/',converssion.convertir)
+router.post('/convertir',conversionApi.convertir)
 
 /** Gestion de la banque */
 router.get('/gestion/banquiers', WebMiddleware,/* accessTokenExpireMiddleware, */ gestionBanque.getListBanquiers)

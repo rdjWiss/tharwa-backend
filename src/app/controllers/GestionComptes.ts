@@ -7,12 +7,13 @@ import { sequelize } from '../../config/db';
 import { stat } from 'fs';
 import { MailController } from './mailController';
 import { verificationMail, validationCompteUserMail, rejetCompteUserMail,
-  validationCompteBankMail,rejetCompteBankMail } from '../../config/messages';
+  validationCompteBankMail,rejetCompteBankMail, blocageCompteBankMail, nouvelleDemandeCreationCompteNotifBanquier, nouvelleDemandeDeblocageCompteNotifBanquier, deblocageCompteBankMail } from '../../config/messages';
 import { COMPTE_EPARGNE, COMPTE_DEVISE, COMPTE_COURANT, typeCompteString } from '../models/TypeCompte';
 import { getMessageErreur } from '../../config/errorMsg';
 import { Virement } from '../models/Virement';
 import { CommissionVirement } from '../models/CommissionVirement';
 import { getTypeCommission } from '../models/Commission';
+import { DemandeDeblocage } from '../models/DemandeDeblocage';
 const Sequelize = require('cu8-sequelize-oracle');
 
 const VIR_ENTRE_COMPTES ='VEC'
@@ -78,7 +79,7 @@ export class GestionComptes{
   }
 
   //Récupérer les comptes d'un statut donné
-  public getComptes:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
+  public getComptes:Express.RequestHandler=(req:Express.Request,res:Express.Response,next:any)=>{
     let statut = parseInt(req.query.statut)
     console.log("GET /comptes?statut="+statut)
     
@@ -119,8 +120,16 @@ export class GestionComptes{
                 })
   
                 if(comptes.length == results.length){
-                  res.status(200)
-                  res.send(comptes) 
+                  if(statut != STATUT_COMPTE_BLOQUE){
+                    res.status(200)
+                    res.send(comptes) 
+                  }else{
+                    this.getCompteBloque(comptes,(comptes:any)=>{
+                      res.status(200)
+                      res.send(comptes) 
+                    })
+                  }
+                  
                 }
               });
             });
@@ -139,7 +148,26 @@ export class GestionComptes{
       });
     }
     
-  
+    
+  }
+
+  public getCompteBloque= function(comptes:any,callback:Function){
+
+      comptes.forEach((compte:any) => {
+        DemandeDeblocage.findOne({
+          where:{ num_compte : compte.compte.num_compte},
+          attributes:['date_demande','justif','num_compte']
+        }).then((found:any)=>{
+            if(found){
+              compte.demande = found.dataValues
+            }
+
+            if(compte == comptes[comptes.length-1]){
+              callback(comptes)
+            }
+        })
+      });
+
   }
 
   //Modifier le statut d'un compte bancaire
@@ -170,8 +198,8 @@ export class GestionComptes{
       }).then((result:any)=>{
         if(result){
           // if(!GestionComptes.isValidChangementStatut(result.statut_actuel,statut)){
-         if(!this.isValidChangementStatut(result.statut_actuel,statut)){ 
-          res.status(400)
+          if(!this.isValidChangementStatut(result.statut_actuel,statut)){ 
+            res.status(400)
             res.send({
               err:"Erreur",
               code_err:'C07',
@@ -180,7 +208,7 @@ export class GestionComptes{
           }  
           else{
             //Les modifications nécessitant un motif
-            if(GestionComptes.isChangementStatutNecessitantMotif(result.statut_actuel,statut) 
+            if(this.isChangementStatutNecessitantMotif(result.statut_actuel,statut) 
                 && motif==null){
               res.status(400)
               res.send({
@@ -259,16 +287,37 @@ export class GestionComptes{
                         .sendMail(user.email,objetMail,
                           message)
 
+                        res.status(200)
+                        res.send(result)
+                      }else if(statut == STATUT_COMPTE_BLOQUE){
+                          objetMail = "Compte tharwa bloqué"
+                          message = blocageCompteBankMail(user.nom,
+                              typeCompteString(compte.type_compte),motif)
+
+                          MailController
+                          .sendMail(user.email,objetMail,
+                            message)
+
                           res.status(200)
-                          res.send(result)
-                      }else {
-                      //TODO: traiter les autres cas
-                      //Actif -> Bloqué
-                      //Bloqué -> Actif
-                      res.status(200)
-                      res.send("OK")
-                      }
-                      
+                          res.send({})
+                      }else if(statut == STATUT_COMPTE_ACTIF){
+                        //Déblocage d'un compte 
+
+                        //Si demande de déblocage la supprimer
+                        this.accepterDemandeDeblocage(compte.num_compte,(result:any)=>{
+                          //Envoyer un mail au user
+                          objetMail = "Compte tharwa débloqué"
+                          message = deblocageCompteBankMail(user.nom,
+                              typeCompteString(compte.type_compte),motif)
+
+                          MailController
+                          .sendMail(user.email,objetMail,
+                            message)
+
+                          res.status(200)
+                          res.send({})
+                        }) 
+                      } 
                     }else{
                       res.status(401)
                       res.send({
@@ -309,17 +358,26 @@ export class GestionComptes{
       */
   }
 
-  public static isChangementStatutNecessitantMotif = function(ancienStatut:any, nouveauStatut:any):boolean{
+  public isChangementStatutNecessitantMotif = function(ancienStatut:any, nouveauStatut:any):boolean{
     return  (nouveauStatut == STATUT_COMPTE_REJETE 
           || nouveauStatut == STATUT_COMPTE_BLOQUE 
           || (ancienStatut == STATUT_COMPTE_BLOQUE && nouveauStatut == STATUT_COMPTE_ACTIF)) 
   }
 
+  public accepterDemandeDeblocage = function(numeroCompte:String,callback:Function){
+    //Rechercher si une demande de déblocage existe
+    DemandeDeblocage.destroy({
+      where:{num_compte:numeroCompte}
+    }).then((destroyed:any)=>{
+      callback()
+    })
+  }
+
   //Récupérer l'historique d'un user (de tout ses comptes)
   public getHistorique:Express.RequestHandler= (req:Express.Request,res:Express.Response,next:any)=>{
     let self = this
-    let user = req.user;
-    console.log('GET Historique ',user)
+    let user = parseInt(req.query.user)//req.user;
+    console.log('GET Historique?user= ',user)
 
     //Trouver les comptes de user
     Compte.findAll({ where: { id_user:user } })
@@ -457,9 +515,9 @@ export class GestionComptes{
 
   //Récupérer les comptes actifs pour BLOCAGE
   public getComptesParFiltrage:Express.RequestHandler= (req:Express.Request,res:Express.Response,next:any)=>{
-    let nom = req.query.nom || ''
-    let prenom = req.query.prenom || ''
-    let email = req.query.email || ''
+    let nom = req.query.recherche || ''
+    let prenom = req.query.recherche || ''
+    let email = req.query.recherche || ''
 
     console.log('nom',nom,'prenom',prenom,'email',email)
     Compte.findAll({
@@ -470,12 +528,13 @@ export class GestionComptes{
         {
           model:Userdb,
           where:{
-            $and:{
+            $or:{
               nom:sequelize.where(sequelize.fn('LOWER',sequelize.col('nom')),
               'LIKE','%'+nom+'%'),
               prenom: sequelize.where(sequelize.fn('LOWER',sequelize.col('prenom')),
                   'LIKE','%'+prenom+'%'),
-              email:{ $like: '%'+email+'%'}
+              email:sequelize.where(sequelize.fn('LOWER',sequelize.col('email')),
+              'LIKE','%'+email+'%'),
             }
           },
           attributes:['nom','prenom','adresse','telephone','email','photo']
@@ -493,64 +552,123 @@ export class GestionComptes{
             res.send(results)
           }
         });
+        else{
+          //Aucun résultat
+          res.status(200)
+          res.send(results)
+        }
       }else {
-        res.status(200)
+        //TODO: send error msg
+        res.status(400)
         res.send(results)
       }
         
     })
 
-    /* Userdb.findAll({
-      where:{
-        $and:{
-          nom:sequelize.where(sequelize.fn('LOWER',sequelize.col('nom')),
-          'LIKE','%'+nom+'%'),
-          prenom: sequelize.where(sequelize.fn('LOWER',sequelize.col('prenom')),
-              'LIKE','%'+prenom+'%'),
-          email:{ $like: '%'+email+'%'}
-        }
-      },
-      include:[
-        {
-          model:Compte
-        }
-      ],
-      attributes:['id','nom','prenom','adresse','telephone','email','photo']
-    }).then((users:any)=>{
-      if(!users){
+  }
 
-      }else{
-        let results:any = []
-        if(users.length!=0){
-          users.forEach((user:any) => {
-            Compte.findAll({
-              where:{
-                id_user:user.id
-              },
-              attributes:['num_compte','date_creation','statut_actuel','type_compte','code_monnaie','id_user']
-            }).then((comptes:any)=>{
-              if(!comptes){
+  //Demande de déblocage
+  public demandeDeblocage:Express.RequestHandler= (req:Express.Request,res:Express.Response,next:any)=>{
+    let self = this
+    let user = parseInt(req.query.user)//req.user;
+    let numCompte = req.body.num_compte
+    let justif = req.body.justif
+    console.log('POST /demandeDeblocage',numCompte)
 
+    if(!numCompte || !justif || !user){
+      res.status(400)
+      res.send({
+        err:"Requete invalide",
+        code_err:'C09',
+        msg_err: getMessageErreur('C09')
+      })
+    }else{
+      Compte.findOne({
+        where: {num_compte : numCompte}
+      }).then((result:any)=>{
+        if(!result){
+          res.status(400)
+          res.send({
+            err:"Requete invalide",
+            code_err:'C00',
+            msg_err: getMessageErreur('C00')
+          })
+        }else{
+          //Si le compte n'appartient pas au user
+          if(result.id_user != user){
+            res.status(400)
+            res.send({
+              err:"Requete invalide",
+              code_err:'C10',
+              msg_err: getMessageErreur('C10')
+            })
+          }
+          //Si le compte n'est pas bloqué
+          else if(result.statut_actuel != STATUT_COMPTE_BLOQUE){
+            res.status(400)
+            res.send({
+              err:"Requete invalide",
+              code_err:'C11',
+              msg_err: getMessageErreur('C11')
+            })
+          }else{
+            DemandeDeblocage.findOne({
+              where:{num_compte:numCompte }
+            }).then((found:any)=>{
+              if(found){
+                res.status(400)
+                res.send({
+                  err:"Requete invalide",
+                  code_err:'C12',
+                  msg_err: getMessageErreur('C12')
+                })
               }else{
-                console.log(comptes[0].dataValues)
-                results.push({
-                  user:user,
-                  comptes:comptes
+                let date = new Date()
+                //Créer la demande
+                DemandeDeblocage.create({
+                  justif:justif,
+                  num_compte:numCompte,
+                  date_demande:date.getTime()
+                }).then((created:any)=>{
+                  if(!created){
+                    res.status(400)
+                    res.send({
+                      err:"Erreur DB",
+                      code_err:'D12',
+                      msg_err: getMessageErreur('D12')
+                    })
+                  }else{
+                    //Envoyer mail de notifs aux banquiers
+                    this.notifierBanquierNouvelleDemandeDeblocage()
+                    res.status(200)
+                    res.send(created)
+                  }
                 })
               }
-
-              if(results.length == users.length){
-                res.status(200)
-                res.send(results)
-              }
             })
-          });
-        }else{
-          res.status(200)
-          res.send(users)
+            
+            
+          }
         }
+      })
+    }
+  }
+
+  public notifierBanquierNouvelleDemandeDeblocage=function(){
+
+    Userdb.findAll({
+      where:{
+        fonctionId:'B'
       }
-    }) */
+    }).then((banquiers:any)=>{
+      if(banquiers){
+        banquiers.forEach((banquier:any) => {
+          MailController
+          .sendMail(banquier.email,"Nouvelle demande de déblocage d'un compte Tharwa",
+          nouvelleDemandeDeblocageCompteNotifBanquier())
+        });
+      }
+    })
   }
 }
 

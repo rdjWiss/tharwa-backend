@@ -4,7 +4,7 @@ import { logger } from '../../config/logger';
 
 const https = require('https');
 const API_PATH='https://globalcurrencies.xignite.com/xGlobalCurrencies.json/';
-const API_TOKEN='52B4A9C2E57E44AEAA0D3CDE5167D7FC';
+const API_TOKEN='116F4A01160E4AFFAA20D074336DFF76';
 
 /**
  *  Class Converssion 
@@ -17,21 +17,21 @@ export class Converssion{
 
 
     public getTauxdeChange:Express.RequestHandler=(req:Express.Request,res:Express.Response)=>{
-            this.recupererTauxdeChange(
-                (response:any)=>{
-                        logger.taglog('info','Demande Taux de change ','Converison',['Conversion'])
-                        res.status(200)
-                        res.json(response)
-                  },
+        this.recupererTauxdeChange(
+            (response:any)=>{
+                logger.taglog('info','Demande Taux de change ','Converison',['Conversion'])
+                res.status(200)
+                res.json(response)
+            },
 
-                (error:any)=>{
-                    logger.taglog('error','erreur dans demande Taux de change ',error,['Bug','Conversion'])
-                        res.status(500)
-                        res.json({
-                            error:error
-                        })
-                }
-            )
+            (error:any)=>{
+                logger.taglog('error','erreur dans demande Taux de change ',error,['Bug','Conversion'])
+                res.status(500)
+                res.json({
+                    error:error
+                })
+            }
+        )
     }
 
     public recupererTauxdeChange(callback:Function,error:ErrorEventHandler){
@@ -48,9 +48,9 @@ export class Converssion{
 
         convertirMontant(montant, source, dest,
                      (reponse: any) => {
-                         logger.taglog("verbose","Conversion avec succes","Conversion ",["Conversion"])
-            res.status(200)
-            res.json(reponse)
+                logger.taglog("verbose","Conversion avec succes","Conversion ",["Conversion"])
+                res.status(200)
+                res.json(reponse)
             },
             (error: any) => {
                 logger.taglog("error","Probleme dans la conversion","Conversion",["Bug","Conversion"])
@@ -59,8 +59,7 @@ export class Converssion{
                     error: error
                 })
 
-            }    
-    )    
+            })    
     }
 
     private RequeteGet(url: string, callback: Function, error: ErrorEventHandler) {

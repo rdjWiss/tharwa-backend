@@ -27,9 +27,15 @@ router.post('/resetpassword',resetPassMiddleware, reset.askReset )
 
 //Refresh access token
 router.post('/refreshaccess',refreshTokenExpireMiddleware,refresh.refreshAccessToken)
-router.post('/testtokens',accessTokenExpireMiddleware,pinCodeExpireMiddleware,refresh.test)
 router.post('/refreshpin/1',accessTokenExpireMiddleware,auth.choisir )//refresh.refreshPinChoisir)
 router.post('/refreshpin/2',accessTokenExpireMiddleware,auth.verifyToken)
+
+//Route de vérification de validité du code pin
+router.get('/codepinvalide',pinCodeExpireMiddleware, refresh.codePinValide)
+
+//Route de test de validité (mobile)
+router.post('/testtokens',accessTokenExpireMiddleware,pinCodeExpireMiddleware,refresh.test)
+
 
 //Toutes les autres routes
 router.all('*',function(req,res){
