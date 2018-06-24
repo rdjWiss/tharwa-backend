@@ -42,7 +42,9 @@ export class Conversion{
             if(size == destinations.length){
               console.log(converted)
               res.status(200)
-              res.send(converted)
+              res.send({
+                conversion: converted
+              })
             }
         },
         (error: any) => {
