@@ -79,7 +79,7 @@ export class GestionComptes{
   }
 
   //Récupérer les comptes d'un statut donné
-  public getComptes:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
+  public getComptes:Express.RequestHandler=(req:Express.Request,res:Express.Response,next:any)=>{
     let statut = parseInt(req.query.statut)
     console.log("GET /comptes?statut="+statut)
     
@@ -120,8 +120,16 @@ export class GestionComptes{
                 })
   
                 if(comptes.length == results.length){
-                  res.status(200)
-                  res.send(comptes) 
+                  if(statut != STATUT_COMPTE_BLOQUE){
+                    res.status(200)
+                    res.send(comptes) 
+                  }else{
+                    this.getCompteBloque(comptes,(comptes:any)=>{
+                      res.status(200)
+                      res.send(comptes) 
+                    })
+                  }
+                  
                 }
               });
             });
@@ -140,7 +148,26 @@ export class GestionComptes{
       });
     }
     
-  
+    
+  }
+
+  public getCompteBloque= function(comptes:any,callback:Function){
+
+      comptes.forEach((compte:any) => {
+        DemandeDeblocage.findOne({
+          where:{ num_compte : compte.compte.num_compte},
+          attributes:['date_demande','justif','num_compte']
+        }).then((found:any)=>{
+            if(found){
+              compte.demande = found.dataValues
+            }
+
+            if(compte == comptes[comptes.length-1]){
+              callback(comptes)
+            }
+        })
+      });
+
   }
 
   //Modifier le statut d'un compte bancaire
