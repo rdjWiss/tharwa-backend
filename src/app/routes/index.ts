@@ -45,6 +45,8 @@ router.get('/historique',/* accessTokenExpireMiddleware,pinCodeExpireMiddleware,
 //Récupérer les comptes pour déblocage selon des critères
 router.get('/comptes/rech/', WebMiddleware, /* accessTokenExpireMiddleware, */
                   gestionComptes.getComptesParFiltrage)
+//Demande de déblocage
+router.post('/comptes/demandeDeblocage',MobMiddleware,gestionComptes.demandeDeblocage)
 
 
 //**** Création des comptes
@@ -65,8 +67,9 @@ router.get('/virements',WebMiddleware,gestionVir.getVirementAValider)
 //Modifier le statut d'un virement (valider/rejeter)
 router.put('/virements/:codeVir',modifStatutMiddleware,WebMiddleware,gestionVir.modifStatutVir)
 
-//Taux de change
+//To remove
 router.post('/convertir/test',converssion.convertir)
+//Taux de change
 router.post('/convertir',conversionApi.convertir)
 
 /** Gestion de la banque */

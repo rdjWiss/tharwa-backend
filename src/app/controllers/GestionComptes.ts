@@ -7,12 +7,13 @@ import { sequelize } from '../../config/db';
 import { stat } from 'fs';
 import { MailController } from './mailController';
 import { verificationMail, validationCompteUserMail, rejetCompteUserMail,
-  validationCompteBankMail,rejetCompteBankMail, blocageCompteBankMail } from '../../config/messages';
+  validationCompteBankMail,rejetCompteBankMail, blocageCompteBankMail, nouvelleDemandeCreationCompteNotifBanquier, nouvelleDemandeDeblocageCompteNotifBanquier } from '../../config/messages';
 import { COMPTE_EPARGNE, COMPTE_DEVISE, COMPTE_COURANT, typeCompteString } from '../models/TypeCompte';
 import { getMessageErreur } from '../../config/errorMsg';
 import { Virement } from '../models/Virement';
 import { CommissionVirement } from '../models/CommissionVirement';
 import { getTypeCommission } from '../models/Commission';
+import { DemandeDeblocage } from '../models/DemandeDeblocage';
 const Sequelize = require('cu8-sequelize-oracle');
 
 const VIR_ENTRE_COMPTES ='VEC'
@@ -259,8 +260,8 @@ export class GestionComptes{
                         .sendMail(user.email,objetMail,
                           message)
 
-                          res.status(200)
-                          res.send(result)
+                        res.status(200)
+                        res.send(result)
                       }else {
                         if(statut = STATUT_COMPTE_BLOQUE){
                           objetMail = "Compte tharwa bloqué"
@@ -272,7 +273,7 @@ export class GestionComptes{
                             message)
 
                           res.status(200)
-                          res.send("OK")
+                          res.send({})
                         }
                       //TODO: traiter les autres cas
                       //Actif -> Bloqué
@@ -570,6 +571,111 @@ export class GestionComptes{
         }
       }
     }) */
+  }
+
+
+  //Demande de déblocage
+  public demandeDeblocage:Express.RequestHandler= (req:Express.Request,res:Express.Response,next:any)=>{
+    let self = this
+    let user = parseInt(req.query.user)//req.user;
+    let numCompte = req.body.num_compte
+    let justif = req.body.justif
+    console.log('POST /demandeDeblocage',numCompte)
+
+    if(!numCompte || !justif || !user){
+      res.status(400)
+      res.send({
+        err:"Requete invalide",
+        code_err:'C09',
+        msg_err: getMessageErreur('C09')
+      })
+    }else{
+      Compte.findOne({
+        where: {num_compte : numCompte}
+      }).then((result:any)=>{
+        if(!result){
+          res.status(400)
+          res.send({
+            err:"Requete invalide",
+            code_err:'C00',
+            msg_err: getMessageErreur('C00')
+          })
+        }else{
+          //Si le compte n'appartient pas au user
+          if(result.id_user != user){
+            res.status(400)
+            res.send({
+              err:"Requete invalide",
+              code_err:'C10',
+              msg_err: getMessageErreur('C10')
+            })
+          }
+          //Si le compte n'est pas bloqué
+          else if(result.statut_actuel != STATUT_COMPTE_BLOQUE){
+            res.status(400)
+            res.send({
+              err:"Requete invalide",
+              code_err:'C11',
+              msg_err: getMessageErreur('C11')
+            })
+          }else{
+            DemandeDeblocage.findOne({
+              where:{num_compte:numCompte }
+            }).then((found:any)=>{
+              if(found){
+                res.status(400)
+                res.send({
+                  err:"Requete invalide",
+                  code_err:'C12',
+                  msg_err: getMessageErreur('C12')
+                })
+              }else{
+                let date = new Date()
+                //Créer la demande
+                DemandeDeblocage.create({
+                  justif:justif,
+                  num_compte:numCompte,
+                  date_demande:date.getTime()
+                }).then((created:any)=>{
+                  if(!created){
+                    res.status(400)
+                    res.send({
+                      err:"Erreur DB",
+                      code_err:'D12',
+                      msg_err: getMessageErreur('D12')
+                    })
+                  }else{
+                    //Envoyer mail de notifs aux banquiers
+                    this.notifierBanquierNouvelleDemandeDeblocage()
+                    res.status(200)
+                    res.send(created)
+                  }
+                })
+              }
+            })
+            
+            
+          }
+        }
+      })
+    }
+  }
+
+  public notifierBanquierNouvelleDemandeDeblocage=function(){
+
+    Userdb.findAll({
+      where:{
+        fonctionId:'B'
+      }
+    }).then((banquiers:any)=>{
+      if(banquiers){
+        banquiers.forEach((banquier:any) => {
+          MailController
+          .sendMail(banquier.email,"Nouvelle demande de déblocage d'un compte Tharwa",
+          nouvelleDemandeDeblocageCompteNotifBanquier())
+        });
+      }
+    })
   }
 }
 

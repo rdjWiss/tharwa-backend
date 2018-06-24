@@ -150,3 +150,8 @@ export const nouvelleDemandeCreationCompteNotifBanquier=function():string{
 export const nouveauVirAValiderNotifBanquier=function():string{
     return modeleMail('Banquier',`Une nouveau virement à valider a été effectué`)
 }
+
+export const nouvelleDemandeDeblocageCompteNotifBanquier=function():string{
+    return modeleMail('Banquier',`Une nouvelle demande de déblocage d'un compte
+    tharwa a été effectuée`)
+}

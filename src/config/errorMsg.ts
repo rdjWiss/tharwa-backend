@@ -36,6 +36,10 @@ let compteErrors = [
   { codeErr : 'C06', msg: `Statut erroné`},
   { codeErr : 'C07', msg: `Modification statut non permise`},
   { codeErr : 'C08', msg: `Motif obligatoire`},
+  { codeErr : 'C09', msg: `Veuillez fournir le numéro de compte et un justificatif`},
+  { codeErr : 'C10', msg: `Ce compte ne vous appartient pas`},
+  { codeErr : 'C11', msg: `Ce compte n'est pas bloqué`},
+  { codeErr : 'C12', msg: `Vous avez déjà effectué une demande de déblocage`},
 ]
 
 let virementErrors = [
@@ -69,6 +73,7 @@ let dbErrors = [
   { codeErr : 'D09', msg: `Èrreur de récupération de la liste des banquiers`},
   { codeErr : 'D10', msg: `Erreur de récupération des comptes`},
   { codeErr : 'D11', msg: `Erreur de récupération des virements`},
+  { codeErr : 'D12', msg: `Impossible de créer une demande de déblocage`},
 ]
 
 let banqueErrors = [
