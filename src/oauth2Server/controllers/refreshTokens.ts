@@ -11,9 +11,10 @@ var randtoken= require('rand-token');
 export class RefreshTokens{
 
   public refreshAccessToken:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
-    console.log('/refresh-access')
+    
 
     let user = req.body.user
+    console.log('/refresh-access',user )
 
     Userdb.findOne({
       where:{
@@ -28,6 +29,7 @@ export class RefreshTokens{
           msg_err:getMessageErreur('U03')
         })
       }else{
+        console.log('Refreshed access')
         res.status(200)
         res.send({
           access_token:Jwt.genAccessToken(user),

@@ -36,7 +36,7 @@ export const accessTokenExpireMiddleware:RequestHandler = function(req,res,next)
 export const pinCodeExpireMiddleware:RequestHandler = function(req,res,next){
 
   let pinCode = Jwt.decode(req.headers.code_pin)
-
+  console.log('code pin',req.headers.code_pin,pinCode)
   if(req.headers.client_id == '152'){
     if(!pinCode){
       res.status(400)
@@ -56,6 +56,7 @@ export const pinCodeExpireMiddleware:RequestHandler = function(req,res,next){
           userId: Jwt.validationReq(req.user)
         })
       }else{
+        console.log('code pin ok')
         next()
       }
     } 
@@ -86,7 +87,7 @@ export const refreshTokenExpireMiddleware:RequestHandler = function(req,res,next
       })
     }else{
       console.log(refreshToken)
-      req.body.user=refreshToken.id
+      req.body.user=refreshToken.id.id
       console.log('id:',req.body.user)
       next()
     }
