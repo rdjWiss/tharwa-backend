@@ -9,7 +9,8 @@ import { Commission} from './Commission'
 export var CommissionMensuelle= sequelize.define('CommissionMensuelle',{
 	
 	id_commission:{
-		type:Sequelize.NUMBER,
+		// primaryKey: true,
+		type:Sequelize.INTEGER,
 		validate: {
 			min:8
 		}
@@ -20,17 +21,17 @@ export var CommissionMensuelle= sequelize.define('CommissionMensuelle',{
 	},
 	montant_commission:{
 		type:Sequelize.DECIMAL,
-
 	}
 
-},{
+}/*, {
 	timestamps:false,
 	hooks:{
 		beforeCreate:(mensuelle:any,options:any)=>{
 			console.log("Test commission ... ");
 		}
-	}
-})
+	} 
+}*/
+)
 
 
 CommissionMensuelle.belongsTo(Commission, { as : 'commission', foreignKey:'id_commission' })

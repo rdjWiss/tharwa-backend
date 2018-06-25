@@ -7,7 +7,7 @@ import { sequelize } from '../../config/db';
 import { stat } from 'fs';
 import { MailController } from './mailController';
 import { verificationMail, validationCompteUserMail, rejetCompteUserMail,
-  validationCompteBankMail,rejetCompteBankMail, blocageCompteBankMail, nouvelleDemandeCreationCompteNotifBanquier, nouvelleDemandeDeblocageCompteNotifBanquier, deblocageCompteBankMail } from '../../config/messages';
+  validationCompteBankMail,rejetCompteBankMail, blocageCompteBankMail, nouvelleDemandeCreationCompteNotifBanquier, nouvelleDemandeDeblocageCompteNotifBanquier, deblocageCompteBankMail, verificationMessage } from '../../config/messages';
 import { COMPTE_EPARGNE, COMPTE_DEVISE, COMPTE_COURANT, typeCompteString } from '../models/TypeCompte';
 import { getMessageErreur } from '../../config/errorMsg';
 import { Virement } from '../models/Virement';
@@ -155,7 +155,7 @@ export class GestionComptes{
   public getCompteBloque=(comptes:any,callback:Function)=>{
 
       comptes.forEach((compte:any) => {
-        console.log('Compte',compte.compte.num_compte)
+        // console.log('Compte',compte.compte.num_compte)
         DemandeDeblocage.findOne({
           where:{ num_compte : compte.compte.num_compte},
           attributes:['date_demande','justif','num_compte']
@@ -197,7 +197,7 @@ export class GestionComptes{
             date_statut : result.date_statut
           }
         }).then((found:any)=>{
-          console.log(found.dataValues)
+          // console.log(found.dataValues)
           callback(found)
         })
       }
@@ -709,7 +709,19 @@ export class GestionComptes{
     })
   }
 
- 
+  //Notifications commissions de gestion
+  public notifierClientCommissionGestion:Express.RequestHandler= (req:Express.Request,res:Express.Response,next:any)=>{
+    console.log('notfier commission gestion',req)
+    /* let commissionCourant = parseInt(req.query.courant)
+    let commissionEpargne = parseInt(req.query.epargne)
+    let commissionDevise = parseInt(req.query.devise)
+    let email = req.query.email
+    let nom = req.query.nom
+    console.log(commissionCourant,commissionEpargne,commissionDevise,email,nom)
+    MailController.sendMail(email,'MAIL',verificationMessage('1232',nom)) */
+    res.status(200)
+    res.send('ok')
+  }
 }
 
   
