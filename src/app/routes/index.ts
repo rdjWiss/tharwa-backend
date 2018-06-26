@@ -14,6 +14,8 @@ import { Converssion } from '../controllers/Converssion';
 import { CODE_PIN_VALIDITE } from '../models/Parametre';
 import { GestionBanque } from '../controllers/GestionBanque';
 import { Conversion } from '../controllers/Conversion';
+import { NotificationController } from '../controllers/NotificationController';
+import { StatistiqueController } from '../controllers/StatistiqueController';
 
 // Assigner à router l'instance de express.Router()
 const router: Router = Router();
@@ -25,6 +27,8 @@ const converssion = new Converssion();
 const gestionBanque = new GestionBanque()
 
 const conversionApi = new Conversion()
+const notifControl = new NotificationController()
+const stat = new StatistiqueController()
 
 router.use(authMiddleware)
 //router.use(TokensExpireMiddleware)
@@ -39,7 +43,7 @@ router.post('/comptes/demandeDeblocage',MobMiddleware,
     gestionComptes.demandeDeblocage)
 //Récuperer les comptes d'un user
 router.get('/users/:idUser/comptes',MobMiddleware,
-    accessTokenExpireMiddleware,pinCodeExpireMiddleware, 
+    /* accessTokenExpireMiddleware,pinCodeExpireMiddleware,  */
     gestionComptes.getComptesClient)
 //Récupérer l'historique d'un compte
 router.get('/historique',
@@ -70,8 +74,8 @@ router.post('/notifier/commissionGestion',gestionComptes.notifierClientCommissio
 //Créer un nouveau compte utilisateur
 router.post('/users',creerUserMiddleware,creationComptes.creerCompteUser)//to oauth
 //Créer un autre compte bancaire
-router.post('/comptes',creerAutreCompteBancaireMiddleware,MobMiddleware,
-    accessTokenExpireMiddleware,pinCodeExpireMiddleware, 
+router.post('/comptes',/* creerAutreCompteBancaireMiddleware, */MobMiddleware,
+   /*  accessTokenExpireMiddleware,pinCodeExpireMiddleware,  */
     creationComptes.creerCompteBancaire)
 
 
@@ -79,15 +83,15 @@ router.post('/comptes',creerAutreCompteBancaireMiddleware,MobMiddleware,
 //Client
 //Récupérer le seuil de validation d'un virement
 router.get('/virements/seuil',MobMiddleware,
-    accessTokenExpireMiddleware,pinCodeExpireMiddleware, 
+    /* accessTokenExpireMiddleware,pinCodeExpireMiddleware,  */
     gestionVir.getSeuil)
 //Effectuer virements entre comptes du meme client
-router.post('/virements/1',effectuerVirMiddleware,MobMiddleware,
-    accessTokenExpireMiddleware,pinCodeExpireMiddleware, 
+router.post('/virements/1',/* effectuerVirMiddleware, */MobMiddleware,
+    /* accessTokenExpireMiddleware,pinCodeExpireMiddleware,  */
     gestionVir.virementEntreComptes)
 //Effectuer virement entre clients tharwa
-router.post('/virements/2',effectuerVirMiddleware,MobMiddleware, 
-    accessTokenExpireMiddleware,pinCodeExpireMiddleware,
+router.post('/virements/2',/* effectuerVirMiddleware, */MobMiddleware, 
+    /* accessTokenExpireMiddleware,pinCodeExpireMiddleware, */
     gestionVir.virementEntreClientsTharwa)
 
 //Banquier   
@@ -129,6 +133,17 @@ router.put('/gestion/banques/:codeBanque',WebMiddleware,
 router.delete('/gestion/banques/:codeBanque',WebMiddleware,
   /* accessTokenExpireMiddleware, */
   gestionBanque.supprimerBanque)
+
+//Notifications
+router.get('/notification/:idUser',MobMiddleware,
+  /* accessTokenExpireMiddleware,pinCodeExpireMiddleware, */
+  gestionComptes.getNotifications)
+
+
+//Dashboard
+router.get('/stats/mois/:a/:m',stat.getTotalVirementMois)  
+router.get('/stats/semestre/:a/:s',stat.getTotalVirementSemestre)  
+router.get('/stats/annee/:a',stat.getTotalVirementAnnee)  
 
 
 //TODO: remove

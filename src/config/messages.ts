@@ -161,3 +161,9 @@ export const nouvelleDemandeDeblocageCompteNotifBanquier=function():string{
     return modeleMail('Banquier',`Une nouvelle demande de déblocage d'un compte
     tharwa a été effectuée`)
 }
+
+export const commissionGestionMail=function(username:string, message:string):string{
+//TODO: ajouter code monnaie
+var msg =  modeleMail(username,message)     
+return msg
+}

@@ -5,15 +5,16 @@ import {Compte} from '../../app/models/Compte'
 import { AvoirStatut } from '../models/AvoirStatut';
 import {Parametre, NUM_SEQ_COMPTE} from '../models/Parametre'
 import {Monnaie, monnaies} from '../models/Monnaie'
-import {TypeCompte, typeComptes, COMPTE_COURANT, COMPTE_EPARGNE, COMPTE_DEVISE} from '../models/TypeCompte'
+import {TypeCompte, typeComptes, COMPTE_COURANT, COMPTE_EPARGNE, COMPTE_DEVISE, typeCompteString} from '../models/TypeCompte'
 
-import {GestionComptes} from './GestionComptes'
+import {GestionComptes, creerNotif} from './GestionComptes'
 import { type } from 'os';
 import { MailController } from './mailController';
 import { creationCompteUserBanquierMail, creationCompteUserClientMail, nouvelleDemandeCreationCompteNotifBanquier } from '../../config/messages';
 import { Sequelize } from '../../config/db';
 import { getMessageErreur } from '../../config/errorMsg';
 import { logger } from '../../config/logger';
+import { STATUT_COMPTE_AVALIDER } from '../models/StatutCompte';
 
 var crypto = require('crypto')
 var base64 = require('node-base64-image')
@@ -125,7 +126,8 @@ export class CreationComptes{
                   .sendMail(created.email,"Création compte utilisateur THARWA",
                   creationCompteUserClientMail(created.nom))
                   notifierBanquierNouveauCompteAValider()
-                  
+
+                                    
                   res.status(200);
                   res.send({
                     msg:"Le compte a été créé",
@@ -149,6 +151,9 @@ export class CreationComptes{
                 .sendMail(created.email,"Création compte banquier THARWA",
                   creationCompteUserBanquierMail(created.nom,created.email,password))
                 
+                  creerNotif(created.id,'Création compte banquier THARWA',
+                    'Votre compte banquier THARWA a été créé avec succès.')
+                  
                 res.status(200);
                 res.send({
                 //  msg:"Le compte a été crée",
@@ -293,15 +298,19 @@ export class CreationComptes{
                       //Ajouter le statut à l'historique
                       AvoirStatut.create({
                         num_compte: created2.num_compte,
-                        id_statut: 1,
+                        id_statut: STATUT_COMPTE_AVALIDER,
                       }).then( (result:any) => {
                         //console.log("Statut crée")
 
                         MailController
-                        .sendMail(created2.email,"Création compte utilisateur THARWA",
+                        .sendMail(created2.email,"Création compte bancaire THARWA",
                         creationCompteUserClientMail(created2.nom))
-                        //TODO: send mail to banquier !!
+
                         notifierBanquierNouveauCompteAValider()
+
+                        let type = typeCompteString(typeCompte)
+                        creerNotif(user,'Création compte bancaire THARWA',
+                        'Votre demande de création de compte bancaire '+type +' THARWA a été prise en compte.')
 
                         res.status(200);
                         res.send({

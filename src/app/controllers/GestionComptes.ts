@@ -7,13 +7,15 @@ import { sequelize } from '../../config/db';
 import { stat } from 'fs';
 import { MailController } from './mailController';
 import { verificationMail, validationCompteUserMail, rejetCompteUserMail,
-  validationCompteBankMail,rejetCompteBankMail, blocageCompteBankMail, nouvelleDemandeCreationCompteNotifBanquier, nouvelleDemandeDeblocageCompteNotifBanquier, deblocageCompteBankMail, verificationMessage } from '../../config/messages';
+  validationCompteBankMail,rejetCompteBankMail, blocageCompteBankMail, nouvelleDemandeCreationCompteNotifBanquier, nouvelleDemandeDeblocageCompteNotifBanquier, deblocageCompteBankMail, verificationMessage, commissionGestionMail } from '../../config/messages';
 import { COMPTE_EPARGNE, COMPTE_DEVISE, COMPTE_COURANT, typeCompteString } from '../models/TypeCompte';
 import { getMessageErreur } from '../../config/errorMsg';
 import { Virement } from '../models/Virement';
 import { CommissionVirement } from '../models/CommissionVirement';
 import { getTypeCommission } from '../models/Commission';
 import { DemandeDeblocage } from '../models/DemandeDeblocage';
+import { Notification } from '../models/Notification';
+import { CommissionMensuelle } from '../models/CommissionMensuelle';
 const Sequelize = require('cu8-sequelize-oracle');
 
 const VIR_ENTRE_COMPTES ='VEC'
@@ -71,8 +73,28 @@ export class GestionComptes{
             id_user:id_user
           }
         }).then((comptes:any)=>{
-          res.status(200)
-          res.send({ comptes: comptes} )
+          // console.log(comptes)
+          if(comptes){
+            comptes.forEach((compte:any) => {
+              console.log('Compte',compte.num_compte)
+              DemandeDeblocage.findOne({
+                where:{ num_compte : compte.num_compte},
+                attributes:['date_demande','justif','num_compte']
+              }).then((found:any)=>{
+                  if(found){
+                    console.log(found.dataValues)
+                    compte.dataValues.demande = true
+                  }
+      
+                  if(compte == comptes[comptes.length-1]){
+                    res.status(200)
+                    res.send({ comptes: comptes} )
+                  }
+                
+              })
+            });
+            
+          }
         })
       }
     })
@@ -295,6 +317,8 @@ export class GestionComptes{
                             console.log(user.email)
                             message = validationCompteUserMail(user.nom)
                             objetMail = "Validation compte THARWA"
+                            creerNotif(compte.id_user,objetMail,
+                              'Votre compte tharwa  a été validé')
                           }else{
                             // validation d'un autre compte bancaire, le msg est diff
                             if(compte.type_compte==COMPTE_EPARGNE){
@@ -305,11 +329,18 @@ export class GestionComptes{
                               message = validationCompteBankMail(user.nom,"devise")
                             }
                             objetMail = "Validation compte bancaire THARWA"
+
+                            creerNotif(compte.id_user,objetMail,
+                              'Votre compte tharwa '+typeCompteString(compte.type_compte)
+                            + ' a été validé')
                           }
                         }else if (statut==STATUT_COMPTE_REJETE){
                           if(compte.type_compte == COMPTE_COURANT){
                             message = rejetCompteUserMail(user.nom,motif)
                             objetMail = "Rejet compte THARWA"
+
+                            creerNotif(compte.id_user,objetMail,
+                              'Votre compte tharwa a été rejeté')
                           }else{
                             //TODO: validation d'un autre compte bancaire, le msg est diff
                             if(compte.type_compte==COMPTE_EPARGNE){
@@ -318,6 +349,10 @@ export class GestionComptes{
                               message = rejetCompteBankMail(user.nom,"devise",motif)
                             }
                             objetMail = "Rejet création compte bancaire THARWA"
+
+                            creerNotif(compte.id_user,objetMail,
+                              'Votre compte tharwa '+typeCompteString(compte.type_compte)
+                            + ' a été rejeté')
                           }
                         }
 
@@ -336,6 +371,11 @@ export class GestionComptes{
                           .sendMail(user.email,objetMail,
                             message)
 
+                            creerNotif(compte.id_user,objetMail,
+                              'Votre compte tharwa '+typeCompteString(compte.type_compte)
+                            + ' a été bloqué')
+  
+
                           res.status(200)
                           res.send({})
                       }else if(statut == STATUT_COMPTE_ACTIF){
@@ -351,6 +391,10 @@ export class GestionComptes{
                           MailController
                           .sendMail(user.email,objetMail,
                             message)
+
+                            creerNotif(compte.id_user,objetMail,
+                            'Votre compte tharwa '+typeCompteString(compte.type_compte)
+                          + ' a été débloqué')
 
                           res.status(200)
                           res.send({})
@@ -425,15 +469,25 @@ export class GestionComptes{
         comptes.forEach((compte:any) => {
           numComptes.push(compte.num_compte)
           if(numComptes.length == comptes.length){
-            self.getHistoriqueVir(self,numComptes, function(historique:Array<any>, codesVir:any){
+            self.getHistoriqueVir(self,numComptes,comptes, function(historique:Array<any>, codesVir:any){
               if(historique.length != 0){
                 self.getHistoriqueCommissionVir(codesVir, function(commissions:Array<any>){
                   historique =  historique.concat(commissions)
-                  historique = historique.sort((a:any, b:any)=>{
-                    return (a.dataValues.date > b.dataValues.date)? -1 : 1
+                  self.getHistoriqueCommissionGestion(numComptes,function(commissions:any){
+                    historique =  historique.concat(commissions)
+                    historique = historique.sort((a:any, b:any)=>{
+                      return (a.dataValues.date > b.dataValues.date)? -1 : 1
+                    })
+                    res.status(200)
+                    res.send(historique)
+                  },(err:any)=>{
+                    res.status(500)
+                  res.send({
+                    err:"Erreur DB",
+                    code_err:err,
+                    msg_err: getMessageErreur(err)
                   })
-                  res.status(200)
-                  res.send(historique)
+                  })  
                 },(err:any)=>{
                   res.status(500)
                   res.send({
@@ -479,7 +533,8 @@ export class GestionComptes{
     else return ''
   }
 
-  public getHistoriqueVir = function(classSelf:any,listComptes:Array<string>,callback:Function,
+  public getHistoriqueVir = function(classSelf:any,listComptes:Array<string>,
+    comptes:any,callback:Function,
     error:ErrorEventHandler) {
       console.log('Get historique virements')
       //Trouver les virements émis ou reçus par ces comptes
@@ -504,6 +559,8 @@ export class GestionComptes{
           virements.forEach((vir:any) => {
             vir.dataValues.type = classSelf.getTypeVirement(listComptes,vir.emmetteur,vir.recepteur)
             vir.dataValues.date = vir.date_virement
+            vir.dataValues.montant = vir.dataValues.montant+' '+vir.dataValues.emmetteur.substr(-3)
+
             historique.push(vir)
             codesVir.push(vir.code_virement)
             // console.log(vir.dataValues)
@@ -536,6 +593,41 @@ export class GestionComptes{
             if(commissions.length != 0){
               commissions.forEach((commission:any) => {
                   commission.dataValues.type='CV'
+                  commission.dataValues.date = commission.date_commission
+                  // console.log(getTypeCommission(commission.dataValues.id_commission))
+                  commission.dataValues.id_commission = getTypeCommission(commission.dataValues.id_commission)
+                  if(commission == commissions[commissions.length - 1]){
+                    callback(commissions)
+                  }
+              });
+            }else{
+              callback(commissions)
+            }
+            
+          }
+      })
+  }
+
+  public getHistoriqueCommissionGestion = function(listComptes:Array<string>, callback:Function,
+    error:ErrorEventHandler){
+      console.log('Get historique commissions gestion')
+      CommissionMensuelle.findAll({
+        where:{
+          num_compte:{
+            $or: listComptes
+          }
+        },
+        order:[
+          ['date_commission','DESC']
+        ],
+        attributes:['id_commission','montant_commission','date_commission']
+      }).then((commissions:any)=>{
+          if(!commissions){
+            error('D04')
+          }else{
+            if(commissions.length != 0){
+              commissions.forEach((commission:any) => {
+                  commission.dataValues.type='CG'
                   commission.dataValues.date = commission.date_commission
                   // console.log(getTypeCommission(commission.dataValues.id_commission))
                   commission.dataValues.id_commission = getTypeCommission(commission.dataValues.id_commission)
@@ -711,17 +803,72 @@ export class GestionComptes{
 
   //Notifications commissions de gestion
   public notifierClientCommissionGestion:Express.RequestHandler= (req:Express.Request,res:Express.Response,next:any)=>{
-    console.log('notfier commission gestion',req)
-    /* let commissionCourant = parseInt(req.query.courant)
+    console.log('notfier commission gestion',req.body)
+    let commissionCourant = parseInt(req.query.courant)
     let commissionEpargne = parseInt(req.query.epargne)
     let commissionDevise = parseInt(req.query.devise)
     let email = req.query.email
     let nom = req.query.nom
     console.log(commissionCourant,commissionEpargne,commissionDevise,email,nom)
-    MailController.sendMail(email,'MAIL',verificationMessage('1232',nom)) */
+    MailController.sendMail(email,'MAIL',commissionGestionMail(nom,'message'))
     res.status(200)
     res.send('ok')
   }
+
+  //Notifications
+  public getNotifications:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
+    
+    let idUser = req.params.idUser
+    console.log('Notifications',idUser)
+
+    Notification.findAll({
+      where:{ id_user:idUser}
+    }).then((found:any)=>{
+      if(!found){
+        res.status(400)
+        res.send({
+
+        })
+      }else{
+        if(found.length== 0 ){
+          res.status(200)
+          res.send({
+            notifs:found
+          })
+        }else{
+          // console.log(found)
+          let notifsId:any = []
+          found.forEach((notif:any) => {
+            notifsId.push(notif.id_notif)
+            if(notifsId.length == found.length){
+              Notification.destroy({
+                where:{
+                  $or:{
+                    id_notif:notifsId
+                  }
+                }
+              }).then(()=>{
+                res.status(200)
+                res.send({
+                  notifs:found
+                })
+              })
+            }
+          });
+        }
+      }
+    })
+
+  }
 }
 
+export function creerNotif(idUser:number,titre:string,message:string){
+  Notification.create({
+    id_user:idUser,
+    titre:titre,
+    message:message
+  }).then((created:any)=>{
+    console.log('Notification',created.dataValues)
+  })
+}
   

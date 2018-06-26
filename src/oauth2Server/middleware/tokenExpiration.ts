@@ -95,6 +95,7 @@ export const refreshTokenExpireMiddleware:RequestHandler = function(req,res,next
 }
 
 export const tokenExpired= function(token:any,dateNow:any):boolean{
+  console.log(token,dateNow.getTime())
   if (token < dateNow.getTime()) return true
   else return false
 }

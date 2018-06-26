@@ -3,7 +3,7 @@ import { accesTokenResponse } from "./config/authserver";
 import { getCodePinTime } from "../app/models/Parametre";
 const secretJwt = "Le*%5623code&856)de='766hascdq0%/*hage(-dq562"
 
-const accessTokenExpireTime = 5 //min
+const accessTokenExpireTime = 1*60 //1 heure
 const refreshTokenExpireTime = 3*60 //3 heures
 
 //Créer un token de validation à partir du userid en entrée
@@ -26,6 +26,7 @@ export function genToken(user:any,fonction:string, codeV:any,callback:Function,
   var refreshToken = genRefreshToken(user);
   //Récupérer le parmètre: durée de validité du code pin   
   getCodePinTime(function(time:any){
+    console.log('time',time)
     var verificationToken = jwtsimple.encode({
       exp: expiresIn(time),//parametre
       code:codeV

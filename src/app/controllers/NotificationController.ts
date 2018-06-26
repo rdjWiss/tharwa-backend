@@ -1,12 +1,15 @@
 import { redis } from "../../config/redis";
 import { logger } from "../../config/logger";
 import {} from 'typescript-ioc'
+import * as Express from 'express'
 export var socket = require('socket.io')
+import {Notification} from '../../app/models/Notification'
 var backup:any
 
 
 export class NotificationController{
   private static instance:NotificationController
+
   public static  getSockets=()=>{
     if( NotificationController.instance==null) {
       console.log("premier instanciations")
@@ -28,28 +31,30 @@ export class NotificationController{
       console.log('test ')
       // console.log(client)
       client.emit('ack','Bienvenue a nous !!')
-      console.log(client)
+      // console.log(client)
+      // console.log(notif.sockets)
       client.emit('inscription','Bienvenue a nous !!')
       client.on("inscription",function(test:any){
         console.log("inscription de l'utilisateur "+test.email)
         console.log(test.email)
         redis.set(test.email,test.socketId)
         logger.taglog("debug","Reception d'un web socket",test,["Connexion SocketIo"])
-        })
+        
+        // notif.to(test.socketId).emit("notif", '"hello');
+      
+      })
+
+
     })
     notif.on('ack',function(msg:any){
       console.log('ack',msg)
 
-    })
-
- 
-
-    
+    })    
   }
 
   public notifierUser=(socketId:any,message:any)=>{
         console.log(NotificationController.connected)
-
+        // NotificationController.connected.to(socketId).emit("notif", '"hello');
     }
   
   public notifierUserByMail=(mail:string)=>{

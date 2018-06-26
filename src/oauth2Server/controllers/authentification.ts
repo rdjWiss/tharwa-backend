@@ -13,6 +13,8 @@ import { errorMsg } from "../config/authserver";
 import { verificationMail,verificationMessage } from '../../config/messages'
 import { Compte } from '../../app/models/Compte';
 import { getMessageErreur } from '../../config/errorMsg';
+import { STATUT_COMPTE_BLOQUE } from '../../app/models/StatutCompte';
+import { DemandeDeblocage } from '../../app/models/DemandeDeblocage';
 
 export class OAuthnetification{
     
@@ -165,7 +167,7 @@ choisir= function (req:Express.Request,res:Express.Response) {
   }
 }
 
-verifyToken= function (req:Express.Request,res:Express.Response){
+verifyToken=  (req:Express.Request,res:Express.Response)=>{
   console.log("/vérifier");
   const token = req.body.token //Code de vérification
   const user = req.body.user //token de vérification
@@ -254,7 +256,8 @@ verifyToken= function (req:Express.Request,res:Express.Response){
                 result.used=1
                 result.attempts=result.attempts+1
                 result.save()
-                Jwt.genToken(infoUser,infoUser.fonctionId, result.token,function(auth:any){
+                Jwt.genToken(infoUser,infoUser.fonctionId, result.token,
+                  (auth:any)=>{
                   //const auth=Jwt.genToken(infoUser,infoUser.fonctionId, result.token)
                   console.log("Logged In")
 
@@ -264,9 +267,17 @@ verifyToken= function (req:Express.Request,res:Express.Response){
                     },attributes:['num_compte','balance','date_creation', 
                       'type_compte','code_monnaie','statut_actuel']
                   }).then((comptes:any)=>{
-                    auth.comptes = comptes
-                    res.status(200)
-                    res.send(auth); 
+                    if(comptes.length == 0){
+                      res.status(200)
+                      res.send(auth);
+                      return;
+                    }
+                    this.getDemandeDeblocage(comptes,function(comptes:any){
+                      auth.comptes = comptes
+                      res.status(200)
+                      res.send(auth);
+                    })
+                     
                   })
                 },(error:any)=>{
                   res.status(500);
@@ -282,5 +293,25 @@ verifyToken= function (req:Express.Request,res:Express.Response){
         })
       }
     }
+  }
+
+  public getDemandeDeblocage(comptes:any, callback:Function){
+    comptes.forEach((compte:any) => {
+      console.log('Compte',compte.num_compte)
+      DemandeDeblocage.findOne({
+        where:{ num_compte : compte.num_compte},
+        attributes:['date_demande','justif','num_compte']
+      }).then((found:any)=>{
+          if(found){
+            console.log(found.dataValues)
+            compte.dataValues.demande = true
+          }
+
+          if(compte == comptes[comptes.length-1]){
+            callback( comptes )
+          }
+        
+      })
+    });
   }
 }

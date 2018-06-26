@@ -19,6 +19,7 @@ import { COMPTE_COURANT, COMPTE_DEVISE, typeCompteString, COMPTE_EPARGNE } from 
 import { CommissionVirement } from '../models/CommissionVirement';
 import { getMessageErreur } from '../../config/errorMsg';
 import { logger } from '../../config/logger';
+import { creerNotif } from './GestionComptes';
 
 var base64 = require('node-base64-image')
 let conversion = new Converssion()
@@ -135,7 +136,7 @@ export class GestionVirements{
                 src:src,
                 dest:dest,
                 statut:statut,
-                user: comptes[0].id_user,
+                user: comptes[indiceSrc].id_user, //indiceSrc=0??
               }
               // console.log(vir)
               
@@ -165,6 +166,13 @@ export class GestionVirements{
                     MailController
                     .sendMail(user.email,
                       "Virement entre vos comptes",msg)
+
+                      creerNotif(comptes[indiceSrc].id_user,
+                        "Virement entre vos comptes",
+                      'Vous venez d\'effectuer un virement de '+vir.montant+' '+
+                      comptes[indiceSrc].code_monnaie+
+                      'entre vos comptes '+typeCompteString(comptes[indiceSrc].type_compte)
+                    +' et '+typeCompteString(comptes[1-indiceSrc].type_compte))
 
                   },(error:any)=>{
                     res.status(500);
@@ -215,12 +223,21 @@ export class GestionVirements{
     let montant = req.body.montant
     let motif = req.body.motif
     let justif = req.body.justif
-    let typeDest = req.body.type || 'NUM'  //EMAIL
+    let typeDest = req.body.type //|| 'NUM'  //EMAIL
     console.log(src,"to",dest,typeDest)
     
     //true si dest thw sinon vers externe
     let virTHW = (dest.substr(0,3)=="THW")
 
+    if(typeDest == 'MICRO' && montant>5000){
+      res.status(400);
+        res.send({
+        err:"Bad request",
+        code_err:'V15',
+        msg_err:"Virement NFC ne peut pas dépasser 5000 DZD"
+      })
+      return;
+    }
     //Récupérer le seuil de validation
     GestionVirements.getSeuilVirement(function(seuil:number){
       if(+montant>=seuil && !justif){
@@ -345,7 +362,8 @@ export class GestionVirements{
           },
         }
       }).then((comptes:any)=>{   
-      //On a récupéré moins de deux comptes 
+      //On a récupéré moins de deux comptes
+      //Un des comptes est erroné 
       if(comptes.length<2){
         error("V10" )
       }else {
@@ -428,6 +446,11 @@ export class GestionVirements{
                           .sendMail(found.email,
                             "Virement émis",
                             msg)
+
+                      creerNotif(comptes[indiceSrc].id_user,"Virement émis",
+                      'Vous venez d\'effectuer un virement de '+req.montant+' DZD vers '+
+                    'le compte '+req.dest)
+
                     },(err:any)=>{
                       console.log(err)
                       error(err)
@@ -446,6 +469,11 @@ export class GestionVirements{
                         .sendMail(found.email,
                           "Virement reçu",
                           virRecuMail(found.nom,req.src,req.montant)) 
+
+                      creerNotif(comptes[1-indiceSrc].id_user,"Virement reçu",'Vous venez de recevoir un '+
+                      'virement de '+req.montant+' DZD depuis le compte '+req.src
+                      )
+
                       }, (err:any)=>{
                         error(err)
                       })
@@ -561,7 +589,11 @@ export class GestionVirements{
         }
       }).then((results:any)=>{
         var virs:any = []
-
+        if(results.length == 0){
+          res.status(200)
+          res.send(results)
+          return;
+        }
         results.forEach((vir:any) => {
           GestionVirements.getVirSrcDest({
             src:vir.emmetteur,
@@ -699,15 +731,25 @@ export class GestionVirements{
                           objetMail = "Validation virement"
                           msg= validationVirSortantMail(user.nom,comptes[1-indiceSrc].num_compte,
                           virement.montant)
+
+                          creerNotif(user.id,objetMail,
+                          'Votre virement vers le compte '+comptes[1-indiceSrc].num_compte+
+                         ' a été validé')
+
                       }else if(statut == STATUT_VIR_REJETE){
                         objetMail = "Rejet virement"
                         msg = rejetVirSortantMail(user.nom,virement.emmetteur, 
                             motif)
+                        creerNotif(user.id,objetMail,
+                          'Votre virement vers le compte '+comptes[1-indiceSrc].num_compte+
+                          ' a été rejeté')
                       }
                       MailController
                         .sendMail(user.email,
                           objetMail,msg
                         )
+
+                      
                     },(error:any)=>{
                       res.status(400)
                       res.send({
@@ -722,8 +764,14 @@ export class GestionVirements{
                       getUserContact(comptes[1-indiceSrc].id_user,function(user:any){
                         MailController
                         .sendMail(user.email,
-                          'Virement reçu',virRecuMail(user.nom,virement.emmetteur,virement.montant)
+                          'Virement reçu',
+                          virRecuMail(user.nom,virement.emmetteur,virement.montant)
                         )
+
+                        creerNotif(user.id,'Virement reçu',
+                        'Vous venez de recevoir un virement de '+virement.montant+
+                        ' depuis le compte'+virement.emmetteur)
+
                       },(error:any)=>{
                         res.status(400);
                         res.send({

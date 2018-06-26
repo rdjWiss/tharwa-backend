@@ -1,6 +1,7 @@
 import { Virement } from "../models/Virement";
 import { Compte } from "../models/Compte";
 import { Userdb } from "../../oauth2Server/models/User";
+import { STATUT_VIR_VALIDE } from "../models/StatutVirement";
 const Sequelize = require('cu8-sequelize-oracle');
 const xmlParser=require("xml2js-parser")
 
@@ -17,10 +18,11 @@ export class VirementExtController{
                     return 
                 }
                 console.log(result)
-                this.virementFromExterne(result.virement)
-               // Virement.create({
+                let virement=this.virementFromExterne(result.virement)
+              /*   Virement.create({
 
-                //})
+                }) */
+
             })
     }
 
@@ -56,25 +58,33 @@ export class VirementExtController{
                         externe.date[0].substring(8,10), externe.date[0].substring(10,12))
  
                     var nouveau ={
-                       // montant:externe.montant[0],
+                        montant:externe.montant[0]+".00",
                         code_virement:externe.numero[0],
                         motif:externe.motif[0],
                       //  date_virement:now,
                         emmetteur:  externe.titulaire[0].compte[0],
-                        recepteur: externe.destinataire[0].compte[0] 
+                        recepteur: externe.destinataire[0].compte[0] ,
+                        statut_virement:STATUT_VIR_VALIDE
                     }
-                    console.log(nouveau)
-                    Virement.create(nouveau)
-                            .then(test=>{
-                                console.log(test)
-                            },err=>{
-                                console.log(err)
-                            })
+                  
+                    Virement.create({
+                        code_virement:"THW000002DZDTHW000002DZD20180204105510",
+                       //
+                        montant:62,//nouveau.montant,
+                        motif:"RZDFfdz",
+                      //  date_virement:Date.now,
+                        emmetteur:"THW000001DZD",//nouveau.emmetteur,
+                        recepteur:"THW000005DZD",//nouveau.recepteur,
+                        statut_virement:2//nouveau.statut_virement
+                      }).then((created:any)=>{
+                        console.log("Creation avec success")
+                    })
+                    return nouveau
                 })
              
                 
             })
-           
+           //
            
 
     }
@@ -92,4 +102,6 @@ export class VirementExtController{
       var formatedDate = new Date(dateItems[yearIndex],month,dateItems[dayIndex]);
       return formatedDate;
     }
+
+     
 }
