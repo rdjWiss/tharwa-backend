@@ -6,6 +6,11 @@ id_type_compte numeric(2) primary key,
 designation varchar (128)unique not null
 );
 */
+//Si on ajoute un autre type, il faut ajouter du traitement, so ..
+export const COMPTE_COURANT = 1
+export const COMPTE_EPARGNE = 2
+export const COMPTE_DEVISE = 3
+export var typeComptes = [1,2,3]
 
 export const TypeCompte = sequelize.define('typecompte', {
     id_type:{
@@ -21,8 +26,14 @@ export const TypeCompte = sequelize.define('typecompte', {
   },{}
 );
 
-//TODO: récupérer types comptes de la bdd
-export var typeComptes = [1,2,3]
+export function typeCompteString(type:number):string{
+  var typeString : string = ''
+  if(type== COMPTE_COURANT) typeString='Courant'
+  else if(type== COMPTE_EPARGNE) typeString='Epargne'
+  else if(type== COMPTE_DEVISE) typeString='Devise'
+  return typeString
+}
+
 /*
 1: Courant
 2: Epargne

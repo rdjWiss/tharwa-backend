@@ -539,9 +539,9 @@ return `<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional //EN" "http://
                         <div class="column" style="text-align: left;color: #333;font-size: 14px;line-height: 21px;font-family: Georgia,serif;max-width: 600px;min-width: 320px; width: 320px;width: calc(28000% - 167400px);">
                           <div style="Margin-left: 20px;Margin-right: 20px;">
                               <h2 style="Margin-top: 0;Margin-bottom: 0;font-style: normal;font-weight: normal;color: #333;font-size: 17px;line-height: 26px;"><strong>Cher `+username+`,  </strong></h2>
-                            <h3 style="Margin-top: 16px;Margin-bottom: 0;font-style: normal;font-weight: normal;color: #333;font-size: 16px;line-height: 24px;">
+                            <p style="Margin-top: 16px;Margin-bottom: 0;font-style: normal;font-weight: normal;color: #333;font-size: 16px;line-height: 24px;">
                             `+msg+`
-                            </h3>
+                            </p>
                             
 
                           </div>

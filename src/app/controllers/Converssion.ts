@@ -1,9 +1,10 @@
 
 import * as Express from 'express'
+import { logger } from '../../config/logger';
 
 const https = require('https');
 const API_PATH='https://globalcurrencies.xignite.com/xGlobalCurrencies.json/';
-const API_TOKEN='4B23560587454FD7B7F14AAD97D42933';
+const API_TOKEN='116F4A01160E4AFFAA20D074336DFF76';
 
 /**
  *  Class Converssion 
@@ -15,20 +16,22 @@ const API_TOKEN='4B23560587454FD7B7F14AAD97D42933';
 export class Converssion{
 
 
-    public getTauxdeChange:Express.RequestHandler=function(req:Express.Request,res:Express.Response){
-            this.recupererTauxdeChange(
-                (response:any)=>{
-                        res.status(200)
-                        res.json(response)
-                  },
+    public getTauxdeChange:Express.RequestHandler=(req:Express.Request,res:Express.Response)=>{
+        this.recupererTauxdeChange(
+            (response:any)=>{
+                logger.taglog('info','Demande Taux de change ','Converison',['Conversion'])
+                res.status(200)
+                res.json(response)
+            },
 
-                (error:any)=>{
-                        res.status(500)
-                        res.json({
-                            error:error
-                        })
-                }
-            )
+            (error:any)=>{
+                logger.taglog('error','erreur dans demande Taux de change ',error,['Bug','Conversion'])
+                res.status(500)
+                res.json({
+                    error:error
+                })
+            }
+        )
     }
 
     public recupererTauxdeChange(callback:Function,error:ErrorEventHandler){
@@ -38,25 +41,25 @@ export class Converssion{
     }
     
     public convertir:Express.RequestHandler=function(req:Express.Request,res:Express.Response){
-        
+        console.log("-------------------------------Convertir")
         let source=req.body.source
         let   dest=req.body.destination
         let montant=req.body.montant
 
-        this.convertirMontant(montant, source, dest,
+        convertirMontant(montant, source, dest,
                      (reponse: any) => {
-                        console.log("Conversion termine ")
-                    res.status(200)
-                    res.json(reponse)
-                    },
-                    (error: any) => {
-                        res.status(500)
-                        res.send({
-                            error: error
-                        })
+                logger.taglog("verbose","Conversion avec succes","Conversion ",["Conversion"])
+                res.status(200)
+                res.json(reponse)
+            },
+            (error: any) => {
+                logger.taglog("error","Probleme dans la conversion","Conversion",["Bug","Conversion"])
+                res.status(500)
+                res.send({
+                    error: error
+                })
 
-                    }    
-    )    
+            })    
     }
 
     private RequeteGet(url: string, callback: Function, error: ErrorEventHandler) {
@@ -76,15 +79,22 @@ export class Converssion{
         });
     }
 
-    public  convertirMontant(montant:number,codeMonnaieSrc:string,
+   
+}
+export function  convertirMontant(montant:number,codeMonnaieSrc:string,
         codeMonnaieDest:string,callback:Function,errorHandler:ErrorEventHandler){
         console.log("Conversion de monnaie")
         let url =   API_PATH+'ConvertRealTimeValue?From='+
                     codeMonnaieSrc+'&To='+
                     codeMonnaieDest+'&Amount='+montant
                     +'&_token='+API_TOKEN;
-
-        this.RequeteGet(url,callback,errorHandler)
+        let response={
+            montant:montant,
+            montant_converti:montant*100,
+            taux_change:100,
+        }
+        callback(response)
+      
+        //  this.RequeteGet(url,callback,errorHandler)
 
         }
-    }

@@ -20,8 +20,11 @@ primary key (num_compte,id_status,statut_date)
 export const AvoirStatut = sequelize.define('AvoirStatut', {
 	date_statut: {
 			allowNull:false,
-	    	type: Sequelize.DATE,
-					defaultValue: Sequelize.NOW
+			type: Sequelize.DATE,
+			defaultValue: Sequelize.NOW
+	},
+	motif:{
+		type: Sequelize.STRING,
 	}
 },{
 	timestamps:false,

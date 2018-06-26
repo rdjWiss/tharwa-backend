@@ -1,13 +1,9 @@
 var oauthServer=require("oauth2-server");
-var Request = oauthServer.Request;
-var Response = oauthServer.Response;
 var randtoken= require('rand-token');
-var jwtconf = require('../jwtconf')
 var crypto = require('crypto')
 
 import * as Jwt from '../jwtconf'
 import * as Express from 'express'
-
 
 import {Userdb} from '../models/User'
 import { SmsController  } from '../../app/controllers/smsController'
@@ -16,25 +12,29 @@ import { VerificationToken } from '../models/VerificationToken';
 import { errorMsg } from "../config/authserver";
 import { verificationMail,verificationMessage } from '../../config/messages'
 import { Compte } from '../../app/models/Compte';
+import { getMessageErreur } from '../../config/errorMsg';
+import { STATUT_COMPTE_BLOQUE } from '../../app/models/StatutCompte';
+import { DemandeDeblocage } from '../../app/models/DemandeDeblocage';
+
 export class OAuthnetification{
     
 
 login:Express.RequestHandler=function (req:Express.Request,res:Express.Response,next:any){
   console.log("/login");
 
-  var appKey = req.headers.client_id
+  var cleApp = req.headers.client_id
   var fct ;
   //Vérifier la fonction du user
   //Seuls les clients et Employeurs peuvent utiliser l'application mobile
   //Et seuls les gestionnaires et banquiers l'application web
-  if(appKey=="152") fct = ["C","E"]
+  if(cleApp=="152") fct = ["C","E"]
   else fct = ["G","B"]
-  let cryptedPassword = crypto.createHash('md5').update(req.body.password).digest('hex')
+  let mdpCrypte = crypto.createHash('md5').update(req.body.password).digest('hex')
   
   Userdb.findOne({
     where: {
       'email':req.body.email,
-      'password': cryptedPassword,
+      'password': mdpCrypte,
       'fonctionId':{
         $or: fct
       },
@@ -44,13 +44,17 @@ login:Express.RequestHandler=function (req:Express.Request,res:Express.Response,
     if(!user){
       res.status(401);
       res.send({
-        err: "Bad Credentials"
+        err: "Bad Credentials",
+        code_err:"A05",
+        msg_err:getMessageErreur('A05')
       })     
     }else{
       if(user.active == "FALSE"){
         res.status(401);
         res.send({
-          err: "Compte non actif"
+          err: "Accès non autorisé",
+          code_err:"A06",
+          msg_err:getMessageErreur('A06')
         })  
       }else{
         res.status(200)
@@ -72,8 +76,9 @@ choisir= function (req:Express.Request,res:Express.Response) {
   if(!choix || !userHash) {
     res.status(400);
     res.send({
-      error: "Invalid Request",
-      error_description:"Verifiez les champs choix et user"
+      err: "Invalid Request",
+      code_err:"A07",
+      msg_err:getMessageErreur('A07')
     })
   }else {
     let user=Jwt.decode(userHash)
@@ -81,8 +86,9 @@ choisir= function (req:Express.Request,res:Express.Response) {
     if(!user) {
       res.status(401);
       res.send({
-        error: "Access Denied",
-        error_description:"Le token est invalid"
+        err: "Access Denied",
+        code_err:"A10",
+        msg_err:getMessageErreur('A10')
       })
     }else{//Sinon
       var verificationToken:string;
@@ -94,28 +100,28 @@ choisir= function (req:Express.Request,res:Express.Response) {
       }).then((result:any) =>{
         if(result){
           //Si token non utilisé, l'utiliser
-          if(result.used == -1 && result.attempts >= 3){
+          if(result.used == -1 && result.attempts <3){
             verificationToken = result.token
-            console.log(verificationToken);
+            // console.log(verificationToken)
+            result.attempts++
           }else{
             //Génération d'un nouveau code de vérification
             verificationToken= randtoken.generator({
               chars: '0-9'
             }).generate(4)  
             console.log(verificationToken); 
+            result.token=verificationToken;
+            result.attempts=0;
+            result.used=-1;
+            result.expire= user.exp;
           }
           
-          result.token=verificationToken;
-          result.attempts=0;
-          result.used=-1;
-          result.expire= user.exp;
           result.save()
 
         }else{
           verificationToken= randtoken.generator({
             chars: '0-9'
-          }).generate(4)  
-          console.log(verificationToken); 
+          }).generate(4)    
 
           VerificationToken.create({
             userdbId: user.id,
@@ -125,7 +131,7 @@ choisir= function (req:Express.Request,res:Express.Response) {
             expire: user.exp
           })
         }
-
+        console.log(verificationToken); 
         Userdb.findById(user.id)
         .then((result:any)=>{
           if(choix=='SMS'){
@@ -138,27 +144,22 @@ choisir= function (req:Express.Request,res:Express.Response) {
             })
                                   
           }else if(choix=='MAIL'){
-            console.log('Sending mail')
             MailController
-              .sendMail("no-reply@tharwa.dz",
-                  result.email,"Code de vérification",
-                  verificationMail(verificationToken,result.nom))
-              .then((response:any)=>{
-                  console.log("Mail Sent")
-                  res.status(200)
-                  res.send({
-                      Message: "Mail sent"
-                  })
-                 //res.send()
-              }).catch((error:any)=>{
-                console.log("Impossible d'envoyer le code.")
-                  res.status(500)
-                  res.send("Impossible d'envoyer le code. ")
-                })
+            .sendMail(result.email,"Code de vérification",
+              verificationMail(verificationToken,result.nom))
+            res.status(200)
+            res.send({
+                Message: "Mail sent "+verificationToken,
+                code:verificationToken
+            })
           }
           else{
               res.status(400)
-              res.send('Invalid Request')
+              res.send({
+                err: "Requete invalide",
+                code_err:"A08",
+                msg_err:getMessageErreur('A08')
+              })
           }
         })
       });  
@@ -166,7 +167,7 @@ choisir= function (req:Express.Request,res:Express.Response) {
   }
 }
 
-verifyToken= function (req:Express.Request,res:Express.Response){
+verifyToken=  (req:Express.Request,res:Express.Response)=>{
   console.log("/vérifier");
   const token = req.body.token //Code de vérification
   const user = req.body.user //token de vérification
@@ -174,16 +175,18 @@ verifyToken= function (req:Express.Request,res:Express.Response){
   if(!token || !user  ){
     res.status(400);
     res.send({
-    error: "Requete invalide",
-    error_description:"Verifier les champs token et user"
+    err: "Requete invalide",
+    code_err:"A09",
+    msg_err:getMessageErreur('A09')
     })
   }else{
     let userClair=Jwt.decode(user)
     if(!userClair) {
       res.status(401);
       res.send({
-        error: "Accès refusé",
-        error_description:"Le user Hash est invalide"
+        err: "Accès refusé",
+        code_err:"A10",
+        msg_err:getMessageErreur('A10')
       })
     }else{
       console.log(userClair)
@@ -195,37 +198,43 @@ verifyToken= function (req:Express.Request,res:Express.Response){
         }
       }).then((result:any) =>{
         var dateNow = new Date();
+        // console.log(userClair < new Date().getTime(),result.dataValues)
         if(!result) {
           res.status(401);
           res.send({
-            error: "Accès refusé",
-            error_description:"Le token est invalide"
+            err: "Accès refusé",
+            code_err:"A10",
+            msg_err:getMessageErreur('A10')
           })
         }else if(result.expire < dateNow.getTime()){
           result.used=0;
           result.save()
           res.status(401);
           res.send({
-            error: "Accès refusé",
-            error_description:"Le token a expiré"
+            err: "Accès refusé",
+            code_err:"A04",
+            msg_err:getMessageErreur('A04')
           })
         }else if(result.token != token){
           var retour ={
-            error: "Accès refusé",
-            error_description:""
+            err: "Accès refusé",
+            code_err:"",
+            msg_err:""
           }
 
           //console.log(token);
-          console.log(result.attempts);
+          // console.log(result.attempts);
           result.attempts=result.attempts+1
           
           if(result.attempts == 3){
             result.used=0 //Le token n'a pas été utilisé mais a dépassé les attempts
             //Ne peut plus etre utilisé
-            retour.error_description = "Le token incorrect. Nombre d'essai dépassé. Redirection";
+            retour.code_err = 'A14'
+            retour.msg_err = getMessageErreur('A14');
           }
           else {
-            retour.error_description = "Le token incorrect";
+            retour.code_err = 'A11'
+            retour.msg_err = getMessageErreur('A11');
           }
           result.save()
           res.status(401);
@@ -234,8 +243,9 @@ verifyToken= function (req:Express.Request,res:Express.Response){
           if(result.attempts==3){
             res.status(401);
             res.send({
-              error: "Accès refusé",
-              error_description:"Le nombre d'essai est dépassé"
+              err: "Accès refusé",
+              code_err:"A12",
+              msg_err:getMessageErreur('A12')
             })
           }else{
             
@@ -246,26 +256,62 @@ verifyToken= function (req:Express.Request,res:Express.Response){
                 result.used=1
                 result.attempts=result.attempts+1
                 result.save()
-                const auth=Jwt.genToken(infoUser,infoUser.fonctionId, result.token)
-                console.log("Logged In")
+                Jwt.genToken(infoUser,infoUser.fonctionId, result.token,
+                  (auth:any)=>{
+                  //const auth=Jwt.genToken(infoUser,infoUser.fonctionId, result.token)
+                  console.log("Logged In")
 
-                Compte.findAll({
-                  where:{
-                    id_user:infoUser.id,
-                  },attributes:['num_compte','balance','date_creation', 
-                    'type_compte','code_monnaie','statut_actuel']
-                }).then((comptes:any)=>{
-                  auth.comptes = comptes
-                  res.status(200)
-                  res.send(auth); 
+                  Compte.findAll({
+                    where:{
+                      id_user:infoUser.id,
+                    },attributes:['num_compte','balance','date_creation', 
+                      'type_compte','code_monnaie','statut_actuel']
+                  }).then((comptes:any)=>{
+                    if(comptes.length == 0){
+                      res.status(200)
+                      res.send(auth);
+                      return;
+                    }
+                    this.getDemandeDeblocage(comptes,function(comptes:any){
+                      auth.comptes = comptes
+                      res.status(200)
+                      res.send(auth);
+                    })
+                     
+                  })
+                },(error:any)=>{
+                  res.status(500);
+                  res.send({
+                    err: "Erreur Serveur",
+                    code_err:error,
+                    msg_err:getMessageErreur(error)
+                  })
                 })
-
-                
               })
             }
           }
         })
       }
     }
+  }
+
+  public getDemandeDeblocage(comptes:any, callback:Function){
+    comptes.forEach((compte:any) => {
+      console.log('Compte',compte.num_compte)
+      DemandeDeblocage.findOne({
+        where:{ num_compte : compte.num_compte},
+        attributes:['date_demande','justif','num_compte']
+      }).then((found:any)=>{
+          if(found){
+            console.log(found.dataValues)
+            compte.dataValues.demande = true
+          }
+
+          if(compte == comptes[comptes.length-1]){
+            callback( comptes )
+          }
+        
+      })
+    });
   }
 }

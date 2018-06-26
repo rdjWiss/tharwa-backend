@@ -7,6 +7,10 @@ designation varchar(128) unique not null,
 valeur number(10) not null
 );
 */
+export const CODE_PIN_VALIDITE = 3
+export const NUM_SEQ_COMPTE = 2
+export const SEUIL_VALID_VIR = 1
+export const EMAIL_THARWA = 4 
 
 export const Parametre = sequelize.define('Parametre', {
   id_param:{
@@ -30,11 +34,17 @@ export const Parametre = sequelize.define('Parametre', {
 },{}
 );
 
-//Récupérer le seuil de validation des virement
-Parametre.findOne({
-  where:{id_param:1}
-}).then((result:any)=>{
-  seuil = +result.valeur
-});
-
-export var seuil:any
+export function getCodePinTime(callback:Function, error:ErrorEventHandler){
+  Parametre.findOne({
+    where:{
+      id_param:CODE_PIN_VALIDITE
+    }
+  }).then((param:any)=>{
+    if(!param){
+      error('D08')
+    }else{
+      // console.log(param.valeur)
+      callback(param.valeur)//min
+    }
+  })
+}

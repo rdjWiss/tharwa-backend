@@ -1,6 +1,10 @@
 var jwtsimple =require('jwt-simple');
 import { accesTokenResponse } from "./config/authserver";
-export const secretJwt = "Le*%5623code&856)de='766hashage(-dq562"
+import { getCodePinTime } from "../app/models/Parametre";
+const secretJwt = "Le*%5623code&856)de='766hascdq0%/*hage(-dq562"
+
+const accessTokenExpireTime = 1*60 //1 heure
+const refreshTokenExpireTime = 3*60 //3 heures
 
 //Créer un token de validation à partir du userid en entrée
 export function validationReq(userid:any):string{
@@ -12,58 +16,76 @@ export function validationReq(userid:any):string{
 }
 
 //Générer un access token et refresh token
-export function genToken(user:any,fonction:string, codeV:any): accesTokenResponse{
-    var expires = expiresIn(60*2); // 2 Heures
-    var accessToken = jwtsimple.encode({
-        exp: expires,
-        userId: user.id
-    },secretJwt);
-    var refreshToken = genRefreshToken(user);
+export function genToken(user:any,fonction:string, codeV:any,callback:Function,
+        error:ErrorEventHandler){
+  var expires = expiresIn(accessTokenExpireTime); // 5min
+  var accessToken = jwtsimple.encode({
+    exp: expires,
+    id: user.id
+  },secretJwt);
+  var refreshToken = genRefreshToken(user);
+  //Récupérer le parmètre: durée de validité du code pin   
+  getCodePinTime(function(time:any){
+    console.log('time',time)
     var verificationToken = jwtsimple.encode({
-        exp: expiresIn(60),//1 heure
-        userId: user.id
+      exp: expiresIn(time),//parametre
+      code:codeV
     },secretJwt);
-    return {
-        verification_token: verificationToken,
-        access_token: accessToken ,
-        refresh_token: refreshToken,
-        expires_in: expires,
-        token_type:"bearer", 
-        scope: fonction,
-        user:user,
-        comptes:Array<object>()
-    };
+    callback({
+      code_pin: verificationToken,
+      access_token: accessToken ,
+      refresh_token: refreshToken,
+      expires_in: expires,
+      token_type:"bearer", 
+      scope: fonction,
+      user:user,
+      comptes:Array<object>()
+    });
+  },(err:any)=>{
+    error('A13')
+  }) 
 }
 
 //Génére un refresh token qui expire dans 3 heures
-function genRefreshToken(user:any) {
-    var expiration = expiresIn(60*3);
+export function genRefreshToken(user:any) {
+    var expiration = expiresIn(refreshTokenExpireTime);
     var rtoken = jwtsimple.encode({
         exp: expiration,
-        user: user
+        id: user
     }, secretJwt)
     return rtoken;
 
 }
 
+export function genAccessToken(user:any){
+  var expiration = expiresIn(accessTokenExpireTime);
+  var token = jwtsimple.encode({
+    exp: expiration,
+    id: user
+}, secretJwt)
+return token;
+}
+
 //Décode le validation token 
-export const decode=function(hash:any){
+export const decode=function(hash:any):any{
     try {
         var result= jwtsimple.decode(hash,secretJwt)
+        // console.log(result)
         return result
     } catch (error) {
         return null
     }
 }
 
-export const encode=function(object:any){
+export const encode=function(object:any):any{
     return jwtsimple.encode({
+        id: object.id,
         exp: object.exp
     },secretJwt);
 }
 
 //Génére une date d'expiration
-function expiresIn(numMinutes:number) {
+export function expiresIn(numMinutes:number) {
     var dateObj = new Date();
     return dateObj.setMinutes(dateObj.getMinutes() + numMinutes);
 }
