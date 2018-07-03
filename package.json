@@ -9,7 +9,9 @@
     "build:live": "nodemon --exec ./node_modules/.bin/ts-node -- ./src/app/server.ts",
     "test-unit": "tsc |  mocha './build/tests/unitTests/creationCompte.test.js'  | exit 1",
     "test": "tsc || mocha ./build/tests/userAuth.test.js && exit(1) ",
-    "seed": "tsc || node ./build/tests/seeds/fonction.seed.js || node ./build/tests/seeds/user.seed.js || node ./build/tests/seeds/verificationToken.seed.js "
+    "seed": "tsc || node ./build/tests/seeds/fonction.seed.js || node ./build/tests/seeds/user.seed.js || node ./build/tests/seeds/verificationToken.seed.js ",
+    "snyk-protect": "snyk protect",
+    "prepare": "npm run snyk-protect"
   },
   "author": "Djamel Dahmane",
   "license": "ISC",
@@ -46,7 +48,8 @@
     "winston-daily-rotate-file": "^3.1.4",
     "winston-logstash": "^0.4.0",
     "xml2js": "^0.4.19",
-    "xml2js-parser": "^1.1.1"
+    "xml2js-parser": "^1.1.1",
+    "snyk": "^1.88.0"
   },
   "devDependencies": {
     "@types/chai": "^4.1.2",
@@ -65,5 +68,6 @@
     "mocha": "^5.1.0",
     "nodemon": "^1.17.3",
     "ts-node": "^5.0.0"
-  }
+  },
+  "snyk": true
 }
