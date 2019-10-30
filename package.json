@@ -38,7 +38,7 @@
     "rand-token": "^0.4.0",
     "redis": "^2.8.0",
     "sendgrid": "^5.2.3",
-    "sequelize": "^4.37.6",
+    "sequelize": "^5.15.1",
     "socket.io": "^2.1.0",
     "typescript-ioc": "^1.2.4",
     "unzip": "^0.1.11",
