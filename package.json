@@ -39,7 +39,7 @@
     "redis": "^2.8.0",
     "sendgrid": "^5.2.3",
     "sequelize": "^4.37.6",
-    "socket.io": "^2.1.0",
+    "socket.io": "^3.0.0",
     "typescript-ioc": "^1.2.4",
     "unzip": "^0.1.11",
     "winston": "^2.4.2",
